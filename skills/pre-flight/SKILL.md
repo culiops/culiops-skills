@@ -297,6 +297,8 @@ If the read fails (no access, token not approved, repo too large for the API), o
 
 Inline mode: also leave out what the caller's `Live results:` cover (Layer 3). Run the target check without a stop (Constraint 2), even when no other read is needed. A live identity that differs from the caller's `Target:` is a stop: run nothing further, score nothing and give no verdict. Return `target mismatch (live <identity> vs Target <x>)` to the caller, which stops there.
 
+Inline mode: when `Target:` names a profile or credential chain (e.g. `account <id> / <region> via profile <p> (assumed-role <role>)`), run the target check and every L3 read through it, and compare the identity it returns with `Target:`. A read through any other credentials is not evidence about the target.
+
 If no, or if queries fail:
 - Score category 10 as ⚪ unknown
 - Note "L3 not requested" or "L3 unavailable for [category]" in the report
