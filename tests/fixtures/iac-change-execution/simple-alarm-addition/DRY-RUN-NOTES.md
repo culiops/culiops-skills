@@ -109,3 +109,12 @@ _(to be filled during actual dry-run)_
 ## Fixes applied
 
 _(to be filled during actual dry-run)_
+
+## Baseline (v0.17.0)
+
+Run: `baseline-output/`, skill text from `origin/main` (v0.17.0), operator script mapped by meaning.
+
+- **Stops: 15** (`grep -c '^STOP ' baseline-output/stops.md`); 1 `unscripted` (pre-flight L2: the assessor's "applied recently?" question had no script answer).
+- Sequence: delivery model, read batch, GATE 1, GATE 2, 4a target check, pre-flight GATE 1, L2, L3 opt-in, pre-flight GATE 2, GATE 3, heads-up offer, GATE 4, poll offer, GATE 5, result-message offer.
+- Verdict GREEN. Outcome: PR opened, nothing applied.
+- GATE 3 repeats the acknowledgement already taken at pre-flight GATE 2.

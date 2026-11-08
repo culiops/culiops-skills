@@ -117,3 +117,11 @@ _(to be filled during actual dry-run)_
 ## Fixes applied
 
 _(to be filled during actual dry-run)_
+
+## Baseline (v0.17.0)
+
+Run: `baseline-output/`, skill text from `origin/main` (v0.17.0), operator script mapped by meaning.
+
+- **Stops: 11**; 0 `unscripted`.
+- Verdict GREEN, from the existing pre-flight record (reused: same plan hash, target and window). Outcome: PR opened.
+- The skill refused both "skip the code gate" and "don't run pre-flight" under "gates are non-negotiable" (SKILL.md:70). It made no distinction between a soft stop and a hard gate.

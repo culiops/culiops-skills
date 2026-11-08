@@ -131,3 +131,11 @@ _(to be filled during actual dry-run)_
 ## Fixes applied
 
 _(to be filled during actual dry-run)_
+
+## Baseline (v0.17.0)
+
+Run: `baseline-output/`, skill text from `origin/main` (v0.17.0), operator script mapped by meaning.
+
+- **Stops: 25**; 2 `unscripted` (health-check offers).
+- Verdict RED soft block in both pre-flights. Outcome: both phases applied and verified.
+- Phase 2, an operational reboot with no code, repeated every gate, including GATE 2 and the 4a target check. Pre-flight GATE 2 and iac GATE 3 asked for the same acknowledgement twice per phase.
