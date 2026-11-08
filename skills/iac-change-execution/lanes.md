@@ -151,7 +151,7 @@ Rules for all lanes:
 - **Code before the first stop** (light and dev only): create the branch and write the code before `[A]` / `[D1]` only when `git status` is clean. Otherwise stop and ask, as today. Full lane: no code before `[F2]` is approved.
 - **Multi-phase** (full lane): each phase gets `[F3]` and `[F4]`.
   - A phase with no IaC code change (an operational command only, such as an RDS reboot) has no `[F3]`. Its command is shown and approved at `[F4]` (H2).
-  - Each phase's first stop (`[F3]`, or `[F4]` when the phase has no `[F3]`) shows the previous phase's success-criteria result. The separate phase gate goes away.
+  - Each phase's first stop (`[F3]`, or `[F4]` when the phase has no `[F3]`) shows the previous phase's verification result (Step 5a: the re-plan and the success-criteria reads). The separate phase gate goes away.
   - A failed success criterion stops the run, as today.
   - In the dev lane, each phase gets its own `[D1]` (H2).
 - **Observation window** (staging → prod): no stop of its own. Light lane: prod's `[B]` comes once staging's success criteria pass. Full lane: see Staging-first.
