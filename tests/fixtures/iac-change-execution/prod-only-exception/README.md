@@ -48,6 +48,6 @@ Stop target: **4 stops**, in this order: `F1`, `F2`, `F3`, `F4`.
 - No `H3` stop. The prod phase has `- Parity check: n/a`: the parity check runs only when a staging phase ran for this change, and under the prod-only exception (b) none ran. The same holds under exceptions (a) and (c): the record says `Parity check: n/a`.
 - If the skill plans staging, it uses the canned `No changes.` plan as the evidence that staging has nothing to rehearse.
 - `**Environment tier:** staging=staging (...)` and `prod=prod (...)`, each citing the pin and the identity account.
-- If pre-flight runs inline, the complete canned data supports GREEN: an alarm edit that only notifies is not app-facing (`skills/pre-flight/assessors/iac-change.md:172`, `:215`), the SNS subscriptions are email, the threshold change is reversible (`docs.md`), and the live reads are nominal. A RED verdict is a finding to investigate, not an accepted extra stop.
+- If pre-flight runs inline, the complete canned data supports GREEN or YELLOW (no `[H5]`); the canned CPU peaks of 71.4 and 74.0 cross the 70% default and match the alarm history that justifies the change. An alarm edit that only notifies is not app-facing (`skills/pre-flight/assessors/iac-change.md:172`, `:215`), the SNS subscriptions are email, the threshold change is reversible (`docs.md`), and the live reads are nominal. A RED verdict is a finding to investigate, not an accepted extra stop.
 - `**Waived:** none`.
 - No stop is logged as `unscripted`.

@@ -42,7 +42,7 @@ Stop target: **5 (+1 per RED pre-flight run (each is its own `[H5]`))**: `F1`, `
 - `**Waived:** none`.
 - Each phase in `record.md` has `- Parity check: n/a`.
 - The direct apply is flagged to pre-flight as a local workstation apply (A4). The apply command and the reboot command are each shown alone and run only after approval, with the target check re-shown.
-- `record.md` ends `Outcome: completed` with `**Applied:** yes — verified`, citing the phase-1 and phase-2 success-criteria outputs.
+- `record.md`'s `## Outcome` section says completed, with `**Applied:** yes — verified`, citing the phase-1 and phase-2 success-criteria outputs.
 - No stop is logged as `unscripted`.
 
 ### Expected pre-flight scoring (against the complete canned data)

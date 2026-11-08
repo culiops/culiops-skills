@@ -11,7 +11,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 3. `[F3]` (phase 1) — approve the code.
 4. `[F4]` (phase 1) — approve the apply command shown. Approving also acknowledges a YELLOW verdict, if one is shown.
 5. `[F4]` (phase 2) — approve the reboot command shown. Q1–Q3 still true (if asked): yes, unchanged.
-6. `[H5]` — only if a pre-flight verdict is RED. Acknowledge each Red finding, reason: "maintenance window approved, DBA on call, the failover is expected". A hard block gets the same written reason.
+6. `[H5]` — applies to every `[H5]` in the run (each phase's pre-flight can be RED), only if that pre-flight verdict is RED. Acknowledge each Red finding, reason: "maintenance window approved, DBA on call, the failover is expected". A hard block gets the same written reason.
 
 ## Answers by meaning
 
