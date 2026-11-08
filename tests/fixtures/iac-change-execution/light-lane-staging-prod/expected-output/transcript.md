@@ -634,7 +634,7 @@ Execution record written at 11:36 to `.culiops/iac-change-execution/paymentapi-a
 >
 > Next: commit the record (`.culiops/iac-change-execution/paymentapi-add-cpu-alarm-20261109-1136.md`) · draft the result or ticket-close message with change-comms
 
-End of run: the skill printed its final message. Three stops in total: `[A]`, `[B]` (staging), `[B]` (prod). No `no canned output` lookup occurred. No subagent was dispatched.
+End of run: the skill printed its final message. Three stops in total: `[A]`, `[B]` (staging), `[B]` (prod). No `no canned output` lookup occurred. No separate reviewer was dispatched.
 
 ---
 

@@ -5,7 +5,7 @@
 - Dry-run clock: 2026-11-09 10:00 +07:00 (03:00Z) at the first message. +1 minute per command, +5 minutes per operator answer. Times below are +07:00.
 - Fixture input files read: `main.tf`, `providers.tf`, `variables.tf`, `outputs.tf`, `envs/prod.tfvars`. `README.md` and `DRY-RUN-NOTES.md` not read (protocol). No `.culiops/` directory exists in the fixture, so there is no catalog and no earlier pre-flight record.
 - Output root (Constraint 13, SKILL.md:35): `CULIOPS_HOME` is not set anywhere in the fixture, so the root is `.culiops/` at the repo root. Not a skill command, so no lookup; assumed unset.
-- Fresh eyes: no subagent was dispatched anywhere in this run.
+- Fresh eyes: no separate reviewer was dispatched anywhere in this run.
 
 ---
 

@@ -7,7 +7,7 @@
 - Fixture inputs read: `Chart.yaml`, `values.yaml`, `values-prod.yaml`, `templates/*`, `.culiops/service-discovery/notifyapi-prod.md`, `.culiops/pre-flight/notifyapi-config-update-20260424-1030.md`, `operator-script.md`, `canned/INDEX.md` and the canned files. `README.md` and `DRY-RUN-NOTES.md` were not read.
 - Operator answers are matched by stop ID (`[F1]`, `[F2]`, `[F4]`). The script's "Answers by meaning" section is ignored.
 - Clock starts 2026-04-24 14:00 +07:00. A command's time is the clock when it is issued; the clock then advances 1 minute. Each operator answer advances it 5 minutes. File reads and the skill's own checks cost no time.
-- No subagent is dispatched. Fresh eyes: `fresh-eyes: not run — dry run`.
+- No separate reviewer is dispatched. Fresh eyes: `fresh-eyes: not run — dry run`.
 - Canned plan versus code: the canned `helm-diff.txt` (replicas 2 to 4, nothing else) matches the one-line code change the skill writes. No difference to note.
 
 Operator's first message: "Increase replica count from 2 to 4 for notifyapi in prod."

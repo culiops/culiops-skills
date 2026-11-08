@@ -7,7 +7,7 @@ Runner setup (not part of the skill's output):
 - Dry-run clock: starts 2026-11-09 10:00 +07:00 (03:00Z). One minute per command, five per operator answer. A command is stamped with the clock after its minute is added.
 - `CULIOPS_HOME`: no canned row reads the environment. Treated as unset (the fixture sets none), so the output root is `.culiops/` at the repo root. Assumption recorded here.
 - `.culiops/` in the fixture: none exists (no catalog, no earlier pre-flight record).
-- fresh-eyes (diff): see Step 3. fresh-eyes (pre-flight): the verdict is RED soft block, so the skill says it is not required. No subagent was dispatched at any point.
+- fresh-eyes (diff): see Step 3. fresh-eyes (pre-flight): the verdict is RED soft block, so the skill says it is not required. No separate reviewer was dispatched at any point.
 
 ---
 

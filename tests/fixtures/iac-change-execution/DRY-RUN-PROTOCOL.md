@@ -2,7 +2,7 @@
 
 A dry run plays the skill against one fixture without touching anything real. A runner follows the skill text step by step, looks up the output of every command in the fixture's canned files, and answers every operator stop from the fixture's operator script. It records what the skill text made it do. Later tasks compare those records with the fixture's `## MUST (v0.18)` list.
 
-Used by Task 2 (baseline run of the old skill, `<out-dir>` = `baseline-output`), Task 3, and Task 7 (new skill, `<out-dir>` = `expected-output`).
+Used for the baseline run of the old skill (`<out-dir>` = `baseline-output`) and for runs of the new skill (`<out-dir>` = `expected-output`, or `expected-output-v018` for the pre-flight regression run).
 
 ## What the runner is given and what it reads
 
@@ -29,7 +29,7 @@ Used by Task 2 (baseline run of the old skill, `<out-dir>` = `baseline-output`),
    - `transcript.md`: the run in order. Each skill message shown to the operator, each command with the canned file used (or `no canned output`), each operator answer with the script entry it came from, each code diff, and a note wherever the canned plan does not match the code the skill wrote.
    - `record.md`: the execution record the skill would write under `.culiops/iac-change-execution/`.
    - `preflight-record.md`: the pre-flight record, if the run wrote one (inline mode, or a reused record shown as reused).
-4. **Out-dir.** `<out-dir>` is `baseline-output` in Task 2 and `expected-output` in Task 7. The runner creates it if it is missing and replaces its own earlier files there.
+4. **Out-dir.** `<out-dir>` is `baseline-output` for a baseline run of the old skill and `expected-output` for a run of the new skill. The runner creates it if it is missing and replaces its own earlier files there.
 5. **Safety.** The runner never executes any command the skill would run: no aws, kubectl, terraform, helm, gh, and no git branch, commit or push in the repo. Every command is simulated through the canned lookup.
    - The runner never edits fixture input files. It writes only inside `<fixture>/<out-dir>/`.
    - Code the skill would write is shown as a unified diff in `transcript.md`. After the skill "writes" code, `git status --short` and `git diff` are answered from that diff.

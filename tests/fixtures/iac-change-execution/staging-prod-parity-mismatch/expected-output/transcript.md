@@ -4,7 +4,7 @@ Run settings
 - Skill text: working tree. Read: `skills/iac-change-execution/SKILL.md`, `lanes.md`, `examples/aws.md`, `examples/kubernetes.md` (skimmed, not applicable: no Kubernetes target); `skills/pre-flight/SKILL.md`, `assessors/README.md`, `assessors/iac-change.md`, `examples/aws.md`, `examples/app-source.md` (skimmed, not used: Q8 = (c)), `examples/kubernetes.md` (not applicable).
 - Operator script: `operator-script.md`, matched by stop ID. Its "Answers by meaning" section is ignored (new skill, stop IDs).
 - Dry-run clock: starts 2026-11-09 10:00 +07:00 (03:00Z). One minute per command, five minutes per operator answer; the staging apply carries its own duration (11m24s, `apply-staging.txt`). Times below are the minute a command starts.
-- `fresh-eyes: not run — dry run` wherever the skill would dispatch a separate reviewer. No subagent was dispatched.
+- `fresh-eyes: not run — dry run` wherever the skill would dispatch a separate reviewer. No separate reviewer was dispatched.
 - Environment rule for commands that read the same in every environment (`aws sts get-caller-identity`, `aws cloudwatch describe-alarms ...`): rule 1(b), the environment the skill is working on at that moment; stated on each line. Switching credentials between environments is not a stop (INDEX, Identity).
 - The canned CloudWatch files carry one fixed hour (02:00Z to 02:55Z) for any window (INDEX: "any window"), so a read of another window, or after the apply, returns the same values.
 - `CULIOPS_HOME`: not supplied by the dry run, so unset. Output root = `.culiops/` at the repo root (SKILL.md:35).
@@ -305,7 +305,7 @@ diff --git a/envs/staging.tfvars b/envs/staging.tfvars
 
 Diff self-check (SKILL.md Step 3, 6 items): 1 scope: only the two approved var-files, both changed: pass. 2 plan to hunk: each of the four planned resource actions per the plan maps to one of the two hunks (staging instance and group tags to `envs/staging.tfvars:11`; prod instance and group replace to `envs/prod.tfvars:11` through `main.tf:7`, `:14`): pass. 3 conventions: value only, alignment kept (`code: envs/staging.tfvars:11`): pass. 4 no silent safety change: `deletion_protection`, `skip_final_snapshot`, `allow_major_version_upgrade` (`main.tf:49`, already true) are untouched: pass. 5 no secrets, no `tfplan` or state in the changes: pass. 6 formatter clean: pass. Result 6/6. (E1 to E3 on the diff are a light-lane check; the lane is full.)
 
-Fresh eyes: `fresh-eyes: not run — dry run`. (The phase changes an existing database, so the skip rule does not apply; the run is a dry run with no subagent.)
+Fresh eyes: `fresh-eyes: not run — dry run`. (The phase changes an existing database, so the skip rule does not apply; the run is a dry run with no separate reviewer.)
 
 ### Message shown to the operator ([F3])
 
