@@ -76,7 +76,7 @@ Staging exists, so the plan puts it first (H7). The same code is approved once a
 Stop target: **3 stops**, in this order: `A`, `B` (staging), `B` (prod).
 
 - `stops.md` lists `A`, `B`, `B`. No `[F1]`–`[F4]` and no `[D1]`. No separate stop for the read batch, a pre-flight GATE 1 or GATE 2, the L3 opt-in, the change-comms offer or a record-commit prompt.
-- The staging apply comes before any prod plan: in `transcript.md` the simulated `terraform apply` for staging precedes the first `terraform plan` with `-var-file=envs/prod.tfvars`.
+- The staging apply comes before any prod plan: in `transcript.md` the simulated `terraform apply` for staging precedes the first `terraform plan` with `-var-file=envs/prod.tfvars` (a `terraform plan -refresh-only` drift read for prod in the first approved read batch does not count).
 - `**Staging-first:** applied — staging <time>` is in `record.md`, and the prod phase has `- Parity check: pass`.
 - The prod pre-flight cites staging evidence as `live: <cmd> (staging, <time>)`, for example the staging alarm read after the apply.
 - Pre-flight ran inline before each apply (H9): one for staging, one for prod. Each `[B]` shows its verdict line (GREEN or YELLOW). A RED verdict is a finding to investigate, not an accepted extra stop.
