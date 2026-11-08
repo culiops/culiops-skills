@@ -192,4 +192,4 @@ Fixes applied:
 - The README blast-radius row for the reboot now accepts Yellow or Red.
 - The Outcome MUST now reads the record's `## Outcome` section.
 
-**Still open (reported, not fixed in this branch):** row 13, phase-2 change velocity. The direct-apply path never commits phase 1's applied code, so phase 2's pre-flight reads it as stacking on an uncommitted change and scores Yellow. Fixing this needs a pre-flight assessor change or a new direct-apply commit step; both are outside this plan. It changes neither the stop count nor the verdict.
+**Still open (reported, not fixed in this branch):** row 13, phase-2 change velocity. The phase-2 Yellow, "stacking on an uncommitted prior change", is a true signal, not a scoring error. The direct-apply path never commits applied code, so phase 1's applied change lives only in the working tree, and a later apply from the default branch would revert it. That gap predates this branch. The follow-up is to commit applied code on the direct-apply path, not to change pre-flight's scoring. It changes neither the stop count nor the verdict.
