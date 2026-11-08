@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-11-08
+
 ### Changed
 
 - **iac-change-execution: dev, light and full lanes, chosen by a rule from the plan output.** The size of the change does not decide the lane. The dev lane is for a proven dev target: one stop, no pre-flight and no fresh eyes. The light lane is for staging or prod changes that only create or update in place and match a closed allowlist: new alarms, new log metric filters, new or updated dashboards, tags-only updates, longer (or unlimited) log retention, and new Prometheus rules and monitors. Everything else is the full lane. The LLM review may only escalate a change to the full lane (E1–E3, or `plan-confirm` once the plan is read), never downgrade it. You can always force the full lane (E4). An unknown environment tier counts as prod. The rule data is in the new `skills/iac-change-execution/lanes.md`.
@@ -28,6 +30,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   NO PLAN CLAIM WITHOUT EVIDENCE FROM THE CODE AND THE LIVE SYSTEM.
   ```
 - **iac-change-execution: GATE 5 and the standalone offers removed.** The run ends with one `Next:` line.
+
+### Known issues
+
+- **A real run takes more stops than the fixtures.** The stop counts above come from simulated dry-runs. In one run against real Terraform and a lab AWS account (one alarm with no actions, direct apply), the skill used 5 stops instead of the predicted 2: one stop without an ID for a dirty working tree, `[A]`, `[H4]` for drift in an unrelated route table (which also moved the change from the light lane to the full lane), `[H5]` and `[F4]`. Pre-flight scored the change RED (soft block). Most of that came from ambiguous rules: elevation for a direct apply, the uncommitted-change trigger in category 3, and a cost lookup with no regional price. Tracked in [#59](https://github.com/culiops/culiops-skills/issues/59) and [#60](https://github.com/culiops/culiops-skills/issues/60).
+- **The direct-apply path does not commit the applied code** ([#53](https://github.com/culiops/culiops-skills/issues/53)). This predates this release.
 
 ## [0.17.0] — 2026-10-31
 

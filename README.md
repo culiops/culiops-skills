@@ -2,7 +2,7 @@
 
 SRE, cloud-cost and infrastructure-change skills for [Claude Code](https://claude.com/claude-code), for teams on **AWS and Kubernetes**.
 
-You ask Claude for operations work in plain words ("is this safe to apply?", "why did our AWS bill spike?", "we're taking over service X"). The matching skill starts on its own. It shows you every command before it runs, asks for your approval at each step that matters, and backs every finding with evidence you can check.
+You ask Claude for operations work in plain words ("is this safe to apply?", "why did our AWS bill spike?", "we're taking over service X"). The matching skill starts on its own. It asks for your approval before anything that changes your systems, shows you the commands at each step that matters, and backs every finding with evidence you can check.
 
 ## Install
 
