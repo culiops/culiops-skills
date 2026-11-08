@@ -51,7 +51,7 @@ Pre-flight runs inline for phase 1 and the phase-2 reboot. The canned reads cove
 
 | # | Category | Score | Basis |
 |---|---|---|---|
-| 1 | Blast radius | Yellow | A database is shared infrastructure (`A:47`). Multi-AZ softens the reboot (`live:` `MultiAZ` true). The direct apply raises it further. |
+| 1 | Blast radius | Yellow (phase 1); phase 2: Yellow or Red (an in-place reboot without `--force-failover` is not softened by Multi-AZ, `canned/docs.md`); the verdict is RED either way | A database is shared infrastructure (`A:47`). The direct apply raises it further. |
 | 2 | Reversibility | Yellow | Undoing `max_connections` takes another edit and another reboot: manual rollback, untested (`S:49`). |
 | 3 | Change velocity | Green | `git log --since=7.days` returns nothing. |
 | 4 | Dependency impact | Yellow | The catalog lists one downstream consumer, the ECS tasks (`A:144`). |
