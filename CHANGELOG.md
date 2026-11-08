@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **iac-change-execution: dev, light and full lanes, chosen by a rule from the plan output.** The size of the change does not decide the lane. The dev lane is for a proven dev target: one stop, no pre-flight and no fresh eyes. The light lane is for staging or prod changes that only create or update in place and match an allowlist (alarms, dashboards, log metric filters, tag-only updates, longer log retention, Prometheus rules and monitors). Everything else is the full lane. The LLM review may only escalate a change to the full lane (E1–E4), never downgrade it, and an unknown environment tier counts as prod. The rule data is in the new `skills/iac-change-execution/lanes.md`.
+- **iac-change-execution: operator stops merged.** Dev has one stop (`[D1]`), light has two (`[A]`, `[B]`) and full has four (`[F1]`–`[F4]`). The nine hard gates (`[H1]`–`[H9]`) apply in every lane. The checks themselves (self-checks, duplicate check, evidence, plan cross-check, success criteria, parity) are unchanged; only the prompts that wait for you merged. Measured in simulated dry-runs (LLM runners played the skill against fixtures with canned command output, not real infrastructure), operator stops went from v0.17.0 to v0.18:
+  - Light, prod alarm create (`simple-alarm-addition`): 15 → 2.
+  - Light, staging then prod (`light-lane-staging-prod`): 13 → 3. v0.17.0 applied prod and skipped staging.
+  - Dev (`dev-lane`): 14 → 1. With the wrong account: 3 → 1 (`[H1]`).
+  - Full (`prod-only-exception`): 15 → 4. Full with a waived `[F3]` (`helm-config-update`): 11 → 3.
+  - Full by escalation (`light-escalation-alarm-action`, `light-escalation-tag-abac`): 16 → 5 and 15 → 5. Each is 4 plus one `[H5]`.
+  - Full with a parity mismatch (`staging-prod-parity-mismatch`): 22 → 6. v0.17.0 stopped prod only at the last gate; `[H3]` now stops it.
+  - Full, two phases (`multi-phase-rds-upgrade`): 25 → 7.
+- **pre-flight: inline mode when iac-change-execution calls it.** When the caller passes its block (target, delivery model, evidence, plan hash, lane, answers, live results), pre-flight skips GATE 1 and the questions already asked, and returns a GREEN or YELLOW verdict to the caller's execution stop. A RED verdict keeps GATE 2. Standalone pre-flight is unchanged.
+- **iac-change-execution: staging before prod (`[H7]`).** When a staging environment exists, the change goes to staging first and is delivered per environment. A parity check at prod's plan treats any action staging never exercised as an `[H3]` stop. The only exceptions are no staging environment, a prod-only change with a written justification, and an incident; each is recorded.
+- **iac-change-execution: waiver.** You may waive only `[F1]` and `[F3]`, and each waiver is recorded. A hard gate is refused with its H-id. Checks are never waived.
+- **iac-change-execution: Iron Law reworded.** It now reads:
+  ```
+  NO COMMIT, PUSH OR APPLY OF CODE THE OPERATOR HAS NOT APPROVED.
+  NO APPLY TO STAGING OR PROD WITHOUT PRE-FLIGHT CLEARANCE.
+  NO MUTATIONS WITHOUT EXPLICIT APPROVAL. NO LIVE READS AGAINST STAGING, PROD OR AN UNPROVEN TARGET WITHOUT OPT-IN.
+  NO PLAN CLAIM WITHOUT EVIDENCE FROM THE CODE AND THE LIVE SYSTEM.
+  ```
+- **iac-change-execution: GATE 5 and the standalone offers removed.** The run ends with one `Next:` line.
+
 ## [0.17.0] — 2026-10-31
 
 ### Added
