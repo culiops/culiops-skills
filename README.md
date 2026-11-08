@@ -2,7 +2,7 @@
 
 SRE, cloud-cost and infrastructure-change skills for [Claude Code](https://claude.com/claude-code), for teams on **AWS and Kubernetes**.
 
-You ask Claude for operations work in plain words ("is this safe to apply?", "why did our AWS bill spike?", "we're taking over service X"). The matching skill starts on its own. It shows you every command before it runs, asks for your approval at each step that matters, and backs every finding with evidence you can check.
+You ask Claude for operations work in plain words ("is this safe to apply?", "why did our AWS bill spike?", "we're taking over service X"). The matching skill starts on its own. It asks for your approval before anything that changes your systems, shows you the commands at each step that matters, and backs every finding with evidence you can check.
 
 ## Install
 
@@ -34,7 +34,7 @@ You also need the CLIs for your stack (`aws`, `kubectl`, `helm`, `kustomize`, `t
 | [**runtime-trace**](skills/runtime-trace/SKILL.md) | "runtime profile for X", "what's actually running for X" | What an AWS service really costs, who changes it, what calls it, its activity baseline and where it lives | No. Read-only, API cost capped at $1 |
 | [**service-takeover**](skills/service-takeover/SKILL.md) | "we're taking over service X from team Y" | A guided takeover, ending in a readiness scorecard and a handoff package | No. Read-only |
 | [**pre-flight**](skills/pre-flight/SKILL.md) | "is this safe to apply?", "pre-flight this plan" | A GREEN / YELLOW / RED risk report across 11 categories, with mitigations | No. Read-only; live checks only if you opt in |
-| [**iac-change-execution**](skills/iac-change-execution/SKILL.md) | "resize the database", "add an alarm", "implement this ticket" | The change made in your IaC code: research, plan, code, pre-flight, apply or PR, verify | **Yes.** Edits code; applies only after your approval |
+| [**iac-change-execution**](skills/iac-change-execution/SKILL.md) | "resize the database", "add an alarm", "implement this ticket" | The change made in your IaC code: research, plan, code, pre-flight, apply or PR, verify; dev / light / full lanes by plan risk; staging before prod | **Yes.** Edits code; applies only after your approval |
 | [**change-comms**](skills/change-comms/SKILL.md) | "draft a heads-up", "tell the service owners" | Paste-ready heads-up, result and ticket-closing messages, with secrets redacted | No. Drafts only, never sends |
 | [**cloud-cost-investigate**](skills/cloud-cost-investigate/SKILL.md) | "why did our bill spike?", "where can we save?", "what does X cost?" | A cost report (anomaly, waste or attribution) with a ranked remediation list | No. Read-only |
 | [**cost-optimize-plan**](skills/cost-optimize-plan/SKILL.md) | "which of these savings are safe to act on?" | Each recommendation verified and sorted from fast win to do-not-act, with rollback notes | No. Read-only; stops at the plan |

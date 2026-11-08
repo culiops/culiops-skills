@@ -1,0 +1,3 @@
+c4d8e21 notifyapi: bump image to v3.1.0 (#118)
+9a07b3f notifyapi: raise the prod memory limit to 512Mi (#111)
+5e1c0d8 notifyapi: add readiness and liveness probes (#104)

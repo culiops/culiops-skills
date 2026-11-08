@@ -1,0 +1,8 @@
+{
+  "IsTruncated": false,
+  "MetricsConfigurationList": [
+    {
+      "Id": "EntireBucket"
+    }
+  ]
+}

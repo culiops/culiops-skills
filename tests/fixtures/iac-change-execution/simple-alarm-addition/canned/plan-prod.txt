@@ -1,0 +1,42 @@
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_cloudwatch_metric_alarm.paymentapi_cpu_high will be created
+  + resource "aws_cloudwatch_metric_alarm" "paymentapi_cpu_high" {
+      + actions_enabled                       = true
+      + alarm_actions                         = [
+          + "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod",
+        ]
+      + alarm_description                     = "CPU utilization above 80% for paymentapi prod"
+      + alarm_name                            = "paymentapi-cpu-high-prod"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "ClusterName" = "paymentapi-cluster-prod"
+          + "ServiceName" = "paymentapi-svc-prod"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 3
+      + id                                    = (known after apply)
+      + metric_name                           = "CPUUtilization"
+      + namespace                             = "AWS/ECS"
+      + ok_actions                            = [
+          + "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod",
+        ]
+      + period                                = 300
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Environment" = "prod"
+          + "Service"     = "paymentapi"
+        }
+      + tags_all                              = {
+          + "Environment" = "prod"
+          + "Service"     = "paymentapi"
+        }
+      + threshold                             = 80
+      + treat_missing_data                    = "missing"
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.

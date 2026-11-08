@@ -1,0 +1,72 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "notifyapi",
+    "namespace": "notifyapi-prod",
+    "generation": 15,
+    "labels": {
+      "app.kubernetes.io/name": "notifyapi",
+      "app.kubernetes.io/version": "3.1.0",
+      "app.kubernetes.io/managed-by": "Helm"
+    },
+    "annotations": {
+      "meta.helm.sh/release-name": "notifyapi",
+      "meta.helm.sh/release-namespace": "notifyapi-prod"
+    }
+  },
+  "spec": {
+    "replicas": 4,
+    "selector": {
+      "matchLabels": {
+        "app.kubernetes.io/name": "notifyapi"
+      }
+    },
+    "strategy": {
+      "type": "RollingUpdate",
+      "rollingUpdate": {
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      }
+    },
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "name": "notifyapi",
+            "image": "registry.internal/notifyapi:v3.1.0",
+            "resources": {
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "1",
+                "memory": "512Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "status": {
+    "observedGeneration": 15,
+    "replicas": 4,
+    "readyReplicas": 4,
+    "updatedReplicas": 4,
+    "availableReplicas": 4,
+    "conditions": [
+      {
+        "type": "Available",
+        "status": "True",
+        "reason": "MinimumReplicasAvailable"
+      },
+      {
+        "type": "Progressing",
+        "status": "True",
+        "reason": "NewReplicaSetAvailable"
+      }
+    ]
+  }
+}

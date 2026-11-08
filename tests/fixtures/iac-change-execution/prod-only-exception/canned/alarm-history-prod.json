@@ -1,0 +1,60 @@
+{
+  "AlarmHistoryItems": [
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-08T14:11:09.402000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-08T13:56:09.398000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM (3 datapoints, peak 87 percent)"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-06T10:36:09.402000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-06T10:21:09.398000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM (3 datapoints, peak 88 percent)"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-04T15:17:09.402000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-04T15:02:09.398000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM (3 datapoints, peak 85 percent)"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-03T09:56:09.402000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-03T09:41:09.398000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM (3 datapoints, peak 86 percent)"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "MetricAlarms": [
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:123456789012:alarm:paymentapi-db-connections-high-prod",
+      "AlarmDescription": "RDS connections above 160 for paymentapi prod (limit: 200)",
+      "AlarmConfigurationUpdatedTimestamp": "2026-11-09T03:21:40.208000+00:00",
+      "ActionsEnabled": true,
+      "OKActions": [
+        "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod"
+      ],
+      "AlarmActions": [
+        "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod"
+      ],
+      "InsufficientDataActions": [],
+      "StateValue": "OK",
+      "StateReason": "Threshold Crossed: 2 datapoints were not greater than the threshold (160).",
+      "StateUpdatedTimestamp": "2026-11-09T03:21:40.208000+00:00",
+      "MetricName": "DatabaseConnections",
+      "Namespace": "AWS/RDS",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "DBInstanceIdentifier",
+          "Value": "paymentapi-db-prod"
+        }
+      ],
+      "Period": 60,
+      "EvaluationPeriods": 2,
+      "Threshold": 160.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "missing"
+    }
+  ]
+}

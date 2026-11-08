@@ -1,0 +1,43 @@
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+  # aws_db_instance.paymentapi will be updated in-place
+  ~ resource "aws_db_instance" "paymentapi" {
+      ~ engine_version                        = "14.9" -> "15.7"
+        id                                    = "db-6RWPK9EXAMPLEA3MDS8YQ"
+        identifier                            = "paymentapi-db-prod"
+      ~ parameter_group_name                  = "paymentapi-prod-20250617043012345600000001" -> (known after apply)
+      ~ tags                                  = {
+          ~ "EngineVersion" = "14.9" -> "15.7"
+            # (2 unchanged elements hidden)
+        }
+      ~ tags_all                              = {
+          ~ "EngineVersion" = "14.9" -> "15.7"
+            # (2 unchanged elements hidden)
+        }
+        # (61 unchanged attributes hidden)
+    }
+
+  # aws_db_parameter_group.paymentapi must be replaced
+-/+ resource "aws_db_parameter_group" "paymentapi" {
+      ~ arn         = "arn:aws:rds:ap-southeast-1:333333333333:pg:paymentapi-prod-20250617043012345600000001" -> (known after apply)
+      ~ family      = "postgres14" -> "postgres15" # forces replacement
+      ~ id          = "paymentapi-prod-20250617043012345600000001" -> (known after apply)
+      ~ name        = "paymentapi-prod-20250617043012345600000001" -> (known after apply)
+      ~ tags        = {
+          ~ "EngineVersion" = "14.9" -> "15.7"
+            # (2 unchanged elements hidden)
+        }
+      ~ tags_all    = {
+          ~ "EngineVersion" = "14.9" -> "15.7"
+            # (2 unchanged elements hidden)
+        }
+        # (3 unchanged attributes hidden)
+
+        # (3 unchanged blocks hidden)
+    }
+
+Plan: 1 to add, 1 to change, 1 to destroy.

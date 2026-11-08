@@ -1,0 +1,35 @@
+{
+  "MetricAlarms": [
+    {
+      "AlarmName": "paymentapi-db-cpu-high-staging",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:222222222222:alarm:paymentapi-db-cpu-high-staging",
+      "AlarmDescription": "RDS CPU utilization above 80% for paymentapi staging",
+      "AlarmConfigurationUpdatedTimestamp": "2026-10-14T05:21:09.114000+00:00",
+      "ActionsEnabled": true,
+      "OKActions": [
+        "arn:aws:sns:ap-southeast-1:222222222222:paymentapi-alerts-staging"
+      ],
+      "AlarmActions": [
+        "arn:aws:sns:ap-southeast-1:222222222222:paymentapi-alerts-staging"
+      ],
+      "InsufficientDataActions": [],
+      "StateValue": "OK",
+      "StateReason": "Threshold Crossed: 3 datapoints were not greater than the threshold (80.0).",
+      "StateUpdatedTimestamp": "2026-10-14T05:21:09.114000+00:00",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/RDS",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "DBInstanceIdentifier",
+          "Value": "paymentapi-db-staging"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 3,
+      "Threshold": 80.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "missing"
+    }
+  ]
+}

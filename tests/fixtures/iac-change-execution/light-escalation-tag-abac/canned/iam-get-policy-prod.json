@@ -1,0 +1,15 @@
+{
+  "Policy": {
+    "PolicyName": "paymentapi-team-bucket-read-prod",
+    "PolicyId": "ANPAEXAMPLEPAYMENTSREAD",
+    "Arn": "arn:aws:iam::333333333333:policy/paymentapi-team-bucket-read-prod",
+    "Path": "/",
+    "DefaultVersionId": "v1",
+    "AttachmentCount": 1,
+    "PermissionsBoundaryUsageCount": 0,
+    "IsAttachable": true,
+    "Description": "Read objects in buckets tagged for the payments team",
+    "CreateDate": "2025-08-19T03:12:44+00:00",
+    "UpdateDate": "2025-08-19T03:12:44+00:00"
+  }
+}

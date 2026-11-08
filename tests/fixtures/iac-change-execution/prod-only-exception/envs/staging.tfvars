@@ -1,0 +1,14 @@
+env                   = "staging"
+region                = "ap-southeast-1"
+aws_account_id        = "222222222222"
+vpc_id                = "vpc-0f1e2d3c4b5a69788"
+private_subnet_ids    = ["subnet-0f1a2b3c4d5e6f708", "subnet-0f2b3c4d5e6f70819"]
+alb_security_group_id = "sg-0f1e2d3c4b5a69788"
+execution_role_arn    = "arn:aws:iam::222222222222:role/paymentapi-staging-ecs-execution"
+task_role_arn         = "arn:aws:iam::222222222222:role/paymentapi-staging-ecs-task"
+ecr_repo              = "222222222222.dkr.ecr.ap-southeast-1.amazonaws.com/paymentapi"
+image_tag             = "v2.5.0-rc2"
+desired_count         = 1
+task_cpu              = 256
+task_memory           = 512
+db_host               = "paymentapi-staging-db.cluster-c1abcd5678ef.ap-southeast-1.rds.amazonaws.com"

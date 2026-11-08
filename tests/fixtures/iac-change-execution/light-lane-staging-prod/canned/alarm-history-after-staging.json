@@ -1,0 +1,18 @@
+{
+  "AlarmHistoryItems": [
+    {
+      "AlarmName": "paymentapi-cpu-high-staging",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-09T03:17:44.318000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from INSUFFICIENT_DATA to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-staging",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-09T03:17:44.318000+00:00",
+      "HistoryItemType": "ConfigurationUpdate",
+      "HistorySummary": "Alarm \"paymentapi-cpu-high-staging\" created"
+    }
+  ]
+}

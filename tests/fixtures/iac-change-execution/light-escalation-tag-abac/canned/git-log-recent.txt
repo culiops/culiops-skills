@@ -1,0 +1,3 @@
+c4d8e21 exports: pin the AWS provider to ~> 5.0 (#118)
+9a07b3f exports: tune the 5xx alarm period (#111)
+5e1c0d8 exports: turn on request metrics for the bucket (#104)

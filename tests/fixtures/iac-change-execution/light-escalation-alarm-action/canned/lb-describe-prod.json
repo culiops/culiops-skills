@@ -1,0 +1,18 @@
+{
+  "LoadBalancers": [
+    {
+      "LoadBalancerArn": "arn:aws:elasticloadbalancing:ap-southeast-1:333333333333:loadbalancer/app/paymentapi-alb-prod/50dc6c495c0c9188",
+      "DNSName": "internal-paymentapi-alb-prod-1928374650.ap-southeast-1.elb.amazonaws.com",
+      "CanonicalHostedZoneId": "Z1LMS91P8CMLE5",
+      "CreatedTime": "2025-06-17T04:28:55.113000+00:00",
+      "LoadBalancerName": "paymentapi-alb-prod",
+      "Scheme": "internal",
+      "VpcId": "vpc-0abc123def456",
+      "State": {
+        "Code": "active"
+      },
+      "Type": "application",
+      "IpAddressType": "ipv4"
+    }
+  ]
+}

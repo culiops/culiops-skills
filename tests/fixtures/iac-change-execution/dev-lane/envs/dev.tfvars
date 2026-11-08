@@ -1,0 +1,14 @@
+env                   = "dev"
+region                = "ap-southeast-1"
+aws_account_id        = "111111111111"
+vpc_id                = "vpc-0d1e2f3a4b5c60718"
+private_subnet_ids    = ["subnet-0d1a2b3c4d5e6f708", "subnet-0d2b3c4d5e6f70819"]
+alb_security_group_id = "sg-0d1e2f3a4b5c60718"
+execution_role_arn    = "arn:aws:iam::111111111111:role/paymentapi-dev-ecs-execution"
+task_role_arn         = "arn:aws:iam::111111111111:role/paymentapi-dev-ecs-task"
+ecr_repo              = "111111111111.dkr.ecr.ap-southeast-1.amazonaws.com/paymentapi"
+image_tag             = "v2.5.0-dev.14"
+desired_count         = 1
+task_cpu              = 256
+task_memory           = 1024
+db_host               = "paymentapi-dev-db.cluster-c0dev5678ef.ap-southeast-1.rds.amazonaws.com"

@@ -1,0 +1,10 @@
+{
+  "DBParameterGroups": [
+    {
+      "DBParameterGroupName": "paymentapi-staging-20250920071544123400000001",
+      "DBParameterGroupFamily": "postgres15",
+      "Description": "paymentapi staging PostgreSQL parameter group",
+      "DBParameterGroupArn": "arn:aws:rds:ap-southeast-1:222222222222:pg:paymentapi-staging-20250920071544123400000001"
+    }
+  ]
+}

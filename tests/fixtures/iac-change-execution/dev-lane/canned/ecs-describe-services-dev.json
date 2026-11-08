@@ -1,0 +1,70 @@
+{
+  "services": [
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:111111111111:service/paymentapi-cluster-dev/paymentapi-svc-dev",
+      "serviceName": "paymentapi-svc-dev",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:111111111111:cluster/paymentapi-cluster-dev",
+      "loadBalancers": [
+        {
+          "targetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:111111111111:targetgroup/paymentapi-tg-dev/6d0ecf831eec9f09",
+          "containerName": "paymentapi",
+          "containerPort": 8080
+        }
+      ],
+      "status": "ACTIVE",
+      "desiredCount": 1,
+      "runningCount": 1,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:111111111111:task-definition/paymentapi-dev:7",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0d1a2b3c4d5e6f708",
+            "subnet-0d2b3c4d5e6f70819"
+          ],
+          "securityGroups": [
+            "sg-0c9d8e7f6a5b43210"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "deploymentConfiguration": {
+        "deploymentCircuitBreaker": {
+          "enable": false,
+          "rollback": false
+        },
+        "maximumPercent": 200,
+        "minimumHealthyPercent": 100
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173607",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:111111111111:task-definition/paymentapi-dev:7",
+          "desiredCount": 1,
+          "pendingCount": 0,
+          "runningCount": 1,
+          "failedTasks": 0,
+          "createdAt": "2026-11-06T04:11:30.552000+00:00",
+          "updatedAt": "2026-11-06T04:11:30.552000+00:00",
+          "launchType": "FARGATE",
+          "rolloutState": "COMPLETED",
+          "rolloutStateReason": "ECS deployment ecs-svc/441790225580173607 completed."
+        }
+      ],
+      "events": [
+        {
+          "id": "b3a1f0c2-6d44-4e7a-9d0a-1c5d7e2f8a31",
+          "createdAt": "2026-11-09T01:12:40.317000+00:00",
+          "message": "(service paymentapi-svc-dev) has reached a steady state."
+        }
+      ],
+      "createdAt": "2025-06-17T04:30:12.881000+00:00",
+      "healthCheckGracePeriodSeconds": 0,
+      "schedulingStrategy": "REPLICA",
+      "enableECSManagedTags": false
+    }
+  ],
+  "failures": []
+}

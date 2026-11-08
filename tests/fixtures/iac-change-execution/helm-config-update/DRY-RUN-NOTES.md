@@ -117,3 +117,45 @@ _(to be filled during actual dry-run)_
 ## Fixes applied
 
 _(to be filled during actual dry-run)_
+
+## Baseline (v0.17.0)
+
+Run: `baseline-output/`, skill text from `origin/main` (v0.17.0), operator script mapped by meaning.
+
+- **Stops: 11**; 0 `unscripted`.
+- Verdict GREEN, from the existing pre-flight record (reused: same plan hash, target and window). Outcome: PR opened.
+- The skill refused both "skip the code gate" and "don't run pre-flight" under "gates are non-negotiable" (SKILL.md:70). It made no distinction between a soft stop and a hard gate.
+
+## Dry-run (v0.18)
+
+Run: `expected-output/`, skill text from the working tree on `feat/iac-change-gate-lanes`, operator script matched by stop ID. Checked by an independent verifier, not the runner.
+
+- **Stops: 3** (target 3): F1,F2,F4. `unscripted`: 0.
+- Before → after: **11 → 3** stops.
+
+## Findings and fixes
+
+Per-MUST results from the verifier:
+
+### helm-config-update (expected-output)
+Stops: 3 (target 3: F1, F2, F4) — PASS. Unscripted: 0.
+
+`stops.md:1-3` is F1, F2, F4 in order. No pre-flight ran inline: the existing record was reused (`preflight-record.md:1-4`).
+
+| # | MUST (short) | PASS/FAIL | Evidence | Cause (FAIL only) |
+|---|---|---|---|---|
+| 1 | Stops F1, F2, F4 in that order; no `[F3]`; code shown inside `[F4]` with the PR action | PASS | `stops.md:1-3`; code summary, diff and plan command at `transcript.md:348-369`, PR prompt `:371-377` | |
+| 2 | `[F2]` waives a soft stop and asks to skip a hard gate; the reply honours the F3 waiver and refuses the pre-flight skip citing `H9` | PASS | Operator message `transcript.md:222`; reply `:231` (F3 waiver honoured, `Waived: F3 — operator, 14:38`) and `:233` ("Not skipped: pre-flight. H9 says ... I will reuse the 10:30 record if it matches ... otherwise I run pre-flight inline"). Refusal is of the skip, reuse allowed | |
+| 3 | `**Waived:** F3 — operator, <time>`; names F3 only; pre-flight request and `H9` not listed as waived | PASS | `record.md:16` `**Waived:** F3 — operator, 14:38`; no other waiver line. `record.md:76` mentions the skip request only as refused under H9 | |
+| 4 | Pre-flight clearance present; record never says skipped; `**Pre-flight record:**` says which | PASS | `record.md:11` "reused under the Step 4b match rule — verdict: GREEN — PROCEED". Match rule `transcript.md:315-318` (hash equal, target same, 4 h 17 min old inside 24 h), Q1–Q3 re-asked inside `[F2]` `:217`, category-10 reads re-run `:324-326`. `grep -i skipped record.md` returns nothing. Note: README says "3.5 hours old"; the run clock gives 4 h 17 min (record 10:30, now 14:47). The rule is the 24 h window, so this does not change the result | |
+| 5 | Waiving the stop does not waive the checks: self-check result and fresh-eyes line in `[F4]` and in `record.md` | PASS | `[F4]` `transcript.md:353` "Self-check: 6/6 pass · Fresh eyes: not run — dry run"; `record.md:71-72` | |
+| 6 | `**Lane:** full — <basis>` (Deployment update not on the Kubernetes allowlist); `**Escalations:** none` | PASS | `record.md:12` ("updating a `Deployment` is not on the Kubernetes light-lane allowlist"), `record.md:13` | |
+| 7 | `**Environment tier:** prod=prod (operator-stated ...)`; tier unproven, prod gate levels | PASS | `record.md:14` "prod=prod (operator-stated, unproven: no pin in the repo ...)"; prod gate levels `transcript.md:72` | |
+| 8 | `**Staging-first:** n/a — no staging env (<evidence>)` with `values-prod.yaml` the only env values file named; `- Parity check: n/a` | PASS | `record.md:15` (`values-prod.yaml` is the only per-environment values file; the other text is the pattern `values-{env}.yaml`, not a named file); `record.md:75` | |
+| 9 | If pre-flight runs inline: at most two Yellow, GREEN or YELLOW, RED is a finding | PASS | Pre-flight did not run inline; the reused record is GREEN — PROCEED (`preflight-record.md:16`, `record.md:11`). No RED, no `[H5]` | |
+| 10 | No stop logged as `unscripted` | PASS | `grep -c unscripted stops.md` = 0 | |
+
+Observation: the reused record scores 10 categories and the skill now defines 11 (`transcript.md:328`, `preflight-record.md:121`). The match rule does not check this. Not a MUST line.
+
+
+Fix applied after the first v0.18 run: the record wrote ``**Waived:** `[F3]` `` (brackets and backticks). Constraint 15 and the 5b template now say the value is the bare stop ID (`**Waived:** F3 — operator, <time>`). Re-run: the table above is from the re-run.

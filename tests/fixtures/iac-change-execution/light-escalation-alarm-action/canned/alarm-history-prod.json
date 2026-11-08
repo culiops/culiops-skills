@@ -1,0 +1,32 @@
+{
+  "AlarmHistoryItems": [
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-08T09:03:51.774000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-08T08:48:51.770000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-05T05:17:51.512000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-05T05:02:51.508000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM"
+    }
+  ]
+}

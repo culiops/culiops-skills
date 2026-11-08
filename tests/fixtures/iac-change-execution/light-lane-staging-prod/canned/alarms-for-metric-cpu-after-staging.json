@@ -1,0 +1,39 @@
+{
+  "MetricAlarms": [
+    {
+      "AlarmName": "paymentapi-cpu-high-staging",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:222222222222:alarm:paymentapi-cpu-high-staging",
+      "AlarmDescription": "CPU utilization above 80% for paymentapi staging",
+      "AlarmConfigurationUpdatedTimestamp": "2026-11-09T03:17:44.318000+00:00",
+      "ActionsEnabled": true,
+      "OKActions": [
+        "arn:aws:sns:ap-southeast-1:222222222222:paymentapi-alerts-staging"
+      ],
+      "AlarmActions": [
+        "arn:aws:sns:ap-southeast-1:222222222222:paymentapi-alerts-staging"
+      ],
+      "InsufficientDataActions": [],
+      "StateValue": "OK",
+      "StateReason": "Threshold Crossed: 3 datapoints [12.4 (09/11/26 03:12:00), 11.8 (09/11/26 03:07:00), 13.1 (09/11/26 03:02:00)] were not greater than the threshold (80.0).",
+      "StateUpdatedTimestamp": "2026-11-09T03:17:44.318000+00:00",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/ECS",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "ClusterName",
+          "Value": "paymentapi-cluster-staging"
+        },
+        {
+          "Name": "ServiceName",
+          "Value": "paymentapi-svc-staging"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 3,
+      "Threshold": 80.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "missing"
+    }
+  ]
+}

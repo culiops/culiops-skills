@@ -1,0 +1,5 @@
+{
+  "UserId": "AROAEXAMPLEDEVOPR:operator",
+  "Account": "111111111111",
+  "Arn": "arn:aws:sts::111111111111:assumed-role/paymentapi-operator/operator"
+}

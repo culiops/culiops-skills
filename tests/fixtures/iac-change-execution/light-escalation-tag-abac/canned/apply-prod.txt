@@ -1,0 +1,4 @@
+aws_s3_bucket.exports: Modifying... [id=paymentapi-exports-prod]
+aws_s3_bucket.exports: Modifications complete after 1s [id=paymentapi-exports-prod]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.

@@ -1,0 +1,4 @@
+aws_cloudwatch_metric_alarm.paymentapi_cpu_low: Creating...
+aws_cloudwatch_metric_alarm.paymentapi_cpu_low: Creation complete after 1s [id=paymentapi-cpu-low-prod]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.

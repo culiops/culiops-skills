@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-11-08
+
+### Changed
+
+- **iac-change-execution: dev, light and full lanes, chosen by a rule from the plan output.** The size of the change does not decide the lane. The dev lane is for a proven dev target: one stop, no pre-flight and no fresh eyes. The light lane is for staging or prod changes that only create or update in place and match a closed allowlist: new alarms, new log metric filters, new or updated dashboards, tags-only updates, longer (or unlimited) log retention, and new Prometheus rules and monitors. Everything else is the full lane. The LLM review may only escalate a change to the full lane (E1–E3, or `plan-confirm` once the plan is read), never downgrade it. You can always force the full lane (E4). An unknown environment tier counts as prod. The rule data is in the new `skills/iac-change-execution/lanes.md`.
+- **iac-change-execution: operator stops merged.** Dev has one stop (`[D1]`), light has two (`[A]`, `[B]`) and full has four (`[F1]`–`[F4]`). These are base counts: light is `[A]` plus one `[B]` per environment; full is `[F1]`, `[F2]`, then `[F3]`/`[F4]` per phase and one `[F4]` per environment. The nine hard gates (`[H1]`–`[H9]`) apply in every lane. The checks are the same set in the light and full lanes (self-checks, duplicate check, evidence rules, fresh eyes, plan cross-check), with no check removed; only the prompts that wait for you merged. In the light lane, some live evidence now arrives after `[A]` instead of before the plan. The dev lane skips pre-flight and fresh eyes, as described above. Measured in simulated dry-runs (the skill was played against fixtures with canned command output, not real infrastructure), operator stops went from v0.17.0 to the new skill text:
+  - Light, prod alarm create (`simple-alarm-addition`): 15 → 2.
+  - Light, staging then prod (`light-lane-staging-prod`): 13 → 3. v0.17.0 applied prod and skipped staging.
+  - Dev (`dev-lane`): 14 → 1. With the wrong account: 3 → 1 (`[H1]`).
+  - Full (`prod-only-exception`): 15 → 4. Full with a waived `[F3]` (`helm-config-update`): 11 → 3.
+  - Full by escalation (`light-escalation-alarm-action`, `light-escalation-tag-abac`): 16 → 5 and 15 → 5. Each is 4 plus one `[H5]`.
+  - Full with a parity mismatch (`staging-prod-parity-mismatch`): 22 → 6. v0.17.0 stopped prod only at the last gate; `[H3]` now stops it.
+  - Full, two phases (`multi-phase-rds-upgrade`): 25 → 7.
+- **pre-flight: inline mode when iac-change-execution calls it.** When the caller passes its block (target, delivery model, evidence, plan hash, lane, answers, live results), pre-flight skips GATE 1 and the questions already asked, and returns a GREEN or YELLOW verdict to the caller's execution stop. A RED verdict keeps GATE 2. Standalone pre-flight behaves as before; its record gains a `Mode:` line.
+- **iac-change-execution: staging before prod (`[H7]`).** When the change targets prod and the repo has a staging environment, the change goes to staging first and is delivered per environment. A parity check at prod's plan treats any action staging never exercised as an `[H3]` stop. The only exceptions are no staging environment, a prod-only change with evidence and a written justification, and an incident hotfix; each is recorded.
+- **iac-change-execution: waiver.** You may waive only `[F1]` and `[F3]`, and each waiver is recorded. A hard gate is refused with its H-id. Checks are never waived.
+- **iac-change-execution: Iron Law reworded.** It now reads:
+  ```
+  NO COMMIT, PUSH OR APPLY OF CODE THE OPERATOR HAS NOT APPROVED.
+  NO APPLY TO STAGING OR PROD WITHOUT PRE-FLIGHT CLEARANCE.
+  NO MUTATIONS WITHOUT EXPLICIT APPROVAL. NO LIVE READS AGAINST STAGING, PROD OR AN UNPROVEN TARGET WITHOUT OPT-IN.
+  NO PLAN CLAIM WITHOUT EVIDENCE FROM THE CODE AND THE LIVE SYSTEM.
+  ```
+- **iac-change-execution: GATE 5 and the standalone offers removed.** The run ends with one `Next:` line.
+
+### Known issues
+
+- **A real run takes more stops than the fixtures.** The stop counts above come from simulated dry-runs. In one run against real Terraform and a lab AWS account (one alarm with no actions, direct apply), the skill used 5 stops instead of the predicted 2: one stop without an ID for a dirty working tree, `[A]`, `[H4]` for drift in an unrelated route table (which also moved the change from the light lane to the full lane), `[H5]` and `[F4]`. Pre-flight scored the change RED (soft block). Most of that came from ambiguous rules: elevation for a direct apply, the uncommitted-change trigger in category 3, and a cost lookup with no regional price. Tracked in [#59](https://github.com/culiops/culiops-skills/issues/59) and [#60](https://github.com/culiops/culiops-skills/issues/60).
+- **The direct-apply path does not commit the applied code** ([#53](https://github.com/culiops/culiops-skills/issues/53)). This predates this release.
+
 ## [0.17.0] — 2026-10-31
 
 ### Added

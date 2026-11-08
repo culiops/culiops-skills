@@ -1,0 +1,60 @@
+{
+  "DBInstances": [
+    {
+      "DBInstanceIdentifier": "paymentapi-db-prod",
+      "DBInstanceClass": "db.r6g.large",
+      "Engine": "postgres",
+      "DBInstanceStatus": "available",
+      "MasterUsername": "paymentapi_admin",
+      "DBName": "paymentapi",
+      "Endpoint": {
+        "Address": "paymentapi-db-prod.cxyz1234abcd.ap-southeast-1.rds.amazonaws.com",
+        "Port": 5432,
+        "HostedZoneId": "Z2G4EXAMPLEHZ"
+      },
+      "AllocatedStorage": 100,
+      "InstanceCreateTime": "2025-06-17T04:41:09.552000+00:00",
+      "PreferredBackupWindow": "17:00-18:00",
+      "BackupRetentionPeriod": 7,
+      "DBSecurityGroups": [],
+      "VpcSecurityGroups": [
+        {
+          "VpcSecurityGroupId": "sg-0d4c1e7a9b2f35601",
+          "Status": "active"
+        }
+      ],
+      "DBParameterGroups": [
+        {
+          "DBParameterGroupName": "paymentapi-prod-20250617043012345600000001",
+          "ParameterApplyStatus": "in-sync"
+        }
+      ],
+      "AvailabilityZone": "ap-southeast-1a",
+      "DBSubnetGroup": {
+        "DBSubnetGroupName": "paymentapi-prod-db-subnet-group",
+        "SubnetGroupStatus": "Complete"
+      },
+      "PreferredMaintenanceWindow": "mon:18:00-mon:19:00",
+      "PendingModifiedValues": {},
+      "LatestRestorableTime": "2026-11-09T02:55:00+00:00",
+      "MultiAZ": true,
+      "EngineVersion": "14.9",
+      "AutoMinorVersionUpgrade": true,
+      "PubliclyAccessible": false,
+      "IAMDatabaseAuthenticationEnabled": false,
+      "MaxAllocatedStorage": 500,
+      "PerformanceInsightsRetentionPeriod": 7,
+      "CopyTagsToSnapshot": false,
+      "StorageType": "gp3",
+      "StorageEncrypted": true,
+      "DbInstanceArn": "arn:aws:rds:ap-southeast-1:333333333333:db:paymentapi-db-prod",
+      "DeletionProtection": true,
+      "PerformanceInsightsEnabled": true,
+      "EnabledCloudwatchLogsExports": [
+        "postgresql",
+        "upgrade"
+      ],
+      "SecondaryAvailabilityZone": "ap-southeast-1b"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "Label": "TargetResponseTime",
+  "Datapoints": [
+    {
+      "Timestamp": "2026-11-09T02:00:00+00:00",
+      "Average": 0.036,
+      "Maximum": 0.11,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:05:00+00:00",
+      "Average": 0.038,
+      "Maximum": 0.12,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:10:00+00:00",
+      "Average": 0.039999999999999994,
+      "Maximum": 0.13,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:15:00+00:00",
+      "Average": 0.036,
+      "Maximum": 0.14,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:20:00+00:00",
+      "Average": 0.038,
+      "Maximum": 0.11,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:25:00+00:00",
+      "Average": 0.039999999999999994,
+      "Maximum": 0.12,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:30:00+00:00",
+      "Average": 0.036,
+      "Maximum": 0.13,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:35:00+00:00",
+      "Average": 0.038,
+      "Maximum": 0.14,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:40:00+00:00",
+      "Average": 0.039999999999999994,
+      "Maximum": 0.11,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:45:00+00:00",
+      "Average": 0.036,
+      "Maximum": 0.12,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:50:00+00:00",
+      "Average": 0.038,
+      "Maximum": 0.13,
+      "Unit": "Seconds"
+    },
+    {
+      "Timestamp": "2026-11-09T02:55:00+00:00",
+      "Average": 0.039999999999999994,
+      "Maximum": 0.14,
+      "Unit": "Seconds"
+    }
+  ]
+}

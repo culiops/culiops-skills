@@ -1,0 +1,9 @@
+aws_db_parameter_group.paymentapi: Modifying... [id=paymentapi-staging-20250920071544123400000001]
+aws_db_parameter_group.paymentapi: Modifications complete after 1s [id=paymentapi-staging-20250920071544123400000001]
+aws_db_instance.paymentapi: Modifying... [id=db-4TLXQ2EXAMPLEJV7ZC5NH]
+aws_db_instance.paymentapi: Still modifying... [id=db-4TLXQ2EXAMPLEJV7ZC5NH, 10s elapsed]
+aws_db_instance.paymentapi: Still modifying... [id=db-4TLXQ2EXAMPLEJV7ZC5NH, 5m0s elapsed]
+aws_db_instance.paymentapi: Still modifying... [id=db-4TLXQ2EXAMPLEJV7ZC5NH, 10m0s elapsed]
+aws_db_instance.paymentapi: Modifications complete after 11m24s [id=db-4TLXQ2EXAMPLEJV7ZC5NH]
+
+Apply complete! Resources: 0 added, 2 changed, 0 destroyed.

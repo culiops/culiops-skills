@@ -29,3 +29,19 @@ Add one `aws_cloudwatch_metric_alarm` resource wired to the existing SNS topic (
 | `outputs.tf` | Outputs |
 | `envs/prod.tfvars` | Prod-environment variable values |
 | `DRY-RUN-NOTES.md` | Expected skill behaviour at each step |
+
+## MUST (v0.18)
+
+Stop target: **2 stops**, in this order: `A`, `B`.
+
+- `stops.md` lists exactly `A` then `B`. No `[F1]`–`[F4]` and no `[D1]`. No separate stop for the read batch, a pre-flight GATE 1 or GATE 2, the L3 opt-in, the change-comms offer, the poll offer or a record-commit prompt.
+- `[A]` carries the change plan, the diff, the target, the read batch (including the `terraform plan` command, pre-flight's category 7 and 10 reads and the post-apply success-criteria reads), and the L2 questions. The delivery model (`UNVERIFIED` in the repo) is asked inside `[A]`, not as its own stop.
+- The change branch was created and the code written before `[A]`, after a `git status` read that came back clean. The diff shown at `[A]` is that code.
+- The verdict line (GREEN or YELLOW) appears inside `[B]`. Pre-flight ran inline: `preflight-record.md` exists and `record.md` links it. A RED verdict is a finding to investigate, not an accepted extra stop.
+- `**Lane:** light — <basis>` cites `plan:` for L1 (1 add, 0 change, 0 destroy) and the allowlist entry for L2 (create `aws_cloudwatch_metric_alarm`). `**Escalations:** none`.
+- `**Environment tier:** prod=prod (operator-stated ...)`. The repo pins no account, so the tier is unproven and prod gate levels apply.
+- `**Staging-first:** n/a — no staging env (<evidence>)`, with `envs/prod.tfvars` as the only env file named in the evidence. `- Parity check: n/a` in the phase entry of `record.md`: the parity check runs only when a staging phase ran for this change.
+- `**Waived:** none`.
+- `record.md` has `**Applied:** no — PR open`.
+- The final message ends with one `Next:` line.
+- No stop is logged as `unscripted`.

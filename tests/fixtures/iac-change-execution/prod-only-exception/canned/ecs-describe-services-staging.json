@@ -1,0 +1,70 @@
+{
+  "services": [
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:222222222222:service/paymentapi-cluster-staging/paymentapi-svc-staging",
+      "serviceName": "paymentapi-svc-staging",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:222222222222:cluster/paymentapi-cluster-staging",
+      "loadBalancers": [
+        {
+          "targetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:222222222222:targetgroup/paymentapi-tg-staging/6d0ecf831eec9f09",
+          "containerName": "paymentapi",
+          "containerPort": 8080
+        }
+      ],
+      "status": "ACTIVE",
+      "desiredCount": 1,
+      "runningCount": 1,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/paymentapi-staging:8",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0f1a2b3c4d5e6f708",
+            "subnet-0f2b3c4d5e6f70819"
+          ],
+          "securityGroups": [
+            "sg-0c9d8e7f6a5b43210"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "deploymentConfiguration": {
+        "deploymentCircuitBreaker": {
+          "enable": false,
+          "rollback": false
+        },
+        "maximumPercent": 200,
+        "minimumHealthyPercent": 100
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173608",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/paymentapi-staging:8",
+          "desiredCount": 1,
+          "pendingCount": 0,
+          "runningCount": 1,
+          "failedTasks": 0,
+          "createdAt": "2026-11-04T08:20:41.007000+00:00",
+          "updatedAt": "2026-11-04T08:20:41.007000+00:00",
+          "launchType": "FARGATE",
+          "rolloutState": "COMPLETED",
+          "rolloutStateReason": "ECS deployment ecs-svc/441790225580173608 completed."
+        }
+      ],
+      "events": [
+        {
+          "id": "b3a1f0c2-6d44-4e7a-9d0a-1c5d7e2f8a31",
+          "createdAt": "2026-11-09T01:12:40.317000+00:00",
+          "message": "(service paymentapi-svc-staging) has reached a steady state."
+        }
+      ],
+      "createdAt": "2025-06-17T04:30:12.881000+00:00",
+      "healthCheckGracePeriodSeconds": 0,
+      "schedulingStrategy": "REPLICA",
+      "enableECSManagedTags": false
+    }
+  ],
+  "failures": []
+}

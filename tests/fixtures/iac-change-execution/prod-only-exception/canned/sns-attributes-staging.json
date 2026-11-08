@@ -1,0 +1,10 @@
+{
+  "Attributes": {
+    "TopicArn": "arn:aws:sns:ap-southeast-1:222222222222:paymentapi-alerts-staging",
+    "Owner": "222222222222",
+    "DisplayName": "",
+    "SubscriptionsConfirmed": "2",
+    "SubscriptionsPending": "0",
+    "SubscriptionsDeleted": "0"
+  }
+}

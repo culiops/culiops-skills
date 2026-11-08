@@ -1,0 +1,16 @@
+notifyapi, notifyapi, Deployment (apps) has changed:
+  # Source: notifyapi/templates/deployment.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: notifyapi
+    labels:
+      app.kubernetes.io/name: notifyapi
+      app.kubernetes.io/version: "3.1.0"
+      app.kubernetes.io/managed-by: Helm
+  spec:
+-   replicas: 2
++   replicas: 4
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: notifyapi

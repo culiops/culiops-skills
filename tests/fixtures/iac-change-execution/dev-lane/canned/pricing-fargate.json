@@ -1,0 +1,7 @@
+{
+  "FormatVersion": "aws_v1",
+  "PriceList": [
+    "{\"product\": {\"productFamily\": \"Compute\", \"attributes\": {\"servicecode\": \"AmazonECS\", \"regionCode\": \"ap-southeast-1\", \"usagetype\": \"APS1-Fargate-vCPU-Hours:perCPU\", \"operation\": \"FargateTask\", \"operatingSystem\": \"Linux\"}, \"sku\": \"EXAMPLESKU0002\"}, \"serviceCode\": \"AmazonECS\", \"terms\": {\"OnDemand\": {\"EXAMPLESKU0002.JRTCKXETXF\": {\"priceDimensions\": {\"EXAMPLESKU0002.JRTCKXETXF.6YS6EN2CT7\": {\"unit\": \"vCPU-Hours\", \"description\": \"$0.05056 per vCPU per hour (Fargate, Linux/X86)\", \"pricePerUnit\": {\"USD\": \"0.0505600000\"}}}}}}, \"version\": \"20261007000000\", \"publicationDate\": \"2026-10-07T00:00:00Z\"}",
+    "{\"product\": {\"productFamily\": \"Compute\", \"attributes\": {\"servicecode\": \"AmazonECS\", \"regionCode\": \"ap-southeast-1\", \"usagetype\": \"APS1-Fargate-GB-Hours\", \"operation\": \"FargateTask\", \"operatingSystem\": \"Linux\"}, \"sku\": \"EXAMPLESKU0003\"}, \"serviceCode\": \"AmazonECS\", \"terms\": {\"OnDemand\": {\"EXAMPLESKU0003.JRTCKXETXF\": {\"priceDimensions\": {\"EXAMPLESKU0003.JRTCKXETXF.6YS6EN2CT7\": {\"unit\": \"GB-Hours\", \"description\": \"$0.00553 per GB per hour (Fargate, Linux/X86)\", \"pricePerUnit\": {\"USD\": \"0.0055300000\"}}}}}}, \"version\": \"20261007000000\", \"publicationDate\": \"2026-10-07T00:00:00Z\"}"
+  ]
+}

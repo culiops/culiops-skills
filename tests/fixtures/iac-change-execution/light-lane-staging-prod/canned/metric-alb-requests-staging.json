@@ -1,0 +1,77 @@
+{
+  "Label": "RequestCount",
+  "Datapoints": [
+    {
+      "Timestamp": "2026-11-09T02:00:00+00:00",
+      "Sum": 160.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:05:00+00:00",
+      "Sum": 197.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:10:00+00:00",
+      "Sum": 234.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:15:00+00:00",
+      "Sum": 271.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:20:00+00:00",
+      "Sum": 188.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:25:00+00:00",
+      "Sum": 225.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:30:00+00:00",
+      "Sum": 262.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:35:00+00:00",
+      "Sum": 179.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:40:00+00:00",
+      "Sum": 216.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:45:00+00:00",
+      "Sum": 253.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:50:00+00:00",
+      "Sum": 170.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    },
+    {
+      "Timestamp": "2026-11-09T02:55:00+00:00",
+      "Sum": 207.0,
+      "Maximum": 360.0,
+      "Unit": "Count"
+    }
+  ]
+}

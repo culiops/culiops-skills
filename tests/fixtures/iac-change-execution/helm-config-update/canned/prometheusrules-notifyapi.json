@@ -1,0 +1,54 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "monitoring.coreos.com/v1",
+      "kind": "PrometheusRule",
+      "metadata": {
+        "name": "notifyapi-slo",
+        "namespace": "monitoring",
+        "labels": {
+          "release": "kube-prometheus-stack",
+          "app.kubernetes.io/name": "notifyapi"
+        }
+      },
+      "spec": {
+        "groups": [
+          {
+            "name": "notifyapi.slo",
+            "rules": [
+              {
+                "alert": "NotifyApiErrorBudgetBurn",
+                "expr": "notifyapi:error_budget_burn_rate:ratio_rate1h > 14.4 and notifyapi:error_budget_burn_rate:ratio_rate5m > 14.4",
+                "for": "2m",
+                "labels": {
+                  "severity": "page",
+                  "namespace": "notifyapi-prod"
+                }
+              },
+              {
+                "alert": "NotifyApiQueueBacklog",
+                "expr": "notifyapi_inbound_queue_age_seconds{namespace=\"notifyapi-prod\"} > 600",
+                "for": "10m",
+                "labels": {
+                  "severity": "page",
+                  "namespace": "notifyapi-prod"
+                }
+              },
+              {
+                "alert": "NotifyApiPodNotReady",
+                "expr": "kube_deployment_status_replicas_ready{namespace=\"notifyapi-prod\",deployment=\"notifyapi\"} < kube_deployment_spec_replicas{namespace=\"notifyapi-prod\",deployment=\"notifyapi\"}",
+                "for": "10m",
+                "labels": {
+                  "severity": "ticket",
+                  "namespace": "notifyapi-prod"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

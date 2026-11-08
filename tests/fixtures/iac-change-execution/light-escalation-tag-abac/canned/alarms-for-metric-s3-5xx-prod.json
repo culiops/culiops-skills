@@ -1,0 +1,39 @@
+{
+  "MetricAlarms": [
+    {
+      "AlarmName": "paymentapi-exports-5xx-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-exports-5xx-prod",
+      "AlarmDescription": "S3 5xx errors above 5 per 5 minutes on paymentapi-exports prod",
+      "AlarmConfigurationUpdatedTimestamp": "2026-10-14T05:21:09.114000+00:00",
+      "ActionsEnabled": true,
+      "OKActions": [
+        "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-exports-alerts-prod"
+      ],
+      "AlarmActions": [
+        "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-exports-alerts-prod"
+      ],
+      "InsufficientDataActions": [],
+      "StateValue": "OK",
+      "StateReason": "Threshold Crossed: 2 datapoints [0.0 (09/11/26 02:55:00), 0.0 (09/11/26 02:50:00)] were not greater than the threshold (5.0).",
+      "StateUpdatedTimestamp": "2026-10-14T05:21:09.114000+00:00",
+      "MetricName": "5xxErrors",
+      "Namespace": "AWS/S3",
+      "Statistic": "Sum",
+      "Dimensions": [
+        {
+          "Name": "BucketName",
+          "Value": "paymentapi-exports-prod"
+        },
+        {
+          "Name": "FilterId",
+          "Value": "EntireBucket"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 5.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching"
+    }
+  ]
+}

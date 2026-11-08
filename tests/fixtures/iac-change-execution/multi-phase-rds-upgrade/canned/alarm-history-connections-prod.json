@@ -1,0 +1,46 @@
+{
+  "AlarmHistoryItems": [
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-08T21:47:03.620000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-08T21:39:03.611000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM"
+    },
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-06T09:14:03.402000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-06T09:02:03.397000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM"
+    },
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-04T12:31:03.288000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from ALARM to OK"
+    },
+    {
+      "AlarmName": "paymentapi-db-connections-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-04T12:20:03.281000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from OK to ALARM"
+    }
+  ]
+}

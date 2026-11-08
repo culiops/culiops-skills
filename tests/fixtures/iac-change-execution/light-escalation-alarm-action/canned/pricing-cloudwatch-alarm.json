@@ -1,0 +1,6 @@
+{
+  "FormatVersion": "aws_v1",
+  "PriceList": [
+    "{\"product\": {\"productFamily\": \"Alarm\", \"attributes\": {\"servicecode\": \"AmazonCloudWatch\", \"regionCode\": \"ap-southeast-1\", \"usagetype\": \"APS1-AlarmMonitorUsage\", \"operation\": \"\", \"alarmType\": \"Standard\"}, \"sku\": \"EXAMPLESKU0001\"}, \"serviceCode\": \"AmazonCloudWatch\", \"terms\": {\"OnDemand\": {\"EXAMPLESKU0001.JRTCKXETXF\": {\"priceDimensions\": {\"EXAMPLESKU0001.JRTCKXETXF.6YS6EN2CT7\": {\"unit\": \"Alarms\", \"description\": \"$0.10 per alarm metric month (standard resolution)\", \"pricePerUnit\": {\"USD\": \"0.1000000000\"}}}}}}, \"version\": \"20261007000000\", \"publicationDate\": \"2026-10-07T00:00:00Z\"}"
+  ]
+}
