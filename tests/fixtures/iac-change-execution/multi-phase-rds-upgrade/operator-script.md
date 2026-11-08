@@ -7,7 +7,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 ## Answers by stop
 
 1. `[F1]` — approve the read batch: every command shown, the target check included. Tier: prod (operator-stated).
-2. `[F2]` — approve both phases. L2: Q1=no, Q2=no (the maintenance window is approved and there is no freeze), Q3=no (off-peak window), Q4=a few times, Q5=experienced, Q6=negligible, Q7=DBA on the maintenance window, #payments-oncall told about the reboot. Execution path: direct apply from my workstation (operator choice). Acknowledge any drift row shown.
+2. `[F2]` — approve both phases. L2: Q1=no, Q2=no (the maintenance window is approved and there is no freeze), Q3=no (off-peak window), Q4=many times, Q5=experienced, Q6=negligible, Q7=DBA on the maintenance window and #payments-oncall told about the reboot, Q8=(c) the application source is not available. Execution path: direct apply from my workstation (operator choice). Acknowledge any drift row shown.
 3. `[F3]` (phase 1) — approve the code.
 4. `[F4]` (phase 1) — approve the apply command shown. Approving also acknowledges a YELLOW verdict, if one is shown.
 5. `[F4]` (phase 2) — approve the reboot command shown.
@@ -22,7 +22,7 @@ For a run of the old v0.17.0 skill, which has no stop IDs. Map each question to 
 - GATE 2 (the code): approve.
 - 4a target check (`Proceed?`): yes.
 - Pre-flight GATE 1 (scope and target): confirm.
-- Pre-flight L2 questions: Q1=no, Q2=no, Q3=no, Q4=a few times, Q5=experienced, Q6=negligible, Q7=none.
+- Pre-flight L2 questions: Q1=no, Q2=no (the maintenance window is approved and there is no freeze), Q3=no (off-peak window), Q4=many times, Q5=experienced, Q6=negligible, Q7=DBA on the maintenance window and #payments-oncall told about the reboot, Q8=(c) the application source is not available.
 - Pre-flight L3 opt-in: yes. Pre-flight GATE 2 (risk decision): acknowledge and proceed.
 - GATE 3 (clearance) and GATE 4 (execution): approve.
 - Optional offers (a change-comms heads-up, polling the PR checks or the sync status, committing the record at GATE 5): no. They are not covered by the script's intent. They still count as stops.

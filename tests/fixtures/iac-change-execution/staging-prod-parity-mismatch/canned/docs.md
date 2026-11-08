@@ -12,7 +12,7 @@ Canned answers for `docs:` lookups. They are fixture text, not fetched pages: th
 
 - URL: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.PostgreSQL.html
 - Date read: 2026-11-09
-- Sentence relied on (paraphrase): A major version upgrade needs a DB parameter group of the target major version's family, and the instance is unavailable while it upgrades. Major version upgrades can introduce changes that are not backward compatible.
+- Sentence relied on (paraphrase): A major version upgrade needs a DB parameter group of the target major version's family. The instance is unavailable while an engine version upgrade runs, and major version upgrades can introduce changes that are not backward compatible.
 
 ## An RDS engine version upgrade cannot be reversed in place
 

@@ -2,7 +2,7 @@
   "MetricAlarms": [
     {
       "AlarmName": "paymentapi-db-connections-high-prod",
-      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-db-connections-high-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:123456789012:alarm:paymentapi-db-connections-high-prod",
       "AlarmDescription": "RDS connections above 80 for paymentapi prod (limit: 100)",
       "AlarmConfigurationUpdatedTimestamp": "2026-11-08T21:47:03.620000+00:00",
       "ActionsEnabled": true,

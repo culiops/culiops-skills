@@ -1,6 +1,6 @@
 # Canned output index — light-escalation-alarm-action
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, and rows that share a pattern are told apart by their `Use when` column.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a pattern are told apart by the environment and the state in their `Use when` column.
 
 - **Dry-run clock:** starts 2026-11-09 10:00 +07:00 (03:00Z).
 - **Environments:** the repo has one env file, `envs/prod.tfvars` (account `333333333333`, pinned through `allowed_account_ids`). Every read and plan is for prod.
@@ -63,11 +63,16 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | `aws ecs describe-services --cluster paymentapi-cluster-prod --services paymentapi-svc-prod *` | `ecs-describe-services-prod.json` | reads of prod. Any `--query` is applied by the runner |
 | `aws ecs describe-task-definition --task-definition paymentapi-prod*` | `ecs-describe-task-definition-prod.json` | reads of prod |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-prod*` | `tg-health-prod.json` | reads of prod |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-prod *` | `tg-describe-prod.json` | reads of prod. Names the load balancer in front of the service |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | reads of prod |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-prod` | `sns-attributes-prod.json` | reads of prod |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | reads of prod. The file carries endpoints; only `Protocol` is needed |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | reads of prod (nothing is firing) |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-prod*` | `metric-cpu-prod.json` | reads of prod. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-prod*` | `metric-memory-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-prod*` | `metric-alb-5xx-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-prod*` | `metric-alb-latency-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-prod*` | `metric-alb-requests-prod.json` | reads of prod. The same file for the last hour and for the same hour a week ago |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-prod.json` | before the new alarm exists (it lists `paymentapi-cpu-high-prod`). After the apply: `alarms-prefix-after-prod.json` |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-high-prod *` | `alarm-cpu-high-prod.json` | always |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-low-prod *` | `alarm-cpu-low-before-prod.json` | before the new alarm exists. After the apply: `alarm-cpu-low-after-prod.json` |

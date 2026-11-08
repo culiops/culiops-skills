@@ -19,7 +19,7 @@ For a run of the old v0.17.0 skill, which has no stop IDs. Map each question to 
 - GATE 2 (the code): approve.
 - 4a target check (`Proceed?`): yes.
 - Pre-flight GATE 1 (scope and target): confirm.
-- Pre-flight L2 questions: Q1=no, Q2=no, Q3=no, Q4=a few times, Q5=experienced, Q6=negligible, Q7=none.
+- Pre-flight L2 questions: Q1=no, Q2=no, Q3=no, Q4=many times, Q5=experienced, Q6=negligible, Q7=none.
 - Pre-flight L3 opt-in: yes. Pre-flight GATE 2 (risk decision): acknowledge and proceed.
 - GATE 3 (clearance) and GATE 4 (execution): approve.
 - Optional offers (a change-comms heads-up, polling the PR checks or the sync status, committing the record at GATE 5): no. They are not covered by the script's intent. They still count as stops.

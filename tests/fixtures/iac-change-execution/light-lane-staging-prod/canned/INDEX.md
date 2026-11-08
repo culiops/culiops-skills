@@ -1,6 +1,6 @@
 # Canned output index — light-lane-staging-prod
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, and rows that share a pattern are told apart by their `Use when` column.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a pattern are told apart by the environment and the state in their `Use when` column.
 
 - **Dry-run clock:** starts 2026-11-09 10:00 +07:00 (03:00Z).
 - **Environments:** `staging` (account `222222222222`) and `prod` (account `333333333333`), each pinned in its var-file through `aws_account_id` and the provider's `allowed_account_ids`.
@@ -71,11 +71,16 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | `aws ecs describe-services --cluster paymentapi-cluster-staging --services paymentapi-svc-staging *` | `ecs-describe-services-staging.json` | reads of staging. Any `--query` is applied by the runner |
 | `aws ecs describe-task-definition --task-definition paymentapi-staging*` | `ecs-describe-task-definition-staging.json` | reads of staging |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-staging*` | `tg-health-staging.json` | reads of staging |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-staging *` | `tg-describe-staging.json` | reads of staging. Names the load balancer in front of the service |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-staging*` | `lb-describe-staging.json` | reads of staging |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-staging` | `sns-attributes-staging.json` | reads of staging |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-staging *` | `sns-subscriptions-staging.json` | reads of staging. The file carries endpoints; only `Protocol` is needed |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-staging.json` | reads of staging (nothing is firing) |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-staging*` | `metric-cpu-staging.json` | reads of staging. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-staging*` | `metric-memory-staging.json` | reads of staging. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-staging*` | `metric-alb-5xx-staging.json` | reads of staging. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-staging*` | `metric-alb-latency-staging.json` | reads of staging. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-staging*` | `metric-alb-requests-staging.json` | reads of staging. The same file for the last hour and for the same hour a week ago |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-staging.json` | staging, before the alarm exists (no alarm on the service). after the staging apply: `alarms-prefix-after-staging.json` |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-high-staging *` | `alarm-cpu-high-before-staging.json` | staging, before the alarm exists. after the staging apply: `alarm-cpu-high-after-staging.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-staging*` | `alarms-for-metric-cpu-staging.json` | staging, before the alarm exists (no alarm on this metric). after the staging apply: `alarms-for-metric-cpu-after-staging.json` |
@@ -89,11 +94,16 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | `aws ecs describe-services --cluster paymentapi-cluster-prod --services paymentapi-svc-prod *` | `ecs-describe-services-prod.json` | reads of prod. Any `--query` is applied by the runner |
 | `aws ecs describe-task-definition --task-definition paymentapi-prod*` | `ecs-describe-task-definition-prod.json` | reads of prod |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-prod*` | `tg-health-prod.json` | reads of prod |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-prod *` | `tg-describe-prod.json` | reads of prod. Names the load balancer in front of the service |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | reads of prod |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-prod` | `sns-attributes-prod.json` | reads of prod |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | reads of prod. The file carries endpoints; only `Protocol` is needed |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | reads of prod (nothing is firing) |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-prod*` | `metric-cpu-prod.json` | reads of prod. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-prod*` | `metric-memory-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-prod*` | `metric-alb-5xx-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-prod*` | `metric-alb-latency-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-prod*` | `metric-alb-requests-prod.json` | reads of prod. The same file for the last hour and for the same hour a week ago |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-prod.json` | prod, before the alarm exists (no alarm on the service). after the prod apply: `alarms-prefix-after-prod.json` |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-high-prod *` | `alarm-cpu-high-before-prod.json` | prod, before the alarm exists. after the prod apply: `alarm-cpu-high-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-prod*` | `alarms-for-metric-cpu-prod.json` | prod, before the alarm exists (no alarm on this metric). after the prod apply: `alarms-for-metric-cpu-after-prod.json` |

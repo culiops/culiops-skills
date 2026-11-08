@@ -40,7 +40,7 @@ Stop target: **2 stops**, in this order: `A`, `B`.
 - The verdict line (GREEN or YELLOW) appears inside `[B]`. Pre-flight ran inline: `preflight-record.md` exists and `record.md` links it. A RED verdict is a finding to investigate, not an accepted extra stop.
 - `**Lane:** light — <basis>` cites `plan:` for L1 (1 add, 0 change, 0 destroy) and the allowlist entry for L2 (create `aws_cloudwatch_metric_alarm`). `**Escalations:** none`.
 - `**Environment tier:** prod=prod (operator-stated ...)`. The repo pins no account, so the tier is unproven and prod gate levels apply.
-- `**Staging-first:** n/a — no staging env (<evidence>)`, with `envs/prod.tfvars` as the only env file named in the evidence.
+- `**Staging-first:** n/a — no staging env (<evidence>)`, with `envs/prod.tfvars` as the only env file named in the evidence. `- Parity check: n/a` in the phase entry of `record.md`: the parity check runs only when a staging phase ran for this change.
 - `**Waived:** none`.
 - `record.md` has `**Applied:** no — PR open`.
 - The final message ends with one `Next:` line.

@@ -1,6 +1,6 @@
 # Canned output index — light-escalation-tag-abac
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, and rows that share a pattern are told apart by their `Use when` column.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a pattern are told apart by the environment and the state in their `Use when` column.
 
 - **Dry-run clock:** starts 2026-11-09 10:00 +07:00 (03:00Z).
 - **Environments:** the repo has one env file, `envs/prod.tfvars` (account `333333333333`, pinned through `allowed_account_ids`). Every read and plan is for prod.
@@ -70,7 +70,16 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | `aws iam list-attached-role-policies --role-name paymentapi-engineers-prod *` | `iam-list-attached-role-policies-prod.json` | always |
 | `aws resourcegroupstaggingapi get-resources *` | `tagging-get-resources-team-prod.json` | any tag filter on the `team` key |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | always (nothing is firing) |
-| `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-prod.json` | always (no alarm is defined for the bucket) |
+| `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-prod.json` | always. The two bucket alarms (4xx and 5xx), enabled, state `OK` |
+| `aws cloudwatch describe-alarms-for-metric --namespace AWS/S3 --metric-name 4xxErrors *` | `alarms-for-metric-s3-4xx-prod.json` | always |
+| `aws cloudwatch describe-alarms-for-metric --namespace AWS/S3 --metric-name 5xxErrors *` | `alarms-for-metric-s3-5xx-prod.json` | always |
+| `aws cloudwatch describe-alarm-history --alarm-name paymentapi-exports-* *` | `alarm-history-prod.json` | always. No state change in the last week |
+| `aws sns get-topic-attributes --topic-arn *paymentapi-exports-alerts-prod` | `sns-attributes-prod.json` | always |
+| `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-exports-alerts-prod *` | `sns-subscriptions-prod.json` | always. The file carries endpoints; only `Protocol` is needed |
+| `aws s3api list-bucket-metrics-configurations --bucket paymentapi-exports-prod` | `s3-metrics-configuration-prod.json` | always. One configuration, `EntireBucket` |
+| `aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name 4xxErrors *` | `metric-s3-4xx-prod.json` | any window |
+| `aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name 5xxErrors *` | `metric-s3-5xx-prod.json` | any window |
+| `aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name AllRequests *` | `metric-s3-requests-prod.json` | any window |
 | `aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes *` | `metric-s3-bucket-size-prod.json` | any window |
 | `aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects *` | `metric-s3-objects-prod.json` | any window |
 

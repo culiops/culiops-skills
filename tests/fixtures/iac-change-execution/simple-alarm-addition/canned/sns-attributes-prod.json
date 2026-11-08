@@ -1,7 +1,7 @@
 {
   "Attributes": {
-    "TopicArn": "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod",
-    "Owner": "333333333333",
+    "TopicArn": "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod",
+    "Owner": "123456789012",
     "DisplayName": "",
     "SubscriptionsConfirmed": "2",
     "SubscriptionsPending": "0",

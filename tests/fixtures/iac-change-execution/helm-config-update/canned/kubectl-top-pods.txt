@@ -1,0 +1,3 @@
+NAME                         CPU(cores)   MEMORY(bytes)
+notifyapi-6c9f7d58b4-x7k2p   118m         171Mi
+notifyapi-6c9f7d58b4-m4t9d   104m         166Mi

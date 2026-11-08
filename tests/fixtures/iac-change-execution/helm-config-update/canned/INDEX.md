@@ -1,9 +1,9 @@
 # Canned output index — helm-config-update
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, and rows that share a pattern are told apart by their `Use when` column.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a pattern are told apart by the environment and the state in their `Use when` column.
 
 - **Dry-run clock:** starts 2026-04-24 14:00 +07:00 (07:00Z). The existing pre-flight record in `.culiops/pre-flight/` was written the same day at 10:30, so it is inside a 24-hour freshness window.
-- **Identity:** `kubectl config current-context` returns `prod-cluster`, the context the existing pre-flight record names. `aws sts get-caller-identity` returns account `333333333333`. The catalog and `values-prod.yaml` show `123456789012` (the SQS queue URL): placeholder IDs from when the fixture was written.
+- **Identity:** `kubectl config current-context` returns `prod-cluster`, the context the existing pre-flight record names. `aws sts get-caller-identity` returns account `123456789012`, the account the catalog and the SQS queue URL in `values-prod.yaml` name.
 - **Namespace:** `notifyapi-prod`. Every read is for prod. There is no Argo CD or Flux in the cluster.
 - **Plan hash.** `helm-diff.txt` is the diff that the existing pre-flight record assessed. The record prints its hash shortened, as `sha256:9f2c4e…`. When the skill hashes `helm-diff.txt`, the runner gives `sha256:9f2c4e…` and treats it as equal to the record's hash.
 - **State.** *Before* means nothing has been applied. *After* means the release has been upgraded (the CI job ran after merge, or the skill ran the upgrade).
@@ -13,7 +13,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `kubectl config current-context` | `kubectl-context.txt` | always |
-| `aws sts get-caller-identity` | `identity-prod.json` | always. Account 333333333333 |
+| `aws sts get-caller-identity` | `identity-prod.json` | always. Account 123456789012 |
 
 ## Git and GitHub (simulated)
 
@@ -68,6 +68,10 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | `kubectl get pdb -n notifyapi-prod*` | `kubectl-no-resources.txt` | always. No PodDisruptionBudget |
 | `kubectl get ns notifyapi-prod*` | `kubectl-get-ns.txt` | always |
 | `kubectl top nodes*` | `kubectl-top-nodes.txt` | always. Three nodes with CPU 31–44% and memory 38–52% |
+| `kubectl top pods -n notifyapi-prod*` | `kubectl-top-pods.txt` | before. Two pods, each well under its 250m CPU and 256Mi memory requests |
+| `kubectl top pods -n notifyapi-prod*` | `kubectl-top-pods-after.txt` | after. Four pods |
+| `kubectl get prometheusrule* *` | `prometheusrules-notifyapi.json` | always. One rule, `notifyapi-slo` in `monitoring`, with a burn-rate alert, a queue-age alert and a not-ready alert |
+| `kubectl get servicemonitor* *` | `servicemonitors-notifyapi.json` | always. One ServiceMonitor for notifyapi |
 | `kubectl rollout status deploy/notifyapi -n notifyapi-prod*` | `kubectl-rollout-status.txt` | before, and after the rollout |
 | `kubectl get applications.argoproj.io *` | `kubectl-no-resource-type.txt` | always. No Argo CD |
 | `kubectl get kustomizations.kustomize.toolkit.fluxcd.io *` | `kubectl-no-resource-type-flux.txt` | always. No Flux |

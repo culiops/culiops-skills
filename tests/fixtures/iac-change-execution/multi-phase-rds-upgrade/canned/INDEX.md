@@ -1,9 +1,9 @@
 # Canned output index — multi-phase-rds-upgrade
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, and rows that share a pattern are told apart by their `Use when` column.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a pattern are told apart by the environment and the state in their `Use when` column.
 
 - **Dry-run clock:** starts 2026-11-09 10:00 +07:00 (03:00Z).
-- **Live account:** `333333333333`. The repo's files show `123456789012` in `envs/prod.tfvars` (`sns_topic_arn`) and in the catalog: placeholder IDs from when the fixture was written. The live alarms carry the `sns_topic_arn` exactly as the var-file gives it, so the code and the live alarms agree. Every other canned ARN is in `333333333333`.
+- **Live account:** `123456789012`, in every canned file. It is the account the catalog and the `sns_topic_arn` in `envs/prod.tfvars` name, and the live alarms carry that topic ARN.
 - **Environments:** the repo has one env file, `envs/prod.tfvars`. Every read and plan is for prod.
 - **State.** The instance moves through four states: *before* (nothing applied), *after phase 1* (the phase-1 `terraform apply` has run), *rebooting* (the first read after the reboot command), *after reboot* (every later read).
 
@@ -11,7 +11,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `aws sts get-caller-identity` | `identity-prod.json` | always. Account 333333333333 |
+| `aws sts get-caller-identity` | `identity-prod.json` | always. Account 123456789012 |
 
 ## Git and GitHub (simulated)
 

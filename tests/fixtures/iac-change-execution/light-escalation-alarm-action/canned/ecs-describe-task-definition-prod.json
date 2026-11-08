@@ -21,8 +21,32 @@
             "hostPort": 8080,
             "protocol": "tcp"
           }
-        ]
+        ],
+        "environment": [
+          {
+            "name": "APP_ENV",
+            "value": "prod"
+          },
+          {
+            "name": "DB_HOST",
+            "value": "paymentapi-prod-db.cluster-cxyz1234abcd.ap-southeast-1.rds.amazonaws.com"
+          },
+          {
+            "name": "PORT",
+            "value": "8080"
+          }
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/paymentapi-prod",
+            "awslogs-region": "ap-southeast-1",
+            "awslogs-stream-prefix": "ecs"
+          }
+        }
       }
-    ]
+    ],
+    "executionRoleArn": "arn:aws:iam::333333333333:role/paymentapi-prod-ecs-execution",
+    "taskRoleArn": "arn:aws:iam::333333333333:role/paymentapi-prod-ecs-task"
   }
 }

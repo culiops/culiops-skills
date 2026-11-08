@@ -21,8 +21,32 @@
             "hostPort": 8080,
             "protocol": "tcp"
           }
-        ]
+        ],
+        "environment": [
+          {
+            "name": "APP_ENV",
+            "value": "staging"
+          },
+          {
+            "name": "DB_HOST",
+            "value": "paymentapi-staging-db.cluster-c1abcd5678ef.ap-southeast-1.rds.amazonaws.com"
+          },
+          {
+            "name": "PORT",
+            "value": "8080"
+          }
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/paymentapi-staging",
+            "awslogs-region": "ap-southeast-1",
+            "awslogs-stream-prefix": "ecs"
+          }
+        }
       }
-    ]
+    ],
+    "executionRoleArn": "arn:aws:iam::222222222222:role/paymentapi-staging-ecs-execution",
+    "taskRoleArn": "arn:aws:iam::222222222222:role/paymentapi-staging-ecs-task"
   }
 }

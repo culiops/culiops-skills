@@ -17,6 +17,18 @@
       "pendingCount": 0,
       "launchType": "FARGATE",
       "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/paymentapi-staging:8",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0f1a2b3c4d5e6f708",
+            "subnet-0f2b3c4d5e6f70819"
+          ],
+          "securityGroups": [
+            "sg-0c9d8e7f6a5b43210"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
       "deploymentConfiguration": {
         "deploymentCircuitBreaker": {
           "enable": false,

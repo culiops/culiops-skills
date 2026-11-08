@@ -1,0 +1,28 @@
+{
+  "TargetGroups": [
+    {
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:222222222222:targetgroup/paymentapi-tg-staging/6d0ecf831eec9f09",
+      "TargetGroupName": "paymentapi-tg-staging",
+      "Protocol": "HTTP",
+      "Port": 8080,
+      "VpcId": "vpc-0f1e2d3c4b5a69788",
+      "HealthCheckProtocol": "HTTP",
+      "HealthCheckPort": "traffic-port",
+      "HealthCheckEnabled": true,
+      "HealthCheckIntervalSeconds": 30,
+      "HealthCheckTimeoutSeconds": 5,
+      "HealthyThresholdCount": 2,
+      "UnhealthyThresholdCount": 3,
+      "HealthCheckPath": "/healthz",
+      "Matcher": {
+        "HttpCode": "200"
+      },
+      "LoadBalancerArns": [
+        "arn:aws:elasticloadbalancing:ap-southeast-1:222222222222:loadbalancer/app/paymentapi-alb-staging/50dc6c495c0c9188"
+      ],
+      "TargetType": "ip",
+      "ProtocolVersion": "HTTP1",
+      "IpAddressType": "ipv4"
+    }
+  ]
+}

@@ -1,16 +1,16 @@
 # Canned output index — simple-alarm-addition
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins. A row that has no file is answered as its last column says.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). A row with no file is answered as its last column says.
 
 - **Dry-run clock:** starts 2026-11-09 10:00 +07:00 (03:00Z).
-- **Live account:** `333333333333`, in every canned file. `envs/prod.tfvars` still carries `123456789012` in its role ARNs and ECR repo, placeholder IDs from when the fixture was written. The canned plan and reads do not use them.
+- **Live account:** `123456789012`, in every canned file. It is the account the role ARNs and the ECR repo in `envs/prod.tfvars` name.
 - **Environments:** the repo has one env file, `envs/prod.tfvars`. Every read and plan is for prod.
 
 ## Identity
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `aws sts get-caller-identity` | `identity-prod.json` | always. Account 333333333333, region `ap-southeast-1` from the var-file |
+| `aws sts get-caller-identity` | `identity-prod.json` | always. Account 123456789012, region `ap-southeast-1` from the var-file |
 
 ## Git and GitHub (simulated)
 
@@ -54,7 +54,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins. A 
 
 | Plan text | SHA-256 |
 |---|---|
-| `plan-prod.txt` | `sha256:1e420453c286b1fad946f06d7ef85ede4e4ffe073f31d8715c3c4fa2c9763fc8` |
+| `plan-prod.txt` | `sha256:30f496228b0721c60508346a6e04217f8204b5b39ffbefe041e6c6ebf7070a89` |
 
 ## AWS reads (prod)
 
@@ -63,11 +63,16 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins. A 
 | `aws ecs describe-services --cluster paymentapi-cluster-prod --services paymentapi-svc-prod *` | `ecs-describe-services-prod.json` | reads of prod. Any `--query` is applied by the runner |
 | `aws ecs describe-task-definition --task-definition paymentapi-prod*` | `ecs-describe-task-definition-prod.json` | reads of prod |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-prod*` | `tg-health-prod.json` | reads of prod |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-prod *` | `tg-describe-prod.json` | reads of prod. Names the load balancer in front of the service |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | reads of prod |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-prod` | `sns-attributes-prod.json` | reads of prod |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | reads of prod. The file carries endpoints; only `Protocol` is needed |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | reads of prod (nothing is firing) |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-prod*` | `metric-cpu-prod.json` | reads of prod. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-prod*` | `metric-memory-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-prod*` | `metric-alb-5xx-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-prod*` | `metric-alb-latency-prod.json` | reads of prod. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-prod*` | `metric-alb-requests-prod.json` | reads of prod. The same file for the last hour and for the same hour a week ago |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-prod.json` | before the alarm exists (no alarm is on the service). After an apply or a merge that has been applied: `alarms-prefix-after-prod.json` |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-high-prod *` | `alarm-cpu-high-before-prod.json` | before the alarm exists. After an apply or an applied merge: `alarm-cpu-high-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/ECS --metric-name CPUUtilization *` | `alarms-for-metric-cpu-prod.json` | before the alarm exists (no alarm on this metric). After an apply or an applied merge: `alarms-for-metric-cpu-after-prod.json` |

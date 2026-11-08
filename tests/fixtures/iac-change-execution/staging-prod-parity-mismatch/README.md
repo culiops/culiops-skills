@@ -29,7 +29,7 @@ The change is an update of `aws_db_instance`, which is not on the allowlist, so 
 - **Prod is never applied** when the operator aborts at H3.
 - **The record of an aborted run:** the staging phase stays recorded as applied.
 
-If the skill reads the live parameter group families, or the prod var-file, and names the replacement in the approved plan at `[F2]`, the prod plan holds no surprise and H3 does not fire. Prod's stop is then `[F4]`, and the script aborts there. Record that as a finding. It is not a failure of the skill.
+H3 fires at prod's plan whatever the approved plan said. In the full lane a parity failure at prod's 4a is an H3 stop, even if `[F2]` already named the replacement (design: Staging-first, parity check). A skill that names the replacement at `[F2]` still has to stop at H3.
 
 ## Files in this fixture
 
@@ -44,16 +44,37 @@ If the skill reads the live parameter group families, or the prod var-file, and 
 
 ## MUST (v0.18)
 
-Stop target: **5 stops**, in this order: `F1`, `F2`, `F3`, `F4` (staging), `H3`. The operator aborts at `H3`.
+Stop target: **5 (+1 if H5)**: `F1`, `F2`, `F3`, `F4` (staging), `H3`, and one `H5` if the staging pre-flight verdict is RED. The scoring below leads to RED, so the `H5` stop is expected and accepted. The operator aborts at `H3`.
 
-- `stops.md` lists those IDs in that order, and nothing after `H3`.
+- `stops.md` lists those IDs in that order (with `H5` before `F4` (staging) if shown), and nothing after `H3`.
 - The staging apply comes before the prod plan: in `transcript.md` the simulated staging `terraform apply` and the staging success-criteria reads (engine `15.7`, `available`) precede the first `terraform plan` with `-var-file=envs/prod.tfvars`.
 - `[H3]` shows `aws_db_parameter_group.paymentapi` with staging `update in-place` and prod `must be replaced`, says the family change `postgres14` to `postgres15` is the cause, and offers the three choices: abort, add a staging rehearsal, accept with a written reason.
-- Prod is never applied. There is no prod pre-flight, no prod apply command and no prod `[F4]` in the run. H3 comes at prod's plan, before pre-flight.
+- **H3 fires at prod's 4a (the parity check), before prod's pre-flight, even if `[F2]` named the replacement.** Prod is never applied: there is no prod pre-flight, no prod apply command and no prod `[F4]` in the run. A prod `[F4]` stop is a MUST failure.
 - `record.md` has `Outcome: aborted`, the staging phase recorded as applied, and the prod phase recorded as not applied. The prod phase has `- Parity check: untested in staging: aws_db_parameter_group.paymentapi replace`. `**Staging-first:** applied — staging <time>`.
 - `**Lane:** full — <basis>` says an update of `aws_db_instance` is not on the allowlist.
 - The plan proposes an observation window with a reason, approved at `[F2]`.
-- Pre-flight ran inline before the staging apply (H9). A RED verdict is a finding to investigate here, not an accepted extra stop.
+- Pre-flight ran inline before the staging apply (H9). A RED verdict ends in an `H5` stop, logged as `H5`, and is accepted here (see the scoring below).
 - `**Environment tier:** staging=staging (...)` and `prod=prod (...)`, each citing the pin and the identity account.
+- Q8 is asked inside `[F2]` (an engine version and a parameter group are app-facing) and answered (c).
 - `**Waived:** none`.
 - No stop is logged as `unscripted`.
+
+### Expected pre-flight scoring of the staging run (against the complete canned data)
+
+Pre-flight runs inline for staging before the staging apply. The canned reads cover health, observability, backups, events, the parameter group families and the metrics, so no score below rests on a missing read. Citations: `S` is `skills/pre-flight/SKILL.md`, `A` is `skills/pre-flight/assessors/iac-change.md`.
+
+| # | Category | Score | Basis |
+|---|---|---|---|
+| 1 | Blast radius | Yellow | A database is shared infrastructure (`A:47`). Staging is single-AZ (`live:` `MultiAZ` false), so nothing softens the unavailability while the upgrade runs (`docs:` engine version upgrade). |
+| 2 | Reversibility | Yellow | An engine upgrade cannot be reversed in place; rollback is a snapshot restore (`docs:` engine version upgrade; `S:49`, one-way change without data loss). The Red row is for major upgrades only (`A:88`), and staging moves 15.4 to 15.7. |
+| 3 | Change velocity | Green | `git log --since=7.days` returns nothing. |
+| 4 | Dependency impact | Yellow | The app tier reaches the database (`code: main.tf:98`, ingress from the app security group): a resource with downstream dependents (`S:51`). |
+| 5 | Timing context | Green | Q1 to Q3 are no. |
+| 6 | Operator familiarity | Green | Q4 many times, Q5 experienced. |
+| 7 | Observability readiness | Yellow | The alarm on the instance is a static CPU threshold (`A:166`). |
+| 8 | Cost impact | Green | No new resource and no size increase. |
+| 9 | Security posture | Green | No security-relevant change. |
+| 10 | Resource health | Green | `live:` `available`, CPU 11%, connections at most 31, free storage 14 GB, nothing firing. |
+| 11 | Application compatibility | ⚪ | `engine_version` and the parameter group are not on the not-app-facing list (`A:213`), so category 11 is triggered (`S:68`). Q8 is (c), so there is no source. |
+
+Five categories are Yellow or ⚪ (1, 2, 4, 7, 11), and `S:66` escalates 3 or more to RED (soft block), so `H5` is expected. Each one comes from the scenario: a database engine upgrade on a single-AZ instance with no app source. Prod's pre-flight is never reached.

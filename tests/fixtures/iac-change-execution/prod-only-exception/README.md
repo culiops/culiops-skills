@@ -45,9 +45,9 @@ Stop target: **4 stops**, in this order: `F1`, `F2`, `F3`, `F4`.
 - `**Lane:** full — <basis>` says an update of `aws_cloudwatch_metric_alarm` is not on the allowlist.
 - `[F2]` asks for the staging-first exception justification inside the stop, as a field of the plan, not as its own stop. `stops.md` has no stop for it.
 - `**Staging-first:** exception (prod-only) — "<text>"` is in `record.md`, and `<text>` is the justification from the operator script's `[F2]` entry, word for word. The same text is in the PR body shown at `[F4]`.
-- No `H3` stop. The prod phase has `- Parity check: n/a`.
+- No `H3` stop. The prod phase has `- Parity check: n/a`: the parity check runs only when a staging phase ran for this change, and under the prod-only exception (b) none ran. The same holds under exceptions (a) and (c): the record says `Parity check: n/a`.
 - If the skill plans staging, it uses the canned `No changes.` plan as the evidence that staging has nothing to rehearse.
 - `**Environment tier:** staging=staging (...)` and `prod=prod (...)`, each citing the pin and the identity account.
-- A RED verdict ends in an `H5` stop, logged as `H5`. It is a finding to investigate here, not an accepted extra stop.
+- If pre-flight runs inline, the complete canned data supports GREEN: an alarm edit that only notifies is not app-facing (`skills/pre-flight/assessors/iac-change.md:172`, `:215`), the SNS subscriptions are email, the threshold change is reversible (`docs.md`), and the live reads are nominal. A RED verdict is a finding to investigate, not an accepted extra stop.
 - `**Waived:** none`.
 - No stop is logged as `unscripted`.

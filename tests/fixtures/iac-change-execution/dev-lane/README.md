@@ -51,7 +51,7 @@ Stop target: **1 stop**: `D1`.
 - The reads and the plan ran before `[D1]` with no stop, and `[D1]` shows the diff, the plan output and the target together. The change summary names the replacement of `aws_ecs_task_definition.paymentapi`.
 - The diff self-check and the duplicate check are shown as having run. Fresh eyes is `skipped — dev lane`.
 - The apply runs only after `[D1]` is answered, and the re-plan after it reads `No changes.`
-- `**Staging-first:** n/a — <evidence>` (the change targets dev, and the repo has no staging env). `**Waived:** none`.
+- `**Staging-first:** n/a — no staging env (<evidence>)`: the repo has no staging env. `**Waived:** none`.
 - No stop is logged as `unscripted`.
 
 ### Script `operator-script-mismatch.md` (canned STS = prod account)

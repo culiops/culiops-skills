@@ -2,6 +2,7 @@
 # This file represents the EXISTING state of the infrastructure.
 # Read access to buckets is granted by tag: the policy below lets the
 # payments engineers read any bucket whose `team` tag is "payments".
+# Request metrics and two alarms (4xx, 5xx) watch the bucket.
 
 # ── S3 bucket (exports) ───────────────────────────────────────────────────────
 
@@ -84,4 +85,74 @@ resource "aws_iam_policy" "team_bucket_read" {
 resource "aws_iam_role_policy_attachment" "payments_engineers_bucket_read" {
   role       = aws_iam_role.payments_engineers.name
   policy_arn = aws_iam_policy.team_bucket_read.arn
+}
+
+# ── Alerting ──────────────────────────────────────────────────────────────────
+# Request metrics on the whole bucket feed two alarms. A tag or policy change
+# that blocks readers shows up as 4xx errors.
+
+resource "aws_s3_bucket_metric" "exports" {
+  bucket = aws_s3_bucket.exports.id
+  name   = "EntireBucket"
+}
+
+resource "aws_sns_topic" "exports_alerts" {
+  name = "paymentapi-exports-alerts-${var.env}"
+
+  tags = {
+    Service     = "paymentapi"
+    Environment = var.env
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "exports_4xx" {
+  alarm_name          = "paymentapi-exports-4xx-${var.env}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "4xxErrors"
+  namespace           = "AWS/S3"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 25
+  treat_missing_data  = "notBreaching"
+  alarm_description   = "S3 4xx errors above 25 per 5 minutes on paymentapi-exports ${var.env}"
+
+  dimensions = {
+    BucketName = aws_s3_bucket.exports.bucket
+    FilterId   = aws_s3_bucket_metric.exports.name
+  }
+
+  alarm_actions = [aws_sns_topic.exports_alerts.arn]
+  ok_actions    = [aws_sns_topic.exports_alerts.arn]
+
+  tags = {
+    Service     = "paymentapi"
+    Environment = var.env
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "exports_5xx" {
+  alarm_name          = "paymentapi-exports-5xx-${var.env}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "5xxErrors"
+  namespace           = "AWS/S3"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 5
+  treat_missing_data  = "notBreaching"
+  alarm_description   = "S3 5xx errors above 5 per 5 minutes on paymentapi-exports ${var.env}"
+
+  dimensions = {
+    BucketName = aws_s3_bucket.exports.bucket
+    FilterId   = aws_s3_bucket_metric.exports.name
+  }
+
+  alarm_actions = [aws_sns_topic.exports_alerts.arn]
+  ok_actions    = [aws_sns_topic.exports_alerts.arn]
+
+  tags = {
+    Service     = "paymentapi"
+    Environment = var.env
+  }
 }

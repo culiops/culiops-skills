@@ -2,7 +2,7 @@
   "MetricAlarms": [
     {
       "AlarmName": "paymentapi-db-cpu-high-prod",
-      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-db-cpu-high-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:123456789012:alarm:paymentapi-db-cpu-high-prod",
       "AlarmDescription": "RDS CPU utilization above 80% for paymentapi prod",
       "AlarmConfigurationUpdatedTimestamp": "2026-10-14T05:21:09.114000+00:00",
       "ActionsEnabled": true,
@@ -33,7 +33,7 @@
     },
     {
       "AlarmName": "paymentapi-db-connections-high-prod",
-      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-db-connections-high-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:123456789012:alarm:paymentapi-db-connections-high-prod",
       "AlarmDescription": "RDS connections above 160 for paymentapi prod (limit: 200)",
       "AlarmConfigurationUpdatedTimestamp": "2026-11-09T03:21:40.208000+00:00",
       "ActionsEnabled": true,

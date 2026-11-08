@@ -7,7 +7,7 @@ Terraform will perform the following actions:
   + resource "aws_cloudwatch_metric_alarm" "paymentapi_cpu_high" {
       + actions_enabled                       = true
       + alarm_actions                         = [
-          + "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod",
+          + "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod",
         ]
       + alarm_description                     = "CPU utilization above 80% for paymentapi prod"
       + alarm_name                            = "paymentapi-cpu-high-prod"
@@ -23,7 +23,7 @@ Terraform will perform the following actions:
       + metric_name                           = "CPUUtilization"
       + namespace                             = "AWS/ECS"
       + ok_actions                            = [
-          + "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod",
+          + "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod",
         ]
       + period                                = 300
       + statistic                             = "Average"

@@ -2,15 +2,15 @@
   "MetricAlarms": [
     {
       "AlarmName": "paymentapi-cpu-high-prod",
-      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-cpu-high-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:123456789012:alarm:paymentapi-cpu-high-prod",
       "AlarmDescription": "CPU utilization above 80% for paymentapi prod",
       "AlarmConfigurationUpdatedTimestamp": "2026-11-09T03:12:31.402000+00:00",
       "ActionsEnabled": true,
       "OKActions": [
-        "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod"
+        "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod"
       ],
       "AlarmActions": [
-        "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod"
+        "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod"
       ],
       "InsufficientDataActions": [],
       "StateValue": "OK",

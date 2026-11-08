@@ -4,6 +4,8 @@ config:
   maxRetries: 5
   queueUrl: https://sqs.ap-southeast-1.amazonaws.com/123456789012/notifyapi-prod-inbound
 image:
+  pullPolicy: IfNotPresent
+  repository: registry.internal/notifyapi
   tag: v3.1.0
 replicaCount: 2
 resources:
@@ -13,3 +15,6 @@ resources:
   requests:
     cpu: 250m
     memory: 256Mi
+service:
+  port: 8080
+  type: ClusterIP

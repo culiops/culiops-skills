@@ -43,5 +43,6 @@ Stop target: **3 stops**, in this order: `F1`, `F2`, `F4`.
 - Waiving the stop does not waive the checks. The diff self-check result and the fresh-eyes line (`agreed`, `skipped — <reason>` or `not run — <reason>`) are in `[F4]` and in `record.md`.
 - `**Lane:** full — <basis>`: a Helm `replicaCount` update is not on the Kubernetes allowlist (create `PrometheusRule`, `ServiceMonitor`, `PodMonitor`). `**Escalations:** none`.
 - `**Environment tier:** prod=prod (operator-stated ...)`. The repo pins no cluster, so the tier is unproven and prod gate levels apply.
-- `**Staging-first:** n/a — no staging env (<evidence>)`, with `values-prod.yaml` as the only env values file named in the evidence.
+- `**Staging-first:** n/a — no staging env (<evidence>)`, with `values-prod.yaml` as the only env values file named in the evidence. `- Parity check: n/a` in the phase entry: the parity check runs only when a staging phase ran for this change.
+- If pre-flight runs inline, the complete canned data gives at most two Yellow categories (4: the catalog lists no consumers and that is a lead, `skills/pre-flight/assessors/iac-change.md:145`; 8: a replica increase is a size increase, `skills/pre-flight/SKILL.md:55`), and category 7 is Green from the live SLO burn-rate rule. The verdict is GREEN or YELLOW. A RED verdict is a finding, not an accepted extra stop.
 - No stop is logged as `unscripted`.

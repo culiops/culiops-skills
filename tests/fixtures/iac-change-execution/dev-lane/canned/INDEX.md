@@ -1,6 +1,6 @@
 # Canned output index — dev-lane
 
-Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, and rows that share a pattern are told apart by their `Use when` column.
+Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a pattern are told apart by the environment and the state in their `Use when` column.
 
 - **Dry-run clock:** starts 2026-11-09 10:00 +07:00 (03:00Z).
 - **Environments:** `dev` (account `111111111111`) and `prod` (account `333333333333`), each pinned in its var-file through `aws_account_id` and the provider's `allowed_account_ids`. The change is for dev.
@@ -66,11 +66,16 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md`. The first matching row wins, an
 | `aws ecs describe-services --cluster paymentapi-cluster-dev --services paymentapi-svc-dev *` | `ecs-describe-services-dev.json` | before the apply. After it: `ecs-describe-services-dev-after.json` |
 | `aws ecs describe-task-definition --task-definition paymentapi-dev*` | `ecs-describe-task-definition-dev.json` | before the apply (revision 7, cpu 256). After it: `ecs-describe-task-definition-dev-after.json` (revision 8, cpu 512) |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-dev*` | `tg-health-dev.json` | reads of dev |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-dev *` | `tg-describe-dev.json` | reads of dev. Names the load balancer in front of the service |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-dev*` | `lb-describe-dev.json` | reads of dev |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-dev` | `sns-attributes-dev.json` | reads of dev |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-dev *` | `sns-subscriptions-dev.json` | reads of dev. The file carries endpoints; only `Protocol` is needed |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-dev.json` | reads of dev (nothing is firing) |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-dev*` | `metric-cpu-dev.json` | reads of dev. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-dev*` | `metric-memory-dev.json` | reads of dev. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-dev*` | `metric-alb-5xx-dev.json` | reads of dev. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-dev*` | `metric-alb-latency-dev.json` | reads of dev. Any time window or period gives this file |
+| `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-dev*` | `metric-alb-requests-dev.json` | reads of dev. The same file for the last hour and for the same hour a week ago |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-dev.json` | dev has no alarms |
 
 ## Mismatch script (`operator-script-mismatch.md`)
