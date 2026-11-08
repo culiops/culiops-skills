@@ -7,7 +7,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 ## Answers by stop
 
 1. `[F1]` — approve the read batch: every command shown, for both environments, the target check included.
-2. `[F2]` — approve the plan: staging first, then prod, with the observation window the plan proposes. L2: Q1=no, Q2=no, Q3=no, Q4=many times, Q5=experienced, Q6=negligible, Q7=none, Q8=(c) the application source is not available. Delivery model, if asked: terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated). If asked whether prod's move from 14.9 to 15.7 is intended: yes, the upgrade to the 15 line is the goal for both environments. Acknowledge any drift row shown.
+2. `[F2]` — approve the plan: staging first, then prod, with the observation window the plan proposes. L2: Q1=no, Q2=no, Q3=no, Q4=many times, Q5=experienced, Q6=negligible, Q7=none, Q8=(c) the application source is not available, iac-change.1=yes, iac-change.2=terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated), iac-change.3=no (default workspace; the env's own var-file), iac-change.4=recent. Delivery model, if asked: terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated). If asked whether prod's move from 14.9 to 15.7 is intended: yes, the upgrade to the 15 line is the goal for both environments. Acknowledge any drift row shown.
 3. `[F3]` — approve the code (both var-files).
 4. `[F4]` (staging) — approve the apply command shown for staging. Approving also acknowledges a YELLOW verdict, if one is shown.
 5. `[H3]` — abort. The operator says: "Stop. I won't take an unrehearsed replace to prod."
@@ -23,7 +23,7 @@ For a run of the old v0.17.0 skill, which has no stop IDs. Map each question to 
 - GATE 2 (the code): approve.
 - 4a target check (`Proceed?`): yes.
 - Pre-flight GATE 1 (scope and target): confirm.
-- Pre-flight L2 questions: Q1=no, Q2=no, Q3=no, Q4=many times, Q5=experienced, Q6=negligible, Q7=none, Q8=(c) the application source is not available.
+- Pre-flight L2 questions: Q1=no, Q2=no, Q3=no, Q4=many times, Q5=experienced, Q6=negligible, Q7=none, Q8=(c) the application source is not available. The assessor's IaC questions, asked after them: iac-change.1=yes, iac-change.2=terraform is applied by hand from my workstation, and a direct apply is fine, iac-change.3=no (default workspace; the env's own var-file), iac-change.4=recent.
 - Pre-flight L3 opt-in: yes. Pre-flight GATE 2 (risk decision): acknowledge and proceed.
 - GATE 3 (clearance) and GATE 4 (execution): approve.
 - Optional offers (a change-comms heads-up, polling the PR checks or the sync status, committing the record at GATE 5): no. They are not covered by the script's intent. They still count as stops.

@@ -18,7 +18,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `git branch --show-current` | `git-branch.txt` | always (the repo is on `main`) |
+| `git branch --show-current` | `git-branch.txt` | before the skill switches branch: the default branch, `main` |
+| `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
 | `git remote get-url origin` | `git-remote.txt` | always |
@@ -30,7 +31,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch -a --list *` | `empty.txt` | duplicate check for an in-flight branch: none |
 | `git branch -a` | `git-branches.txt` | always |
 | `gh pr list *` | `gh-pr-list-empty.txt` | duplicate check for an in-flight PR: none |
-| `git switch -c *` | `git-switch.txt` | the runner puts the real branch name where `<branch>` stands |
+| `git switch -c *`, `git checkout -b *` | `git-switch.txt` | the runner puts the real branch name where `<branch>` stands |
 | `git add *` | `empty.txt` | no output |
 | `git commit *` | `git-commit.txt` | the runner fills in the branch, subject and counts |
 | `git push *` | `git-push.txt` | the runner fills in the branch |
@@ -70,6 +71,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws ecs describe-task-definition --task-definition paymentapi-staging*` | `ecs-describe-task-definition-staging.json` | reads of staging |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-staging*` | `tg-health-staging.json` | reads of staging |
 | `aws elbv2 describe-target-groups --names paymentapi-tg-staging *` | `tg-describe-staging.json` | reads of staging. Names the load balancer in front of the service |
+| `aws elbv2 describe-target-groups --target-group-arns *paymentapi-tg-staging*` | `tg-describe-staging.json` | reads of staging. The same file as the `--names` form |
 | `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-staging*` | `lb-describe-staging.json` | reads of staging |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-staging` | `sns-attributes-staging.json` | reads of staging |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-staging *` | `sns-subscriptions-staging.json` | reads of staging. The file carries endpoints; only `Protocol` is needed |
@@ -90,6 +92,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws ecs describe-task-definition --task-definition paymentapi-prod*` | `ecs-describe-task-definition-prod.json` | reads of prod |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-prod*` | `tg-health-prod.json` | reads of prod |
 | `aws elbv2 describe-target-groups --names paymentapi-tg-prod *` | `tg-describe-prod.json` | reads of prod. Names the load balancer in front of the service |
+| `aws elbv2 describe-target-groups --target-group-arns *paymentapi-tg-prod*` | `tg-describe-prod.json` | reads of prod. The same file as the `--names` form |
 | `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | reads of prod |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-prod` | `sns-attributes-prod.json` | reads of prod |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | reads of prod. The file carries endpoints; only `Protocol` is needed |

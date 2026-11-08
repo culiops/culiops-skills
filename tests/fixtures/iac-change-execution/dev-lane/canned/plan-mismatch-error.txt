@@ -1,7 +1,7 @@
 Error: AWS account ID not allowed
 
   with provider["registry.terraform.io/hashicorp/aws"],
-  on providers.tf line 16, in provider "aws":
-  16: provider "aws" {
+  on providers.tf line 14, in provider "aws":
+  14: provider "aws" {
 
 Account ID of the AWS account that the credentials belong to (333333333333) is not allowed: the provider's allowed_account_ids is [111111111111].

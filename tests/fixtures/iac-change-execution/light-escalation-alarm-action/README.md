@@ -93,7 +93,7 @@ The canned reads cover the service's health, the load balancer's error and laten
 | 5 | Timing context | Green | Q1 to Q3 are no. |
 | 6 | Operator familiarity | Green | Q4 many times, Q5 experienced. |
 | 7 | Observability readiness | Yellow | The alarms on the service are static CPU thresholds (`A:166`). The change is not a not-app-facing alarm, so the `A:172` exception does not apply. |
-| 8 | Cost impact | Green | One alarm, priced by the Price List read (0.10 USD, publication 2026-10-07). Scale-in lowers cost and leaves nothing billing (`A:184`). |
+| 8 | Cost impact | Green | One alarm, priced by the Price List read (0.10 USD, publication 2026-10-07; `A:183`). Scale-in lowers cost and leaves nothing billing (`A:184`). |
 | 9 | Security posture | Green | No IAM, network or encryption change. |
 | 10 | Resource health | Green | `live:` 3 of 3 tasks running, targets healthy, nothing firing, CPU 40%, no 5xx and latency about 40 ms. |
 | 11 | Application compatibility | ⚪ | A scaling action makes the alarm app-facing (`A:215`). Q8 is (c), so there is no source (`S:68`). |

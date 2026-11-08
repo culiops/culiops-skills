@@ -19,7 +19,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `git branch --show-current` | `git-branch.txt` | always (the repo is on `main`) |
+| `git branch --show-current` | `git-branch.txt` | before the skill switches branch: the default branch, `main` |
+| `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
 | `git remote get-url origin` | `git-remote.txt` | always |
@@ -31,7 +32,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch -a --list *` | `empty.txt` | duplicate check for an in-flight branch: none |
 | `git branch -a` | `git-branches.txt` | always |
 | `gh pr list *` | `gh-pr-list-empty.txt` | duplicate check for an in-flight PR: none |
-| `git switch -c *` | `git-switch.txt` | the runner puts the real branch name where `<branch>` stands |
+| `git switch -c *`, `git checkout -b *` | `git-switch.txt` | the runner puts the real branch name where `<branch>` stands |
 | `git add *` | `empty.txt` | no output |
 | `git commit *` | `git-commit.txt` | the runner fills in the branch, subject and counts |
 | `git push *` | `git-push.txt` | the runner fills in the branch |
@@ -67,6 +68,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws ecs describe-task-definition --task-definition paymentapi-dev*` | `ecs-describe-task-definition-dev.json` | before the apply (revision 7, cpu 256). After it: `ecs-describe-task-definition-dev-after.json` (revision 8, cpu 512) |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-dev*` | `tg-health-dev.json` | reads of dev |
 | `aws elbv2 describe-target-groups --names paymentapi-tg-dev *` | `tg-describe-dev.json` | reads of dev. Names the load balancer in front of the service |
+| `aws elbv2 describe-target-groups --target-group-arns *paymentapi-tg-dev*` | `tg-describe-dev.json` | reads of dev. The same file as the `--names` form |
 | `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-dev*` | `lb-describe-dev.json` | reads of dev |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-dev` | `sns-attributes-dev.json` | reads of dev |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-dev *` | `sns-subscriptions-dev.json` | reads of dev. The file carries endpoints; only `Protocol` is needed |
@@ -77,6 +79,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-dev*` | `metric-alb-latency-dev.json` | reads of dev. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-dev*` | `metric-alb-requests-dev.json` | reads of dev. The same file for the last hour and for the same hour a week ago |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-dev.json` | dev has no alarms |
+| `aws cloudwatch describe-alarms-for-metric *` | `alarms-for-metric-dev.json` | reads of dev. Any namespace, metric or dimensions: no alarm watches the dev service, so the list is empty |
+| `aws pricing get-products *` | `pricing-fargate.json` | any filters. ECS Fargate, Linux/X86, ap-southeast-1: vCPU-hour 0.05056 USD and GB-hour 0.00553 USD, publication 2026-10-07. Fixture values for the price lookup, not a live price list |
 
 ## Mismatch script (`operator-script-mismatch.md`)
 

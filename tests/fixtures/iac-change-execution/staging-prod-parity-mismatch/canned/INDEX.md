@@ -18,7 +18,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `git branch --show-current` | `git-branch.txt` | always (the repo is on `main`) |
+| `git branch --show-current` | `git-branch.txt` | before the skill switches branch: the default branch, `main` |
+| `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
 | `git remote get-url origin` | `git-remote.txt` | always |
@@ -30,7 +31,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch -a --list *` | `empty.txt` | duplicate check for an in-flight branch: none |
 | `git branch -a` | `git-branches.txt` | always |
 | `gh pr list *` | `gh-pr-list-empty.txt` | duplicate check for an in-flight PR: none |
-| `git switch -c *` | `git-switch.txt` | the runner puts the real branch name where `<branch>` stands |
+| `git switch -c *`, `git checkout -b *` | `git-switch.txt` | the runner puts the real branch name where `<branch>` stands |
 | `git add *` | `empty.txt` | no output |
 | `git commit *` | `git-commit.txt` | the runner fills in the branch, subject and counts |
 | `git push *` | `git-push.txt` | the runner fills in the branch |

@@ -67,7 +67,7 @@ The bucket's alerting is in the IaC and live, and the canned reads cover health,
 | 6 | Operator familiarity | Green | Q4 many times, Q5 experienced. |
 | 7 | Observability readiness | Green | `live:` the 4xx and 5xx alarms exist and are enabled (`describe-alarms-for-metric`), and a blocked reader shows as 4xx errors. SLI-based threshold alerting (`A:165`). |
 | 8 | Cost impact | Green | No new resource and no size increase. |
-| 9 | Security posture | Yellow | Permission scope change (`S:56`): the policy stops matching this bucket. The effective access before and after is not comparable from the repo alone (`A:207`). |
+| 9 | Security posture | Yellow | Permission scope change (`S:56`): the policy stops matching this bucket, so the role loses read access. The Yellow comes from that table row. `A:207` does not apply: it compares the before and after policy documents of a diff, and this plan changes a tag, not a policy. |
 | 10 | Resource health | Green | `live:` the bucket answers `head-bucket`, 4xx and 5xx are near zero, nothing is firing. |
 | 11 | Application compatibility | ⚪ | A tag read at runtime by an IAM condition is not on the not-app-facing list (`A:213`). Q8 is (c), so there is no source (`S:68`). |
 

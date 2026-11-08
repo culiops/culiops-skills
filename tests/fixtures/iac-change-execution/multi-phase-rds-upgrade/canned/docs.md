@@ -19,3 +19,9 @@ Canned answers for `docs:` lookups. They are fixture text, not fetched pages: th
 - URL: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithParamGroups.html
 - Date read: 2026-11-09
 - Sentence relied on (paraphrase): `max_connections` is a static parameter for RDS for PostgreSQL. Its default is derived from the instance memory, and a user-set value replaces the default.
+
+## Editing a CloudWatch alarm threshold updates the alarm in place
+
+- URL: https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html
+- Date read: 2026-11-09
+- Sentence relied on (paraphrase): Calling `PutMetricAlarm` with the name of an existing alarm updates that alarm: its state is left unchanged and the new settings, a new threshold included, replace its previous configuration. The alarm is not deleted and re-created.
