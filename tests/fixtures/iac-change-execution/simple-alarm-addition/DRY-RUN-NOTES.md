@@ -118,3 +118,34 @@ Run: `baseline-output/`, skill text from `origin/main` (v0.17.0), operator scrip
 - Sequence: delivery model, read batch, GATE 1, GATE 2, 4a target check, pre-flight GATE 1, L2, L3 opt-in, pre-flight GATE 2, GATE 3, heads-up offer, GATE 4, poll offer, GATE 5, result-message offer.
 - Verdict GREEN. Outcome: PR opened, nothing applied.
 - GATE 3 repeats the acknowledgement already taken at pre-flight GATE 2.
+
+## Dry-run (v0.18)
+
+Run: `expected-output/`, skill text from the working tree on `feat/iac-change-gate-lanes`, operator script matched by stop ID. Checked by an independent verifier, not the runner.
+
+- **Stops: 2** (target 2): A,B. `unscripted`: 0.
+- Before → after: **15 → 2** stops.
+
+## Findings and fixes
+
+Per-MUST results from the verifier:
+
+### simple-alarm-addition (expected-output)
+Stops: 2 (target 2) — PASS. Unscripted: 0. RED pre-flight runs: 0 (`P:15` `## Verdict: GREEN`).
+
+| # | MUST (short) | PASS/FAIL | Evidence | Cause (FAIL only) |
+|---|---|---|---|---|
+| 1 | `stops.md` is exactly `A`, `B`; no F1-F4, no D1; no separate stop for read batch, pre-flight GATE 1/2, L3 opt-in, comms offer, poll offer, record-commit | PASS | `S:1-2` (`A`, `B`). Full transcript search for `[F`, `[D1]`, `GATE`, `STOP n`: only `T:432` and `T:406` ("without a GATE 2", "GATE 1 is skipped"), `T:287` and `T:457` (the two stops). Heads-up is one optional line inside `[B]` (`T:455`), the operator skips it (`T:461`). Poll and record-commit offers are explicitly not made (`T:494`) | — |
+| 2 | `[A]` carries plan, diff, target, read batch (plan command, cat 7 and 10 reads, success-criteria reads), L2 questions; delivery model asked inside `[A]` | PASS | Plan `T:220-234`; code summary with plan-to-hunk map `T:250-259`; target `T:198-199`, `T:256`; L2 questions `T:239-247`; delivery model `T:248`; read batch `T:261-283`: plan command `T:257` and `T:282`, cat 7 reads R10-R13 `T:271-274`, cat 10 reads R3, R5, R9, R14-R17 `T:264`, `T:266`, `T:270`, `T:275-278`, success criteria S1-S3 `T:229-232`, `T:282`. Note: the `[A]` block holds the code summary plus "Full diff is in your working tree" (`T:259`, per `SKILL.md:325`); the hunk text itself is printed at `T:111-146` just before `[A]` (`lanes.md:135` says "diff", `SKILL.md:314-328` says summary plus pointer) | — |
+| 3 | Branch created and code written before `[A]`, after a clean `git status` | PASS | `git status --short` clean `T:82` (10:08); `git switch -c` `T:85` (10:11); code written `T:109-146`; `[A]` shown 10:15 (`T:194`) | — |
+| 4 | Verdict line (GREEN or YELLOW) inside `[B]`; pre-flight inline; `preflight-record.md` exists; `record.md` links it | PASS | `[B]` verdict "Pre-flight verdict: GREEN" `T:453`; inline `T:361-436`, `P:10` (`Mode: inline`); record link `R:11` (`invoked inline — verdict: GREEN`) | — |
+| 5 | `**Lane:** light` cites `plan:` for L1 and the allowlist entry for L2; `**Escalations:** none` | PASS | `R:12` ("`plan:42`: 1 to add, 0 to change, 0 to destroy"; "`aws_cloudwatch_metric_alarm` create is on the allowlist"); `R:13` `**Escalations:** none` | — |
+| 6 | `**Environment tier:** prod=prod (operator-stated ...)`; unproven, prod gate levels | PASS | `R:14` `prod=prod (operator-stated, unproven: no allowed_account_ids, account variable or assume_role pin ...) → prod gate levels` | — |
+| 7 | `**Staging-first:** n/a — no staging env (<evidence>)` with `envs/prod.tfvars` as the only env file; `- Parity check: n/a` | PASS | `R:15` (`code: envs/prod.tfvars` is the only environment file; `variables.tf:2` named only as an example value, not an env file); `R:60` `- Parity check: n/a` | — |
+| 8 | `**Waived:** none` | PASS | `R:16` | — |
+| 9 | `**Applied:** no — PR open` | PASS | `R:68`; outcome `R:65-66` | — |
+| 10 | Final message ends with one `Next:` line | PASS | Final message `T:504-508`; single `Next:` line at `T:508` and it is the last line | — |
+| 11 | No stop logged as `unscripted` | PASS | `grep -c unscripted stops.md` = 0; `T:516` "No unscripted stop" | — |
+
+
+No fixes needed for this fixture.

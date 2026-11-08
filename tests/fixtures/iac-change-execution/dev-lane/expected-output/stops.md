@@ -1,0 +1,1 @@
+STOP 1: D1 — Run `terraform apply tfplan` against dev (account 111111111111) from your workstation, or open the PR instead? (carries the plan, the diff, the plan output, the target and the delivery-model question)
