@@ -1,0 +1,18 @@
+{
+  "ScalableTargets": [
+    {
+      "ServiceNamespace": "ecs",
+      "ResourceId": "service/paymentapi-cluster-prod/paymentapi-svc-prod",
+      "ScalableDimension": "ecs:service:DesiredCount",
+      "MinCapacity": 2,
+      "MaxCapacity": 6,
+      "RoleARN": "arn:aws:iam::333333333333:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+      "CreationTime": "2025-06-17T04:44:02.133000+00:00",
+      "SuspendedState": {
+        "DynamicScalingInSuspended": false,
+        "DynamicScalingOutSuspended": false,
+        "ScheduledScalingSuspended": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+USER-SUPPLIED VALUES:
+config:
+  logLevel: warn
+  maxRetries: 5
+  queueUrl: https://sqs.ap-southeast-1.amazonaws.com/123456789012/notifyapi-prod-inbound
+image:
+  tag: v3.1.0
+replicaCount: 2
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

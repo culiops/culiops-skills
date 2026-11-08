@@ -1,0 +1,18 @@
+{
+  "AlarmHistoryItems": [
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-09T03:12:31.402000+00:00",
+      "HistoryItemType": "StateUpdate",
+      "HistorySummary": "Alarm updated from INSUFFICIENT_DATA to OK"
+    },
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmType": "MetricAlarm",
+      "Timestamp": "2026-11-09T03:12:30.118000+00:00",
+      "HistoryItemType": "ConfigurationUpdate",
+      "HistorySummary": "Alarm \"paymentapi-cpu-high-prod\" created"
+    }
+  ]
+}

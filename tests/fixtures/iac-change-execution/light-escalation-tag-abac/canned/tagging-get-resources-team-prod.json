@@ -1,0 +1,22 @@
+{
+  "PaginationToken": "",
+  "ResourceTagMappingList": [
+    {
+      "ResourceARN": "arn:aws:s3:::paymentapi-exports-prod",
+      "Tags": [
+        {
+          "Key": "Service",
+          "Value": "paymentapi"
+        },
+        {
+          "Key": "Environment",
+          "Value": "prod"
+        },
+        {
+          "Key": "team",
+          "Value": "payments"
+        }
+      ]
+    }
+  ]
+}

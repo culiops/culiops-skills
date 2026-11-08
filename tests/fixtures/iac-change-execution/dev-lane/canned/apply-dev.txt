@@ -1,0 +1,8 @@
+aws_ecs_task_definition.paymentapi: Destroying... [id=paymentapi-dev]
+aws_ecs_task_definition.paymentapi: Destruction complete after 0s
+aws_ecs_task_definition.paymentapi: Creating...
+aws_ecs_task_definition.paymentapi: Creation complete after 0s [id=paymentapi-dev]
+aws_ecs_service.paymentapi: Modifying... [id=arn:aws:ecs:ap-southeast-1:111111111111:service/paymentapi-cluster-dev/paymentapi-svc-dev]
+aws_ecs_service.paymentapi: Modifications complete after 1s [id=arn:aws:ecs:ap-southeast-1:111111111111:service/paymentapi-cluster-dev/paymentapi-svc-dev]
+
+Apply complete! Resources: 1 added, 1 changed, 1 destroyed.

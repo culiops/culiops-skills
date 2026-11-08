@@ -1,0 +1,28 @@
+{
+  "taskDefinition": {
+    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/paymentapi-prod:12",
+    "family": "paymentapi-prod",
+    "revision": 12,
+    "status": "ACTIVE",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+      "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "containerDefinitions": [
+      {
+        "name": "paymentapi",
+        "image": "333333333333.dkr.ecr.ap-southeast-1.amazonaws.com/paymentapi:v2.4.1",
+        "essential": true,
+        "portMappings": [
+          {
+            "containerPort": 8080,
+            "hostPort": 8080,
+            "protocol": "tcp"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "DBParameterGroups": [
+    {
+      "DBParameterGroupName": "paymentapi-prod-20250617043012345600000001",
+      "DBParameterGroupFamily": "postgres14",
+      "Description": "paymentapi prod PostgreSQL parameter group",
+      "DBParameterGroupArn": "arn:aws:rds:ap-southeast-1:333333333333:pg:paymentapi-prod-20250617043012345600000001"
+    }
+  ]
+}

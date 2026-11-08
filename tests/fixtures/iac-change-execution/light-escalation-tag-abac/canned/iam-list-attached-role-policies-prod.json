@@ -1,0 +1,8 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "paymentapi-team-bucket-read-prod",
+      "PolicyArn": "arn:aws:iam::333333333333:policy/paymentapi-team-bucket-read-prod"
+    }
+  ]
+}

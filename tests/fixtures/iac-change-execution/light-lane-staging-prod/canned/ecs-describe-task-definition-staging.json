@@ -1,0 +1,28 @@
+{
+  "taskDefinition": {
+    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/paymentapi-staging:8",
+    "family": "paymentapi-staging",
+    "revision": 8,
+    "status": "ACTIVE",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+      "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "containerDefinitions": [
+      {
+        "name": "paymentapi",
+        "image": "222222222222.dkr.ecr.ap-southeast-1.amazonaws.com/paymentapi:v2.5.0-rc2",
+        "essential": true,
+        "portMappings": [
+          {
+            "containerPort": 8080,
+            "hostPort": 8080,
+            "protocol": "tcp"
+          }
+        ]
+      }
+    ]
+  }
+}

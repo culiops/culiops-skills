@@ -1,0 +1,18 @@
+{
+  "Subscriptions": [
+    {
+      "SubscriptionArn": "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod:8c1d0f52-2f1b-4d57-b8a1-0a5e7d3c9b10",
+      "Owner": "123456789012",
+      "Protocol": "email",
+      "Endpoint": "payments-oncall@example.invalid",
+      "TopicArn": "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod"
+    },
+    {
+      "SubscriptionArn": "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod:1e7a9c34-5b26-4f0d-a3c8-6d2b8f4e0a77",
+      "Owner": "123456789012",
+      "Protocol": "email",
+      "Endpoint": "sre-team@example.invalid",
+      "TopicArn": "arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod"
+    }
+  ]
+}

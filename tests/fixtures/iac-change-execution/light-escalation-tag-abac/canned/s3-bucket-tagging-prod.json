@@ -1,0 +1,16 @@
+{
+  "TagSet": [
+    {
+      "Key": "Service",
+      "Value": "paymentapi"
+    },
+    {
+      "Key": "Environment",
+      "Value": "prod"
+    },
+    {
+      "Key": "team",
+      "Value": "payments"
+    }
+  ]
+}

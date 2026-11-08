@@ -1,0 +1,35 @@
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+  # aws_ecs_service.paymentapi will be updated in-place
+  ~ resource "aws_ecs_service" "paymentapi" {
+        id                                 = "arn:aws:ecs:ap-southeast-1:111111111111:service/paymentapi-cluster-dev/paymentapi-svc-dev"
+        name                               = "paymentapi-svc-dev"
+      ~ task_definition                    = "arn:aws:ecs:ap-southeast-1:111111111111:task-definition/paymentapi-dev:7" -> (known after apply)
+        tags                               = {
+            "Environment" = "dev"
+            "Service"     = "paymentapi"
+        }
+        # (14 unchanged attributes hidden)
+
+        # (3 unchanged blocks hidden)
+    }
+
+  # aws_ecs_task_definition.paymentapi must be replaced
+-/+ resource "aws_ecs_task_definition" "paymentapi" {
+      ~ arn                      = "arn:aws:ecs:ap-southeast-1:111111111111:task-definition/paymentapi-dev:7" -> (known after apply)
+      ~ arn_without_revision     = "arn:aws:ecs:ap-southeast-1:111111111111:task-definition/paymentapi-dev" -> (known after apply)
+      ~ cpu                      = "256" -> "512" # forces replacement
+      ~ id                       = "paymentapi-dev" -> (known after apply)
+      ~ revision                 = 7 -> (known after apply)
+        tags                     = {
+            "Environment" = "dev"
+            "Service"     = "paymentapi"
+        }
+        # (9 unchanged attributes hidden)
+    }
+
+Plan: 1 to add, 1 to change, 1 to destroy.

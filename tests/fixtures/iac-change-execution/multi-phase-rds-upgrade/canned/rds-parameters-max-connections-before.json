@@ -1,0 +1,15 @@
+{
+  "Parameters": [
+    {
+      "ParameterName": "max_connections",
+      "ParameterValue": "100",
+      "Description": "Sets the maximum number of concurrent connections.",
+      "Source": "user",
+      "ApplyType": "static",
+      "DataType": "integer",
+      "AllowedValues": "6-8388607",
+      "IsModifiable": true,
+      "ApplyMethod": "pending-reboot"
+    }
+  ]
+}

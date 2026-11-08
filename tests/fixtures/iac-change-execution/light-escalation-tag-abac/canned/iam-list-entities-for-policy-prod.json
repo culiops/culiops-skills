@@ -1,0 +1,10 @@
+{
+  "PolicyGroups": [],
+  "PolicyUsers": [],
+  "PolicyRoles": [
+    {
+      "RoleName": "paymentapi-engineers-prod",
+      "RoleId": "AROAEXAMPLEPAYENG01"
+    }
+  ]
+}

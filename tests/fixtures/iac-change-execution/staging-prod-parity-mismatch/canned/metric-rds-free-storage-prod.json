@@ -1,0 +1,77 @@
+{
+  "Label": "FreeStorageSpace",
+  "Datapoints": [
+    {
+      "Timestamp": "2026-11-09T02:00:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:05:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:10:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:15:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:20:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:25:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:30:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:35:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:40:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:45:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:50:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    },
+    {
+      "Timestamp": "2026-11-09T02:55:00+00:00",
+      "Average": 83000000000.0,
+      "Minimum": 82000000000.0,
+      "Unit": "Bytes"
+    }
+  ]
+}

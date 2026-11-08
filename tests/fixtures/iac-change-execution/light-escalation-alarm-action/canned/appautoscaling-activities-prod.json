@@ -1,0 +1,16 @@
+{
+  "ScalingActivities": [
+    {
+      "ActivityId": "6f0a1c52-3b2d-4e7f-8a91-5c4d3e2f1b00",
+      "ServiceNamespace": "ecs",
+      "ResourceId": "service/paymentapi-cluster-prod/paymentapi-svc-prod",
+      "ScalableDimension": "ecs:service:DesiredCount",
+      "Description": "Setting desired count to 3.",
+      "Cause": "monitor alarm paymentapi-cpu-high-prod in state ALARM triggered policy paymentapi-scale-out-prod",
+      "StartTime": "2026-11-08T08:49:02.118000+00:00",
+      "EndTime": "2026-11-08T08:49:41.340000+00:00",
+      "StatusCode": "Successful",
+      "StatusMessage": "Successfully set desired count to 3. Change successfully fulfilled by ecs."
+    }
+  ]
+}

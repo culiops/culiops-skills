@@ -1,0 +1,39 @@
+{
+  "MetricAlarms": [
+    {
+      "AlarmName": "paymentapi-cpu-high-prod",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-cpu-high-prod",
+      "AlarmDescription": "CPU utilization above 80% for paymentapi prod",
+      "AlarmConfigurationUpdatedTimestamp": "2026-11-09T03:42:13.226000+00:00",
+      "ActionsEnabled": true,
+      "OKActions": [
+        "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod"
+      ],
+      "AlarmActions": [
+        "arn:aws:sns:ap-southeast-1:333333333333:paymentapi-alerts-prod"
+      ],
+      "InsufficientDataActions": [],
+      "StateValue": "OK",
+      "StateReason": "Threshold Crossed: 3 datapoints [38.4 (09/11/26 03:37:00), 39.8 (09/11/26 03:32:00), 36.9 (09/11/26 03:27:00)] were not greater than the threshold (80.0).",
+      "StateUpdatedTimestamp": "2026-11-09T03:42:13.226000+00:00",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/ECS",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "ClusterName",
+          "Value": "paymentapi-cluster-prod"
+        },
+        {
+          "Name": "ServiceName",
+          "Value": "paymentapi-svc-prod"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 3,
+      "Threshold": 80.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "missing"
+    }
+  ]
+}

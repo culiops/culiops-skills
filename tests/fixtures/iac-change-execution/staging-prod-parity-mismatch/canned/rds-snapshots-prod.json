@@ -1,0 +1,31 @@
+{
+  "DBSnapshots": [
+    {
+      "DBSnapshotIdentifier": "rds:paymentapi-db-prod-2026-11-07-02-05",
+      "DBInstanceIdentifier": "paymentapi-db-prod",
+      "SnapshotCreateTime": "2026-11-07T02:05:12.000000+00:00",
+      "Engine": "postgres",
+      "Status": "available",
+      "SnapshotType": "automated",
+      "Encrypted": true
+    },
+    {
+      "DBSnapshotIdentifier": "rds:paymentapi-db-prod-2026-11-08-02-05",
+      "DBInstanceIdentifier": "paymentapi-db-prod",
+      "SnapshotCreateTime": "2026-11-08T02:05:12.000000+00:00",
+      "Engine": "postgres",
+      "Status": "available",
+      "SnapshotType": "automated",
+      "Encrypted": true
+    },
+    {
+      "DBSnapshotIdentifier": "rds:paymentapi-db-prod-2026-11-09-02-05",
+      "DBInstanceIdentifier": "paymentapi-db-prod",
+      "SnapshotCreateTime": "2026-11-09T02:05:12.000000+00:00",
+      "Engine": "postgres",
+      "Status": "available",
+      "SnapshotType": "automated",
+      "Encrypted": true
+    }
+  ]
+}

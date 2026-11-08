@@ -1,0 +1,51 @@
+{
+  "ScalingPolicies": [
+    {
+      "PolicyARN": "arn:aws:autoscaling:ap-southeast-1:333333333333:scalingPolicy:5b1f6a1e-7c2d-4c0e-9a3b-2d8f4e6a1c90:resource/ecs/service/paymentapi-cluster-prod/paymentapi-svc-prod:policyName/paymentapi-scale-out-prod",
+      "PolicyName": "paymentapi-scale-out-prod",
+      "ServiceNamespace": "ecs",
+      "ResourceId": "service/paymentapi-cluster-prod/paymentapi-svc-prod",
+      "ScalableDimension": "ecs:service:DesiredCount",
+      "PolicyType": "StepScaling",
+      "StepScalingPolicyConfiguration": {
+        "AdjustmentType": "ChangeInCapacity",
+        "StepAdjustments": [
+          {
+            "MetricIntervalLowerBound": 0.0,
+            "ScalingAdjustment": 1
+          }
+        ],
+        "Cooldown": 300,
+        "MetricAggregationType": "Average"
+      },
+      "Alarms": [
+        {
+          "AlarmName": "paymentapi-cpu-high-prod",
+          "AlarmARN": "arn:aws:cloudwatch:ap-southeast-1:333333333333:alarm:paymentapi-cpu-high-prod"
+        }
+      ],
+      "CreationTime": "2025-06-17T04:44:09.512000+00:00"
+    },
+    {
+      "PolicyARN": "arn:aws:autoscaling:ap-southeast-1:333333333333:scalingPolicy:7d3e5a90-4b1c-4f6e-8a2d-9c0b1e2f3a44:resource/ecs/service/paymentapi-cluster-prod/paymentapi-svc-prod:policyName/paymentapi-scale-in-prod",
+      "PolicyName": "paymentapi-scale-in-prod",
+      "ServiceNamespace": "ecs",
+      "ResourceId": "service/paymentapi-cluster-prod/paymentapi-svc-prod",
+      "ScalableDimension": "ecs:service:DesiredCount",
+      "PolicyType": "StepScaling",
+      "StepScalingPolicyConfiguration": {
+        "AdjustmentType": "ChangeInCapacity",
+        "StepAdjustments": [
+          {
+            "MetricIntervalUpperBound": 0.0,
+            "ScalingAdjustment": -1
+          }
+        ],
+        "Cooldown": 300,
+        "MetricAggregationType": "Average"
+      },
+      "Alarms": [],
+      "CreationTime": "2025-06-17T04:44:10.071000+00:00"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+remote: Create a pull request for '<branch>' on GitHub by visiting:
+remote:   https://github.com/acme/paymentapi-infra/pull/new/<branch>
+To github.com:acme/paymentapi-infra.git
+ * [new branch]      <branch> -> <branch>

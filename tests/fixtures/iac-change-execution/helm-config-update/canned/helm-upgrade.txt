@@ -1,0 +1,6 @@
+Release "notifyapi" has been upgraded. Happy Helming!
+NAME: notifyapi
+LAST DEPLOYED: Fri Apr 24 07:31:22 2026
+NAMESPACE: notifyapi-prod
+STATUS: deployed
+REVISION: 10

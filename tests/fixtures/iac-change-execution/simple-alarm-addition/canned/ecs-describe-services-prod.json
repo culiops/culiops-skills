@@ -1,0 +1,58 @@
+{
+  "services": [
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:333333333333:service/paymentapi-cluster-prod/paymentapi-svc-prod",
+      "serviceName": "paymentapi-svc-prod",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:333333333333:cluster/paymentapi-cluster-prod",
+      "loadBalancers": [
+        {
+          "targetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:333333333333:targetgroup/paymentapi-tg-prod/6d0ecf831eec9f09",
+          "containerName": "paymentapi",
+          "containerPort": 8080
+        }
+      ],
+      "status": "ACTIVE",
+      "desiredCount": 3,
+      "runningCount": 3,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/paymentapi-prod:12",
+      "deploymentConfiguration": {
+        "deploymentCircuitBreaker": {
+          "enable": false,
+          "rollback": false
+        },
+        "maximumPercent": 200,
+        "minimumHealthyPercent": 100
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173612",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/paymentapi-prod:12",
+          "desiredCount": 3,
+          "pendingCount": 0,
+          "runningCount": 3,
+          "failedTasks": 0,
+          "createdAt": "2026-10-12T14:02:11.221000+00:00",
+          "updatedAt": "2026-10-12T14:02:11.221000+00:00",
+          "launchType": "FARGATE",
+          "rolloutState": "COMPLETED",
+          "rolloutStateReason": "ECS deployment ecs-svc/441790225580173612 completed."
+        }
+      ],
+      "events": [
+        {
+          "id": "b3a1f0c2-6d44-4e7a-9d0a-1c5d7e2f8a31",
+          "createdAt": "2026-11-09T01:12:40.317000+00:00",
+          "message": "(service paymentapi-svc-prod) has reached a steady state."
+        }
+      ],
+      "createdAt": "2025-06-17T04:30:12.881000+00:00",
+      "healthCheckGracePeriodSeconds": 0,
+      "schedulingStrategy": "REPLICA",
+      "enableECSManagedTags": false
+    }
+  ],
+  "failures": []
+}

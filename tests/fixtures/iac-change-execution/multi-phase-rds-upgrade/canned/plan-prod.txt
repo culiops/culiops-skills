@@ -1,0 +1,42 @@
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # aws_cloudwatch_metric_alarm.paymentapi_db_connections will be updated in-place
+  ~ resource "aws_cloudwatch_metric_alarm" "paymentapi_db_connections" {
+      ~ alarm_description                     = "RDS connections above 80 for paymentapi prod (limit: 100)" -> "RDS connections above 160 for paymentapi prod (limit: 200)"
+        id                                    = "paymentapi-db-connections-high-prod"
+      ~ threshold                             = 80 -> 160
+        tags                                  = {
+            "Environment" = "prod"
+            "Service"     = "paymentapi"
+        }
+        # (15 unchanged attributes hidden)
+    }
+
+  # aws_db_parameter_group.paymentapi will be updated in-place
+  ~ resource "aws_db_parameter_group" "paymentapi" {
+        id          = "paymentapi-prod-20250617043012345600000001"
+        name        = "paymentapi-prod-20250617043012345600000001"
+        tags        = {
+            "Environment" = "prod"
+            "Service"     = "paymentapi"
+        }
+        # (6 unchanged attributes hidden)
+
+      - parameter {
+          - apply_method = "immediate" -> null
+          - name         = "max_connections" -> null
+          - value        = "100" -> null
+        }
+      + parameter {
+          + apply_method = "pending-reboot"
+          + name         = "max_connections"
+          + value        = "200"
+        }
+
+        # (2 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 2 to change, 0 to destroy.
