@@ -32,7 +32,7 @@ A multi-phase change: update an RDS parameter group to increase `max_connections
 
 ## MUST (v0.18)
 
-Stop target: **5 (+1 if H5)**: `F1`, `F2`, `F3` (phase 1), `F4` (phase 1), `F4` (phase 2), and one `H5` if the pre-flight verdict is RED. The scoring below leads to RED, so the `H5` stop is expected and accepted.
+Stop target: **5 (+1 per RED pre-flight run (each is its own `[H5]`))**: `F1`, `F2`, `F3` (phase 1), `F4` (phase 1), `F4` (phase 2), and one `H5` if the pre-flight verdict is RED. The scoring below leads to RED, so the `H5` stop is expected and accepted.
 
 - `stops.md` lists those IDs in that order. Phase 2 is an operational command with no IaC code, so it has no `[F3]`. There is no separate phase gate between the phases.
 - The phase-1 success-criteria result (the `describe-db-instances` and re-plan reads captured after the apply, showing `pending-reboot`) is shown in the first phase-2 stop, `[F4]` (phase 2).
