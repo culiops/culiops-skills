@@ -27,19 +27,19 @@ The rule decides, from the plan output, not from the size of the change. The LLM
    - Before `[A]`: `[F1]`–`[F4]`. Code already written stays uncommitted and is shown at `[F3]`.
    - After `[A]`: `[A]` approved what `[F1]`–`[F3]` approve, so the next stop is `[F4]` in place of `[B]`.
    - From dev (E4 or a hit): the full-lane stops. Pre-flight still follows H9 by tier: a proven dev target skips it unless the operator asks for it.
-   - Leaving dev at Step 4a: a planned resource outside a proven-dev target, or a merge that applies other environments, ends the dev lane. Record `plan-confirm` with the `plan:` or `code:` evidence. The lane rule then picks light or full, and all of that lane's stops apply, because the dev lane approves nothing before `[D1]`.
+   - Leaving dev at Step 4a: a planned resource outside a proven-dev target, or a merge that applies other environments, ends the dev lane. Record `plan-confirm` with the `plan:` or `code:` evidence. That is a recorded escalation, so Lane rule line 1 makes the change full, and all the full-lane stops apply, because the dev lane approves nothing before `[D1]`.
    - A plan or diff that changes after the escalation needs new approval at `[F2]` / `[F3]`.
 
 ## Environment tier
 
 - Step 1 maps every environment the repo defines (directory, var-file, workspace, overlay, values file) to **dev**, **staging** or **prod**.
-- **A change's targets** are every account or Kubernetes context its plan or its merge reaches: the environment it is for, every environment that consumes an edited shared module, every environment the delivery model applies on the same merge, and every account an aliased provider reaches. Each target gets its own tier. The dev lane needs every target proven `dev`.
+- **A change's targets** are every account or Kubernetes context its plan or its merge reaches: the environment it is for, every environment that consumes an edited shared module, every environment the delivery model applies on the same merge, and every account an aliased provider reaches. Each target gets its own tier. The dev lane needs every target proven `dev`. If the delivery model is `UNVERIFIED`, the merge's reach cannot be listed: count the merge as reaching an unproven target, so the change is not dev.
 - A target's tier is **proven** only when the target identity matches what the repo pins for that environment. Run the identity read with the same profile or kubeconfig that the plan and apply will use. Match exactly: no substring or fuzzy match. Cite both sides: `live:` for the identity, `code: <path>:<line>` for the pin.
   - Terraform, `allowed_account_ids` or an account variable in the environment's var-file: the account from `aws sts get-caller-identity` is listed in `allowed_account_ids`, or equals the variable.
   - Terraform, provider `assume_role`: the target identity is the account and role in the pinned role ARN. Prove it with an identity read through the same credential chain Terraform uses for that environment, for example a profile whose `role_arn` equals the pin, returning `assumed-role/<role>` in that account. A read of the base credentials proves nothing here. If no such read is possible, the tier is unproven.
   - Kubernetes: the context name from `kubectl config current-context`, or that context's cluster name or server from `kubectl config view --minify` (a local kubeconfig read; never `--raw`), equals the context or cluster the CI config names, or the Argo CD / Flux destination. A destination given only as a server URL cannot prove a tier.
 - The environment's name alone does not prove it is dev or staging. `dev` or `stg` in a directory, workspace, var-file, account alias or context name proves nothing on its own.
-- **H1 needs positive evidence that the target differs:** the environment the plan is for has a pin and the identity read does not match it, or the identity matches the pin of a different environment and not this one's. Or, with no pin, the identity at any later read differs from the identity shown at the first stop. Unproven is not a mismatch. For an `assume_role` pin, only an identity read through that pin's credential chain counts, for proof and for H1 alike: a read of the base credentials is neither proof nor a mismatch.
+- **H1 needs positive evidence that the target differs:** the environment the plan is for has a pin and the identity read does not match it, or the identity matches the pin of a different environment and not this one's. Or, with no pin, the identity at any later read differs from the identity shown for that same target at the first stop. Identity here means the account and role (or the context and cluster), not the full session ARN. Unproven is not a mismatch. For an `assume_role` pin, only an identity read through that pin's credential chain counts, for proof and for H1 alike: a read of the base credentials is neither proof nor a mismatch.
 - When nothing is pinned, the operator may state the tier at the first stop. Record it as `operator-stated`. An `operator-stated` tier is not proven: an operator-stated dev tier does not open the dev lane and does not skip pre-flight.
 - **An unproven tier gets prod gate levels.** Unproven covers: no pin; no identity read that can prove the pin (failed, not run, or not possible); an `operator-stated` tier; an environment that cannot be mapped.
 - **Identity reads need no opt-in:** `aws sts get-caller-identity`, `kubectl config current-context` and `kubectl config view --minify` (never `--raw`). They return only who the caller is, not resource data. Run them first, before any other live command, and show the result at the first stop. No other live read is exempt.
@@ -55,11 +55,11 @@ Every lane, never waived. A request to skip one is refused, citing its H-id and 
 |---|---|---|
 | H1 | The target identity does not match the environment the plan is for: stop, run nothing further. | Its own stop `[H1]`, as soon as the evidence in Environment tier shows a mismatch. Show both identities. Run nothing further. "Proceed anyway" is refused. If the operator switches credentials, re-run the identity read; it must match. |
 | H2 | Approval before every mutation: each apply command, each push + open PR, each merge the skill would do. | `[D1]`, `[B]`, `[F4]`. Each approves only the mutation it shows. Any further mutation gets its own approval. |
-| H3 | The plan shows a destroy or replace that the approved plan did not name, or the parity check fails. | Its own stop `[H3]` at Step 4a, before pre-flight. Light lane: a destroy or replace also fails L1, and a parity failure escalates. Full lane: a parity failure is an `[H3]` stop. Dev lane: the approved plan is the one shown at `[D1]`. Parity detail: SKILL.md Step 4a. |
+| H3 | The plan shows a destroy or replace that the approved plan did not name, or the parity check fails. | Its own stop `[H3]` at Step 4a, before pre-flight. Light lane: a destroy or replace also fails L1, and a parity failure escalates. Full lane: a parity failure is an `[H3]` stop. Dev lane: the approved plan is the one shown at `[D1]`. Parity detail: Staging-first › Parity check; SKILL.md Step 4a runs it. |
 | H4 | Drift rows are acknowledged before planning. | Inside `[F2]`. Any other drift row (dev lane, or found after the plan) is its own stop `[H4]`, before anything further runs. |
 | H5 | A RED verdict: acknowledgement for a soft block, written justification for a hard block. | Its own stop `[H5]`: pre-flight's GATE 2 on RED, before `[B]` / `[F4]`. |
 | H6 | The duplicate check says already done, in flight or reverted. | Its own stop `[H6]` in Step 1, before planning. |
-| H7 | Staging before prod. The only ways around it are the staging-first exceptions (a)–(c) in SKILL.md Step 2. | Checked before each prod `[B]` / `[F4]`. No staging evidence and no recorded exception → its own stop `[H7]`. Ordering detail: SKILL.md Step 2. |
+| H7 | Staging before prod. The only ways around it are the staging-first exceptions (a)–(c) (see Staging-first). | Checked before each prod `[B]` / `[F4]`. No staging evidence and no recorded exception → its own stop `[H7]`. Ordering detail: Staging-first; SKILL.md Step 2 plans it. |
 | H8 | Unsupported owner tool, or an import over an active CloudFormation / Serverless owner (existing rules). | Its own stop `[H8]` in Step 1. Rules: SKILL.md › Supported stack, and the Step 1 ownership check. |
 | H9 | Pre-flight runs before every staging or prod apply. Only a proven dev target skips it. | Before each staging or prod `[B]` / `[F4]`. A reusable record counts as a run only under the full SKILL.md Step 4b reuse contract. An unproven target counts as prod. |
 
@@ -154,7 +154,7 @@ Rules for all lanes:
   - Each phase's first stop (`[F3]`, or `[F4]` when the phase has no `[F3]`) shows the previous phase's success-criteria result. The separate phase gate goes away.
   - A failed success criterion stops the run, as today.
   - In the dev lane, each phase gets its own `[D1]` (H2).
-- **Observation window** (staging → prod): no stop of its own. Light lane: prod's `[B]` comes once staging's success criteria pass. Full lane: SKILL.md Step 2.
+- **Observation window** (staging → prod): no stop of its own. Light lane: prod's `[B]` comes once staging's success criteria pass. Full lane: see Staging-first.
 - **No other stops**, except hard-gate stops and H2 approval of a further mutation (for example a merge the skill would do). GATE 5 and the standalone offers are removed. `[B]` / `[F4]` may carry one optional heads-up line (change-comms). The final message ends with one `Next:` line: commit the record, and draft the result or ticket-close message with change-comms.
 - **Soft stops: `[F1]` and `[F3]` only.** The operator may waive one explicitly; the LLM never waives a stop. Record each waiver under `Waived:`. The waiver procedure is in SKILL.md.
   - Waived `[F1]`: run the read batch without asking.
@@ -168,3 +168,56 @@ Pre-flight's Q1–Q3 (active incident, deploy freeze, peak traffic) describe the
 - The first stop of that phase or environment carries one line: `Q1–Q3 still true? (incident / freeze / peak)`. The line adds no stop.
 - That stop comes before pre-flight (`[F3]`): pass the fresh answers in the caller block's `L2 answers:`.
 - That stop comes after pre-flight (`[F4]`, or `[B]`): an unchanged answer → proceed. A changed answer → re-run pre-flight with the new answers before the apply, then show a new `[F4]` / `[B]` with the new verdict. Only a changed answer adds a stop.
+
+## Staging-first
+
+H7 in rule form. SKILL.md Step 2 plans the order, Step 4a runs the parity check, Step 4b passes staging's evidence to prod's pre-flight, Step 4c checks H7 before each prod `[B]` / `[F4]`, and Step 5b records the outcome. None of it is a stop of its own: the exception questions go inside `[A]` / `[F2]`. The only stops it raises itself are the hard-gate stops `[H3]` and `[H7]`; any other comes from an operator's choice (a longer window, a staging rehearsal).
+
+**When it applies.** Step 1 maps an environment to `staging`, and the change targets prod. A target that cannot be mapped counts as prod. The mapping sets the order; the proof sets the gate levels (Environment tier), so an unproven staging still goes first, at prod gate levels.
+
+**Order.**
+- The whole sequence runs in staging, then in prod: every phase in staging, then every phase in prod. This order is inferred from common rehearsal practice. The operator may ask for interleaving (each phase in staging, then in prod) at `[A]` / `[F2]`; the plan and the record say so.
+- The code for every environment is written and approved once (`[A]`, or each phase's `[F3]`). After staging verifies, the run goes on to prod's Step 4a, never back to Step 3, and prod gets no `[F3]`. Each prod phase applies the code its staging phase applied. A prod diff that differs from the approved one needs new approval at `[F2]` / `[F3]`.
+- Reads. Light lane: each environment's share of the `[A]` batch runs at its turn, so no prod read other than the identity read, and no prod plan, runs before staging verifies. Full lane: `[F1]` covers every environment before Step 2, because drift is acknowledged at `[F2]` (H4); at prod's turn, prod's category-10 reads from that batch run again, so prod's pre-flight sees prod's health as it is then. Both are pre-approved.
+
+**Delivery per environment,** in order, by the delivery model from Step 1:
+- per-env PRs or apply runs: staging's first, prod's at prod's turn;
+- Atlantis / Terraform Cloud: the staging project is applied first (the operator comments or confirms the run; the skill never does);
+- GitOps: the staging path first, then the controller's sync, then prod's path.
+
+If one merge would apply the change to staging and prod together (a shared file or module with no per-env pin, or CI that applies every environment on merge), split it per environment: separate commits or PRs, or per-env module pins. If the repo cannot express the split, say so inside `[A]` / `[F2]`. The operator then gives a written justification or aborts. Staging cannot go first, so the justification is recorded as exception (b), its text saying why the change cannot be split.
+
+**Satisfied by evidence.** The staging phase counts as done when the duplicate check plus live reads show staging already has this change. Staging is not applied again, and prod's turn starts. Record `satisfied by evidence — <cite>`. A staging plan with no changes because the change has nothing to apply in staging (for example a value set only in prod's var-file) is not this: it is exception (b).
+
+**Exceptions (a)–(c)** are the only ways around H7. Each is recorded in the record and in the PR body.
+- (a) No staging environment. Automatic, with evidence: the environments Step 1 mapped, none of them `staging` (`code:` the env dirs, var-files, workspaces or overlays). Record `n/a — no staging env (<evidence>)`.
+- (b) A prod-only change: it has nothing to apply in staging. Ask for a written justification inside `[F2]` / `[A]`, as a field of the plan. Record it word for word: `exception (prod-only) — "<justification>"`. No justification → the plan adds a staging rehearsal of the same change, or the operator aborts.
+- (c) An incident hotfix: the incident reference and why the change mitigates it, in the format of pre-flight's incident override (`skills/pre-flight/SKILL.md` › Incident Context), asked inside `[F2]` / `[A]`. Record `exception (incident) — "<justification>"`.
+
+A change with no prod target, in a repo that has a staging environment, gives H7 nothing to hold. Record `n/a — no prod target (<evidence>)`. With no staging environment, (a) applies, whatever the targets.
+
+**Observation window.** No stop of its own.
+- Light lane: prod's turn starts once staging's success criteria pass.
+- Full lane: the plan proposes a window with its reason (for example "24 h, so the nightly batch runs against the new value"), approved at `[F2]`. Prod's turn starts when it ends; the wait asks the operator nothing. At its end, re-run staging's success criteria.
+- After a light→full escalation, propose the window at the first full-lane stop the escalation adds, and get it approved there: `[F2]` when the escalation comes before `[A]`, otherwise the next `[F4]`. At prod's `[F4]`, show how long staging has run since its success criteria passed; approving `[F4]` accepts that as the window. If the operator wants a longer one, that `[F4]` ends without an apply, and prod's `[F4]` comes again when the window ends.
+- Reads during the window are pre-approved at `[A]` / `[F1]`–`[F2]`. Prod's first stop shows staging's latest success-criteria result and re-asks Q1–Q3 (Timing re-ask).
+
+**Parity check** (Step 4a, every prod phase, after the plan and the cross-check, before pre-flight).
+- It runs only when a staging phase ran for this change. Under exceptions (a)–(c) the record says `Parity check: n/a`, and parity raises no `[H3]`. Satisfied by evidence: compare against the staging plan or apply output that the evidence cites; if none exists, `n/a — <reason>`.
+- Compare against the plan staging applied for the same phase.
+- Normalise each resource address: strip the environment's name or index. `module.staging.aws_db_instance.main` and `module.prod.aws_db_instance.main` both become `module.<env>.aws_db_instance.main`; `aws_sqs_queue.q["prod"]` becomes `aws_sqs_queue.q[<env>]`. Plans made per var-file or per workspace usually share their addresses already. Kubernetes: kind, namespace and name, normalised the same way.
+- Take each action in prod's plan: `create`, `update` (in place), `replace` or `destroy` (data-source reads aside). Look for the same normalised address in staging's plan with the same action. Missing, or a different action → `untested in staging: <address> <action>`, one per action. Compare actions only; value differences go to prod's pre-flight as staging evidence.
+- No untested action → `pass`.
+- Light lane: an untested action escalates (`plan-confirm`, citing both `plan:` lines). The change is now full, so the next item applies, and prod's `[F4]` replaces `[B]` (When the lane is decided).
+- Full lane: an untested action is `[H3]`, before prod's pre-flight, even if `[F2]` named the action. One `[H3]` also carries any destroy or replace from the cross-check. It shows each untested action with staging's and prod's `plan:` lines, and the cause where the code or docs show it. It offers exactly three choices:
+  - abort: prod is not applied, and the record keeps staging as applied (`Outcome: aborted`);
+  - add a staging rehearsal: back to Step 2, where the plan gains a staging step that exercises the action, approved again at `[F2]` / `[F3]`; prod's 4a then runs the check again;
+  - accept with a written reason: the parity line records it, then prod's pre-flight runs.
+
+**Staging evidence for prod's pre-flight** (Step 4b, when a staging phase ran). Put it in the caller block's `Evidence table:`, under the line `Staging evidence (evidence, not proof):`.
+- Measured disruption during staging's apply (duration, restarts, failovers, events), staging's success-criteria outputs, and staging's health before and after the apply. Cite each as `live: <cmd> (staging, <time>)`.
+- Each size difference between the env var-files (instance class, count, storage, capacity, version), cited `code: <staging var-file>:<line>` against `code: <prod var-file>:<line>`.
+
+It is evidence, not proof: it never by itself makes a category Green. It stays out of `Live results:`, which lists reads of the target pre-flight is assessing.
+
+**Record** (SKILL.md Step 5b). `**Staging-first:**` takes one form: `applied — staging <time>`, `satisfied by evidence — <cite>`, `n/a — no staging env (<evidence>)`, `n/a — no prod target (<evidence>)`, or `exception (prod-only|incident) — "<justification>"`. The PR body carries the same line. Each phase entry has `- Parity check: <pass | untested in staging: <address> <action> | n/a>`; staging's own entries say `n/a`. An accepted untested action adds ` — accepted at [H3]: "<reason>" (operator, <time>)` to its line.

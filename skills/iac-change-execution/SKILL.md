@@ -44,6 +44,8 @@ NO PLAN CLAIM WITHOUT EVIDENCE FROM THE CODE AND THE LIVE SYSTEM.
 | "It's a tiny change, so it's light" | STOP — the rule decides from the plan output, not the size (`lanes.md` › Lane rule). One changed line can force a failover. |
 | "The account name says dev" | STOP — a name proves nothing. Prove the tier with the identity read against the repo's pin (`lanes.md` › Environment tier). Unproven counts as prod. |
 | "I'll downgrade to light, the plan looks fine" | STOP — never. A lane only escalates during a run (Constraint 14). |
+| "Staging is basically prod, skip it" | STOP — H7: staging goes first. The only ways around it are exceptions (a)–(c), recorded with their evidence or justification (`lanes.md` › Staging-first). |
+| "It passed in staging, so prod is safe" | STOP — staging is evidence, not proof. Run the parity check, pass staging's results and the var-file size differences to prod's pre-flight, and let it score prod (H9). |
 | "The code style doesn't matter, it works" | STOP — inconsistent style signals the change was not written by the team. Follow the repo's patterns. |
 | "I'll apply all phases at once, they're independent" | STOP — phases are ordered for a reason. Each gets its own stops, and Phase N+1 waits for Phase N's success criteria. |
 | "The operator approved the plan, so I don't need to show the code" | STOP — the code might not match the plan. The diff is shown before any commit, push or apply: at `[A]` / `[D1]`, at `[F3]`, or at `[F4]` when `[F3]` was waived. |
@@ -69,8 +71,10 @@ NO PLAN CLAIM WITHOUT EVIDENCE FROM THE CODE AND THE LIVE SYSTEM.
 | Writing code while a branch other than this change's is checked out | STOP → get on the change's branch from `origin/<default>` (Step 3) |
 | Full lane: writing IaC code before `[F2]` approves the plan | STOP → return to Step 2, get plan approval |
 | Running a staging or prod apply before pre-flight clears | STOP → invoke pre-flight first (H9) |
+| A prod apply (or prod PR) before staging, with no recorded exception | STOP → `[H7]`: staging first, or exception (a)–(c) recorded (`lanes.md` › Staging-first) |
 | Modifying files outside the scope of the approved plan | STOP → revise the plan and re-approve |
 | The plan output shows unexpected destroys or replacements | STOP → `[H3]`: present to operator, do not proceed without explicit acknowledgment (dev lane: shown at `[D1]`, `lanes.md` › Hard gates) |
+| A parity `untested in staging` action ignored, or prod applied past it | STOP → `[H3]`: abort, add a staging rehearsal, or accept with a written reason (Step 4a) |
 | Light lane with a destroy, a replace, an off-allowlist change or an escalation-check hit | STOP → escalate to full; record `Escalations:` with the evidence (`lanes.md` › Escalation checks) |
 | The lane was downgraded | STOP → restore it. A lane never goes down during a run; add the stops not yet passed |
 | Code changes don't follow the repo's naming pattern | STOP → re-read existing code, match the pattern |
@@ -104,14 +108,15 @@ digraph iac_change {
     implement [label="Step 3: Implement\n(write IaC code for current phase)\n+ diff self-check + fresh eyes (not dev)"];
     f3        [label="[F3] code + target\n+ plan command", shape=diamond];
     a         [label="[A] plan + code + target\n+ read batch + L2 answers", shape=diamond];
-    planout   [label="Step 4a: Target re-check,\nplan output, confirm lane"];
-    preflight [label="Step 4b: Pre-flight inline"];
+    planout   [label="Step 4a: Target re-check,\nplan output, confirm lane,\nparity (prod after staging)"];
+    h3        [label="[H3] prod action untested\nin staging", shape=diamond];
+    preflight [label="Step 4b: Pre-flight inline\n(prod: + staging evidence)"];
     h5        [label="[H5] = pre-flight GATE 2\n(RED only)", shape=diamond];
     execstop  [label="[B] light / [F4] full\nPR or apply per env,\nverdict line shown", shape=diamond];
     d1        [label="[D1] diff + plan output\n+ target", shape=diamond];
     execute   [label="Step 4c: Execute\n(PR or apply)"];
     verify    [label="Step 5a: Verify\n(re-plan + success criteria)"];
-    phase     [label="More phases?", shape=diamond];
+    phase     [label="More phases?\nNext environment?", shape=diamond];
     record    [label="Step 5b: Write record;\nfinal message ends with Next:"];
 
     input -> research -> lane;
@@ -131,6 +136,10 @@ digraph iac_change {
     a -> plan            [label="corrections"];
     planout -> preflight [label="light / full"];
     planout -> d1        [label="dev (no pre-flight)"];
+    planout -> h3        [label="parity fails\n(light: escalates first)"];
+    h3 -> preflight      [label="accept\n(written reason)"];
+    h3 -> plan           [label="add staging\nrehearsal"];
+    h3 -> record         [label="abort"];
     preflight -> execstop [label="GREEN / YELLOW"];
     preflight -> h5      [label="RED"];
     h5 -> execstop       [label="acknowledged /\njustified"];
@@ -139,6 +148,7 @@ digraph iac_change {
     execstop -> execute  [label="approved"];
     execute -> verify -> phase;
     phase -> implement   [label="yes — next phase\n(result shown at its first stop)"];
+    phase -> planout     [label="staging verified →\nprod's 4a (code approved once)"];
     phase -> record      [label="no — done"];
     record -> done;
 
@@ -175,7 +185,7 @@ Step 1 predicts the lane; Step 4a confirms it from the plan output (`lanes.md` �
 **Detect the delivery model and environment selection.** From the repo (CI config, `Application` / `Kustomization` / `HelmRelease` objects, README, Makefiles):
 - *How changes reach the environment:* CI applies on merge / GitOps controller (Argo CD, Flux) reconciles / **plan and apply run in the PR** by automation (Atlantis `atlantis.yaml`, Terraform Cloud / Enterprise `cloud {}` or `backend "remote"`, Spacelift `.spacelift/config.yml`, a CI job that posts the plan on the PR) / applied by hand. GitOps, CI-applies or PR-driven plan ⇒ PR path only. If the operator says the skill must never run Terraform itself, record that as `operator-stated`: Step 4a then uses an operator-run plan.
 - *How an environment is selected:* Terraform workspace, `-var-file`, directory per environment, backend key; Helm values file per environment; Kustomize overlay; kube context. The plan command in Step 4a must use exactly this selection.
-- Both answers cite where they were found (`code: .github/workflows/deploy.yml:24`, `code: argocd/app.yaml:9`, …). These two facts decide the execution path and the target. If nothing in the repo shows how changes are applied, the delivery model is `UNVERIFIED`: ask the operator inside `[A]` / `[F2]` / `[D1]`, never as a stop of its own, and record the answer as `operator-stated`.
+- Both answers cite where they were found (`code: .github/workflows/deploy.yml:24`, `code: argocd/app.yaml:9`, …). These two facts decide the execution path and the target. If nothing in the repo shows how changes are applied, the delivery model is `UNVERIFIED`: ask the operator inside `[A]` / `[F2]`, never as a stop of its own, and record the answer as `operator-stated`. An `UNVERIFIED` delivery model rules out the dev lane (`lanes.md` › Environment tier).
 
 **Predict the lane** (`lanes.md` › Lane rule) from the request, the code and the tiers. List the change's targets: every account or context its plan or its merge reaches (`lanes.md` › Environment tier). Every target proven `dev` → dev. Otherwise check L1–L3 against the actions the request implies (`lanes.md` › Light-lane allowlist), and run E1–E3 on the request and the code (`lanes.md` › Escalation checks); all pass → light, anything else → full. Record each escalation hit with its evidence.
 
@@ -232,6 +242,8 @@ This is not a stop of its own: show it with the lane's next stop (`[F2]` full, `
 
 If Step 1 found GitOps, CI-applies-on-merge or PR-driven plan / apply, offer the PR path only.
 
+**Staging-first (H7).** If Step 1 mapped an environment to `staging` and the change targets prod, staging goes first: the whole sequence in staging, then in prod (interleaved only if the operator asks; recorded). The code for both is written and approved once, then delivered per environment, in order: per-env PRs or apply runs; Atlantis / Terraform Cloud, the staging project first; GitOps, the staging path and its sync, then prod's. Split a change that one merge would apply to both. Staging that already has the change is `satisfied by evidence`. No staging env is exception (a): automatic, with evidence. A prod-only change (b) or an incident hotfix (c) needs its justification, asked inside `[F2]` / `[A]` as a field of the plan, never as a stop of its own. Observation window: light lane, prod starts once staging's success criteria pass; full lane, propose a window with its reason, approved at `[F2]`. Rules: `lanes.md` › Staging-first.
+
 **Branch.** Code is written on this change's own branch, never on whatever branch is checked out. Read `git branch --show-current` and `git status --short` (read-only). If the current branch is not this change's branch, the plan proposes `git fetch origin <default>` then `git switch -c <branch> origin/<default>`, or `git switch <branch>` if it already exists. Name the branch from the ticket or the repo's pattern (fallback `iac-change/<service>-<short-description>`). Uncommitted changes outside this plan: STOP and ask. Never stash, reset or discard them yourself. Full lane: the branch commands run after `[F2]`. Light and dev lanes: run them now, without a stop, only when `git status --short` is empty; otherwise STOP and ask. Multi-phase on the PR path: each phase's branch is created from the default branch after the previous phase has merged.
 
 **Self-check the plan before presenting it.** Go through each item and fix any failure before the operator sees the plan. If something cannot be fixed, show it as a failure — never drop it silently.
@@ -242,6 +254,7 @@ If Step 1 found GitOps, CI-applies-on-merge or PR-driven plan / apply, offer the
 5. The execution path fits the delivery model (GitOps or CI-applies ⇒ PR only).
 6. Every file and resource the change request implies is in some phase, except parts the duplicate check showed are already done (cited). Nothing is in a phase that the request does not imply.
 7. The lane basis is cited (`lanes.md`): the tier evidence for each target; light, L1–L3 against the allowlist and E1–E3, each with what was checked; full, the condition that failed or the escalation and its evidence.
+8. Staging precedes prod in the order and the delivery, or the exception is recorded: (a) with its evidence, (b) / (c) with its justification asked at this stop (H7). The observation window is named.
 
 **Present the full plan.** Full lane: this is `[F2]`, and the run STOPS here. Light lane: it goes into `[A]` (Step 3). Dev lane: no stop; it is shown at `[D1]` (Step 4c).
 
@@ -260,8 +273,9 @@ If Step 1 found GitOps, CI-applies-on-merge or PR-driven plan / apply, offer the
 > - ...
 >
 > **Execution path:** PR (default) / Direct apply
+> **Staging-first (H7):** `<staging, then prod — delivery per env | satisfied by evidence — <cite> | (a) no staging env — <evidence> | (b) prod-only / (c) incident: your justification?>` · **Observation window:** `<light: until staging's success criteria pass | full: <length> — <reason>>`
 > **Branch:** current `<branch>` → `<change branch>` from `origin/<default>` @ `<short SHA>` (`<fetch + create / switch to existing>`)
-> **Self-check:** `<7/7 pass, or the failing items and why>`
+> **Self-check:** `<8/8 pass, or the failing items and why>`
 > **Drift (H4):** `<each drift row and the value this plan assumes — acknowledge each, or 'none'>`
 > **For pre-flight (L2):** Q1–Q5 and Q7, worded as in `skills/pre-flight/SKILL.md` › Layer 2; Q8 when the plan touches an app-facing attribute (unsure → ask); `iac-change.4` (applied successfully recently?) · **Delivery model:** `<only if UNVERIFIED: how does this change reach the environment?>`
 >
@@ -311,7 +325,7 @@ Fix the failures, then re-run the check. Run it again after every revision. Ligh
 > Full diff is in your working tree (`git diff` to review).
 > **[F3] Approve these changes and the plan command?**
 
-**`[A]` (light lane)** is one message: the research summary (Step 1), the plan with its L2 and delivery-model lines (Step 2), this code summary, and the read batch (`lanes.md` › Stops per lane). It ends `**[A] Approve the plan, the code and these reads?**`. After `[A]`, run the batch, then 4a. A drift row it finds is `[H4]` and escalates.
+**`[A]` (light lane)** is one message: the research summary (Step 1), the plan with its L2 and delivery-model lines (Step 2), this code summary, and the read batch (`lanes.md` › Stops per lane). It ends `**[A] Approve the plan, the code and these reads?**`. After `[A]`, run the batch, then 4a; staging-first runs each environment's share at its turn, so no prod plan runs before staging verifies (`lanes.md` › Staging-first). A drift row it finds is `[H4]` and escalates.
 
 Revisions at `[F3]` / `[A]`: revise, re-run the self-check, re-present. Do not proceed to execution until the operator is satisfied. A waived `[F3]` is no stop: this summary moves to `[F4]` (Constraint 15).
 
@@ -327,7 +341,7 @@ Revisions at `[F3]` / `[A]`: revise, re-run the self-check, re-present. Do not p
 
 #### 4a: Generate plan output
 
-**Re-check the target first (Constraint 10), with no stop.** Run the identity read again with the credentials the plan will use, and read the workspace / var-file: `aws sts get-caller-identity` → account, role · region · `kubectl config current-context` → context, namespace. Compare it with the target the plan is for (Step 1: the pin, or the read shown at the first stop). Match → run the plan; the result is shown again at `[D1]` / `[B]` / `[F4]`. Mismatch → `[H1]`: show both identities, run nothing further (`lanes.md` › Hard gates).
+**Re-check the target first (Constraint 10), with no stop.** Run the identity read again with the credentials the plan will use, and read the workspace / var-file: `aws sts get-caller-identity` → account, role · region · `kubectl config current-context` → context, namespace. Compare it with the target the plan is for (Step 1: the pin, or the read shown for that target at the first stop; for an `assume_role` pin, only a read through that pin's credential chain counts, `lanes.md` › Environment tier). Match → run the plan; the result is shown again at `[D1]` / `[B]` / `[F4]`. Mismatch → `[H1]`: show both identities, run nothing further (`lanes.md` › Hard gates).
 
 **Who runs the plan.** Use one of three modes. (1) The skill runs it, as below. (2) **The operator runs it** (the operator chose this, or Step 1 recorded that the skill never runs Terraform). The skill prints the exact commands, `init` and the environment selection included. (3) **PR automation** (Atlantis, Terraform Cloud, Spacelift): open the PR first (4c, `[B]` / `[F4]`). The operator then comments `atlantis plan` or opens the run. The skill never posts plan or apply comments itself: an Atlantis plan takes a project lock. In modes 2 and 3 the operator pastes the output back. That output is `plan: operator-pasted <time>` evidence, the cross-check below uses it, and the 4b plan hash is the SHA-256 of the pasted text. Output that is truncated (PR comments often cut long plans) or lacks the workspace / project is not a full plan: ask for the full log. The target comes from the plan output or the operator, as `operator-stated`, and is passed to pre-flight. In mode 3, 4a and 4b run on the PR's plan, and pre-flight clears before any apply comment or merge. If the automation applies on merge, the PR is not merged before the operator has seen and acknowledged the verdict (4c, mode 3).
 
@@ -342,12 +356,16 @@ Then run the tool's plan/diff command, using the environment selection found in 
 
 **Confirm the lane from the plan output** (`lanes.md` › Lane rule, When the lane is decided). Light: check L1–L3 again and run E1–E3 on the plan. Dev: check that every planned resource is in a proven-dev target and that the merge applies no other environment. On a failure, record `**Escalations:** plan-confirm — <evidence>` (or the E-id), say why, and add the stops not yet passed. Never downgrade.
 
+**Parity check (H3): each prod phase, when a staging phase ran.** After the prod plan and the cross-check, compare each prod action with the plan staging applied for the same phase, per resource address, normalised across environments (`lanes.md` › Staging-first, Parity check). A prod action staging did not exercise is `untested in staging: <address> <action>`. Light lane: it escalates (`plan-confirm`); the change is then full, so the full-lane rule follows. Full lane: `**[H3] Prod does something staging did not: abort, add a staging rehearsal, or accept with a written reason?**`, before prod's pre-flight, even if `[F2]` named the action. Show staging's and prod's `plan:` lines and the cause. No staging phase ran (exceptions (a)–(c)) → `Parity check: n/a`.
+
 #### 4b: Pre-flight (H9)
 
 **Dev lane:** no pre-flight. Record `- Pre-flight verdict: skipped — dev lane (<evidence>)`, citing the proven tier (`live:` identity, `code:` pin), and go to 4c. **Light and full lanes:** check for a reusable pre-flight record in `.culiops/pre-flight/`:
 - **Match rule:** A record is reusable only if (a) it assessed **this exact plan** — the record's plan hash equals the SHA-256 of the current plan/diff text (`terraform show -no-color tfplan`, `helm diff …`, `kubectl diff …`), (b) the target (account / region / context) is the same, and (c) it is younger than the freshness window (default 24h; the team may set its own). Commit SHAs are not enough: the change is still uncommitted at this point, and live state can move without any commit.
 - **Match found:** Reuse it, and show "Using existing pre-flight record from `<path>` (verdict: `<verdict>`)." at the execution stop. Categories 5 (timing) and 10 (resource health) describe the moment the record was written: the latest Q1–Q3 answers (`[A]` / `[F2]`, or the phase's re-ask, `lanes.md` › Timing re-ask) are the re-ask, and re-run its category-10 reads now (approved in the read batch); if either changed, re-run pre-flight (its reuse contract).
 - **No match:** invoke pre-flight in inline mode (`skills/pre-flight/SKILL.md` Constraint 14). Pass the plan text and the block headed `### Caller context (iac-change-execution)`, every field filled: `Target:` (from the 4a re-check: the target the plan was made for), `Delivery model:` (with its evidence, or `UNVERIFIED — operator-stated: <answer>`), `Lane:` (`<light | full> — <basis>`), `Plan hash:` (`sha256:<hex> (<plan command>)`), `L2 answers:` (from `[A]` / `[F2]`, with Q1–Q3 from the latest re-ask, as `Q1=…` and `iac-change.4=…`), `Live results:` (each read already run: command · time · one-line summary, or `none`), `Evidence table:` (drift / unverified / `code-only` rows called out). A field that is missing, empty or `unknown` sends pre-flight to standalone mode with all its stops, so never pass `unknown`. A question or read batch pre-flight adds for what the block lacks is an extra stop.
+
+**Prod after staging.** Prod's pre-flight is its own run: a staging record never matches (rule (b)), and a RED is its own `[H5]`. Add staging's evidence to the caller block's `Evidence table:` (`lanes.md` › Staging-first): measured disruption, success-criteria outputs, and health before and after, each cited `live: <cmd> (staging, <time>)`, plus the size differences between the env var-files, cited `code:`. It is evidence, not proof: it never by itself makes a category Green.
 
 **Verdict handling.**
 - `target mismatch (live <identity> vs Target <x>)`, with no verdict → `[H1]`: stop, run nothing further.
@@ -361,13 +379,15 @@ Then run the tool's plan/diff command, using the environment selection found in 
 
 The execution stop (`<ID>` below) is `[D1]` (dev), `[B]` (light) or `[F4]` (full): one per environment and per mutation, each approving only the mutation it shows (H2). It re-shows the target from 4a and the plan output summary, and carries the verdict (4b; dev: `skipped — dev lane`). `[D1]` also carries the plan (Step 2) and the code summary (Step 3), and asks: apply, showing the exact apply command (only where Step 2 allows direct apply), or open the PR, showing the PR action below. The answer approves that one mutation; do not ask again. A waived `[F3]` puts the code summary and the plan command into `[F4]`. `[B]` / `[F4]` may carry one optional line: *Heads-up: say so and I draft one for `<owners / reviewers / on-call>` with `change-comms` (draft-only; you send it).*
 
+**H7 before each prod `[B]` / `[F4]`:** staging applied with its success criteria passed, `satisfied by evidence`, or a recorded exception (`lanes.md` › Staging-first). None → `**[H7] Staging has not run for this change: run it first, give the exception (b) / (c) justification, or abort?**`. After a staging phase, prod's first stop re-asks Q1–Q3 (`lanes.md` › Timing re-ask).
+
 **PR path (default):**
 1. Work on the branch created before Step 3; 4c creates none. Follow the repo's commit-message style and its PR / MR template. Works with any Git host (GitHub PR, GitLab MR, Bitbucket, Azure DevOps).
 2. Present the PR action:
    > "**[<ID>] Open the PR?** On branch `<branch>` (from `origin/<default>`), about to stage **only** these files: `<explicit list from the approved plan>`, commit, push, and open a PR/MR.
    > `git status` after staging: `<output>` — no `tfplan` / state / `.terraform/` / unrelated files.
    > Target: `<4a re-check>` · **Pre-flight verdict:** `<GREEN / YELLOW + findings and mitigations / pending — PR-driven plan>`
-   > PR will include: change summary, evidence table, pre-flight verdict, execution record link."
+   > PR will include: change summary, evidence table, pre-flight verdict, the `Staging-first:` line, execution record link."
 3. On approval, stage files by explicit path (never `git add -A` / `git add .`), commit, push, and open the PR/MR.
 4. Report the PR URL to the operator.
 5. Mode 3 (PR automation, 4a): after 4b, show the verdict at a second `[<ID>]` before any merge or apply comment; approving it is the acknowledgement.
@@ -382,7 +402,7 @@ The execution stop (`<ID>` below) is `[D1]` (dev), `[B]` (light) or `[F4]` (full
 
 **PR path:** Each phase gets its own PR. Phase N's PR must be merged and applied (by whoever applies under the delivery model from Step 1) before Phase N+1 begins. The run waits for the operator to say so; that wait is not an approval stop. **Direct apply path:** each phase is applied separately, at its own execution stop.
 
-For both paths, after Phase N completes, run its success criteria (approved with the plan; 5a) and loop back to Step 3 for Phase N+1. There is no separate phase gate: Phase N+1's first stop shows `Phase <N> success criteria: <check> — <pass/fail>` and re-asks Q1–Q3 (`lanes.md` › Timing re-ask). Full lane: that stop is `[F3]`, or `[F4]` when the phase changes no IaC code (an operational command only, such as an RDS reboot). Such a phase has no `[F3]` and no 4a plan run (the target re-check still runs); its command is approved at `[F4]` (H2), and pre-flight assesses it with the command as the plan text and `Plan hash: none — operational command (<command>)`. Dev lane: each phase gets its own `[D1]`.
+For both paths, after Phase N completes, run its success criteria (approved with the plan; 5a) and loop back to Step 3 for Phase N+1. **Next environment:** once staging's last phase verifies and the observation window ends, go to prod's 4a for Phase 1, not to Step 3: the code was approved once, and each prod phase applies the code its staging phase applied (`lanes.md` › Staging-first). There is no separate phase gate: the next phase's or environment's first stop shows `Phase <N> success criteria: <check> — <pass/fail>` (staging's last, for prod) and re-asks Q1–Q3 (`lanes.md` › Timing re-ask). Full lane: that stop is `[F3]`, or `[F4]` for a prod phase after staging (no new code) or when the phase changes no IaC code (an operational command only, such as an RDS reboot). An operational phase has no `[F3]` and no 4a plan run (the target re-check still runs); its command is approved at `[F4]` (H2), and pre-flight assesses it with the command as the plan text and `Plan hash: none — operational command (<command>)`. Dev lane: each phase gets its own `[D1]` and no Q1–Q3 re-ask, because no pre-flight runs.
 
 If a phase fails its success criteria, stop and report — do not automatically attempt the next phase or rollback.
 
@@ -424,6 +444,7 @@ Write to `.culiops/iac-change-execution/<service>-<action>-<YYYYMMDD-HHmm>.md`:
 **Lane:** <dev|light|full> — <basis>
 **Escalations:** <E1|E2|E3|E4|plan-confirm> — <evidence>
 **Environment tier:** <env>=<tier> (<evidence>)
+**Staging-first:** <applied — staging <time> | satisfied by evidence — <cite> | n/a — no staging env (<evidence>) | exception (prod-only|incident) — "<justification>">
 **Waived:** <gate> — operator, <time>
 
 ## Research Summary
@@ -438,10 +459,11 @@ Write to `.culiops/iac-change-execution/<service>-<action>-<YYYYMMDD-HHmm>.md`:
 ## Execution Log
 ### Phase 1: <title>
 - Files changed: <list with paths>
-- Self-check: <plan n/7 · diff n/6, with any accepted failures>
+- Self-check: <plan n/8 · diff n/6, with any accepted failures>
 - Fresh eyes: <agreed | disagreed on … → operator decision … | skipped — reason | not run — reason>
 - Plan output summary: <resource count — N to add, N to change, N to destroy>
 - Plan hash: <sha256 of plan/diff text>
+- Parity check: <pass | untested in staging: <address> <action> | n/a>
 - Pre-flight verdict: <GREEN / YELLOW / RED + the risks acknowledged and mitigations committed, with the stop and time>
 - Execution: <PR URL or apply command + output summary>
 - Verification: <each success-criteria command + its actual output; re-plan result>
@@ -458,7 +480,7 @@ Write to `.culiops/iac-change-execution/<service>-<action>-<YYYYMMDD-HHmm>.md`:
 <URL or 'none'>
 ````
 
-`Escalations:` takes one line per hit, or `**Escalations:** none`. `Environment tier:` lists every environment. `Waived:` lists each waiver, or `**Waived:** none`. Dev lane: each phase has `- Pre-flight verdict: skipped — dev lane (<evidence>)` and `- Fresh eyes: skipped — dev lane`.
+`Escalations:` takes one line per hit, or `**Escalations:** none`. `Environment tier:` lists every environment. `Waived:` lists each waiver, or `**Waived:** none`. Dev lane: each phase has `- Pre-flight verdict: skipped — dev lane (<evidence>)` and `- Fresh eyes: skipped — dev lane`. `Staging-first:` and `Parity check:` take the forms in `lanes.md` › Staging-first, Record, which also covers a change with no prod target and an accepted untested action; the PR body carries the `Staging-first:` line. With staging-first, each phase has one entry per environment, staging's first, the title naming the environment; staging's entries say `Parity check: n/a`, a prod entry never reached says `Execution: not applied — <reason>`, and `Applied:` names each environment.
 
 **Final message.** Report the outcome and the record path. Make no other offer. The last line is one `Next:` line: `Next: commit the record (<path>) · draft the result or ticket-close message with change-comms`. Under `CULIOPS_HOME`, name the record's absolute path instead of the commit (Constraint 13). Apply not yet verified on the PR path: add `· tell me when the apply lands and I run the success criteria`.
 
