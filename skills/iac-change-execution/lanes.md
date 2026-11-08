@@ -27,17 +27,19 @@ The rule decides, from the plan output, not from the size of the change. The LLM
    - Before `[A]`: `[F1]`–`[F4]`. Code already written stays uncommitted and is shown at `[F3]`.
    - After `[A]`: `[A]` approved what `[F1]`–`[F3]` approve, so the next stop is `[F4]` in place of `[B]`.
    - From dev (E4 or a hit): the full-lane stops. Pre-flight still follows H9 by tier: a proven dev target skips it unless the operator asks for it.
+   - Leaving dev at Step 4a: a planned resource outside a proven-dev target, or a merge that applies other environments, ends the dev lane. Record `plan-confirm` with the `plan:` or `code:` evidence. The lane rule then picks light or full, and all of that lane's stops apply, because the dev lane approves nothing before `[D1]`.
    - A plan or diff that changes after the escalation needs new approval at `[F2]` / `[F3]`.
 
 ## Environment tier
 
 - Step 1 maps every environment the repo defines (directory, var-file, workspace, overlay, values file) to **dev**, **staging** or **prod**.
+- **A change's targets** are every account or Kubernetes context its plan or its merge reaches: the environment it is for, every environment that consumes an edited shared module, every environment the delivery model applies on the same merge, and every account an aliased provider reaches. Each target gets its own tier. The dev lane needs every target proven `dev`.
 - A target's tier is **proven** only when the target identity matches what the repo pins for that environment. Run the identity read with the same profile or kubeconfig that the plan and apply will use. Match exactly: no substring or fuzzy match. Cite both sides: `live:` for the identity, `code: <path>:<line>` for the pin.
   - Terraform, `allowed_account_ids` or an account variable in the environment's var-file: the account from `aws sts get-caller-identity` is listed in `allowed_account_ids`, or equals the variable.
   - Terraform, provider `assume_role`: the target identity is the account and role in the pinned role ARN. Prove it with an identity read through the same credential chain Terraform uses for that environment, for example a profile whose `role_arn` equals the pin, returning `assumed-role/<role>` in that account. A read of the base credentials proves nothing here. If no such read is possible, the tier is unproven.
   - Kubernetes: the context name from `kubectl config current-context`, or that context's cluster name or server from `kubectl config view --minify` (a local kubeconfig read; never `--raw`), equals the context or cluster the CI config names, or the Argo CD / Flux destination. A destination given only as a server URL cannot prove a tier.
 - The environment's name alone does not prove it is dev or staging. `dev` or `stg` in a directory, workspace, var-file, account alias or context name proves nothing on its own.
-- **H1 needs positive evidence that the target differs:** the environment the plan is for has a pin and the identity read does not match it, or the identity matches the pin of a different environment and not this one's. Unproven is not a mismatch. For an `assume_role` pin, only an identity read through that pin's credential chain counts, for proof and for H1 alike: a read of the base credentials is neither proof nor a mismatch.
+- **H1 needs positive evidence that the target differs:** the environment the plan is for has a pin and the identity read does not match it, or the identity matches the pin of a different environment and not this one's. Or, with no pin, the identity at any later read differs from the identity shown at the first stop. Unproven is not a mismatch. For an `assume_role` pin, only an identity read through that pin's credential chain counts, for proof and for H1 alike: a read of the base credentials is neither proof nor a mismatch.
 - When nothing is pinned, the operator may state the tier at the first stop. Record it as `operator-stated`. An `operator-stated` tier is not proven: an operator-stated dev tier does not open the dev lane and does not skip pre-flight.
 - **An unproven tier gets prod gate levels.** Unproven covers: no pin; no identity read that can prove the pin (failed, not run, or not possible); an `operator-stated` tier; an environment that cannot be mapped.
 - **Identity reads need no opt-in:** `aws sts get-caller-identity`, `kubectl config current-context` and `kubectl config view --minify` (never `--raw`). They return only who the caller is, not resource data. Run them first, before any other live command, and show the result at the first stop. No other live read is exempt.
@@ -132,20 +134,20 @@ A stop is a point where the operator must answer. Each stop prompt starts with i
 | dev | `[D1]` | diff + plan output + target | apply, or open the PR | no |
 | light | `[A]` | change plan + diff + target + read batch + L2 answers + any delivery-model question + any staging-first exception justification | approve | no |
 | light | `[B]` | PR or apply, one per environment, showing the verdict line | proceed | no |
-| full | `[F1]` | Step 1 read batch, with the target shown | approve the batch | yes |
+| full | `[F1]` | Step 1 read batch, with the targets and their tiers shown | approve the batch | yes |
 | full | `[F2]` | GATE 1 plan + L2 answers + drift acknowledgements + exception justification | approve | no |
 | full | `[F3]` | GATE 2 code + target + plan command | approve | yes |
 | full | `[F4]` | PR or apply, per environment, showing the verdict | proceed | no |
 
 Rules for all lanes:
 - **Read batch.** One batch, each command shown. The identity read is exempt: it runs first, without opt-in, and the batch shows its result.
-  - At `[A]` the batch holds the Step 1 live reads (live verification and the drift check), the plan command (`terraform plan` or the tool's diff), pre-flight's category 7 (observability) and 10 (resource health) reads, and the post-apply success-criteria reads.
-  - At `[F1]` it holds the Step 1 live reads and the category 7 and 10 reads. The full lane approves the success-criteria reads at `[F2]` and the plan command at `[F3]`.
-  - A read approved at a stop needs no further stop.
+  - At `[A]` the batch holds the Step 1 live reads (live verification and the drift check), the plan command (`terraform plan` or the tool's diff), the matched assessor's L3 reads (`skills/pre-flight/assessors/iac-change.md` › L3 — Live Query Hooks, every category) for the resources the change is expected to touch, and the post-apply success-criteria reads.
+  - At `[F1]` it holds the Step 1 live reads and the assessor's L3 reads. The full lane approves the success-criteria reads at `[F2]` and the plan command at `[F3]`.
+  - A read approved at a stop needs no further stop. Inline pre-flight then normally proposes no batch of its own. A read it still finds missing is its one extra batch, and that batch is a stop. A declined read leaves its category ⚪.
 - **L2 answers** (`[A]`, `[F2]`): pre-flight's Q1–Q5 and Q7; Q8 when the change plan touches an app-facing attribute; and the matched assessor's questions as `<assessor>.<n>=…`. They go to pre-flight in the caller block (pre-flight Constraint 14). Anything missing makes pre-flight ask, which is an extra stop. So is a pre-flight L3 batch for reads the caller did not run.
 - **Delivery model** `UNVERIFIED`: ask inside `[A]` / `[F2]`, not as a stop of its own.
 - **Verdict.** `[B]` / `[F4]` show the pre-flight verdict line. A YELLOW is shown with each Yellow and ⚪ finding and its mitigation; approving there is the acknowledgement, and it is recorded. **RED** adds the `[H5]` stop.
-- **Dev lane.** Reads and the plan run without a stop. No pre-flight (H9); record `- Pre-flight verdict: skipped — dev lane (<evidence>)`. No fresh eyes; record it as skipped — dev lane. Self-checks and the duplicate check still run.
+- **Dev lane.** Reads and the plan run without a stop. No pre-flight (H9); record `- Pre-flight verdict: skipped — dev lane (<evidence>)`. No fresh eyes; record `- Fresh eyes: skipped — dev lane`. Self-checks and the duplicate check still run.
 - **Code before the first stop** (light and dev only): create the branch and write the code before `[A]` / `[D1]` only when `git status` is clean. Otherwise stop and ask, as today. Full lane: no code before `[F2]` is approved.
 - **Multi-phase** (full lane): each phase gets `[F3]` and `[F4]`.
   - A phase with no IaC code change (an operational command only, such as an RDS reboot) has no `[F3]`. Its command is shown and approved at `[F4]` (H2).
@@ -156,6 +158,13 @@ Rules for all lanes:
 - **No other stops**, except hard-gate stops and H2 approval of a further mutation (for example a merge the skill would do). GATE 5 and the standalone offers are removed. `[B]` / `[F4]` may carry one optional heads-up line (change-comms). The final message ends with one `Next:` line: commit the record, and draft the result or ticket-close message with change-comms.
 - **Soft stops: `[F1]` and `[F3]` only.** The operator may waive one explicitly; the LLM never waives a stop. Record each waiver under `Waived:`. The waiver procedure is in SKILL.md.
   - Waived `[F1]`: run the read batch without asking.
-  - Waived `[F3]`: show the diff, the target and the plan command at `[F4]` instead, and run the plan without a stop. H1 still stops a target mismatch.
+  - Waived `[F3]`: show the diff, the target and the plan command at `[F4]` instead. The recorded waiver is the opt-in for the plan command, so the plan runs without a stop. One waiver covers every phase of the run unless the operator says otherwise. H1 still stops a target mismatch.
 - **Every other stop holds.** A request to skip one is refused, citing the H-id it holds (H2 at `[D1]`, `[B]`, `[F4]`) or the reason it exists.
 - **No check is waivable.** Fresh eyes keeps its existing skip rule.
+
+## Timing re-ask
+
+Pre-flight's Q1–Q3 (active incident, deploy freeze, peak traffic) describe the moment they were answered. As in pre-flight's reuse contract, they are re-asked before each later apply in the same run: each phase after the first, and each later environment. The dev lane runs no pre-flight and re-asks nothing.
+- The first stop of that phase or environment carries one line: `Q1–Q3 still true? (incident / freeze / peak)`. The line adds no stop.
+- That stop comes before pre-flight (`[F3]`): pass the fresh answers in the caller block's `L2 answers:`.
+- That stop comes after pre-flight (`[F4]`, or `[B]`): an unchanged answer → proceed. A changed answer → re-run pre-flight with the new answers before the apply, then show a new `[F4]` / `[B]` with the new verdict. Only a changed answer adds a stop.
