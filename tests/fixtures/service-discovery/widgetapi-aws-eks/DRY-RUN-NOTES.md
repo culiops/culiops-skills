@@ -1,6 +1,6 @@
 # Dry-run of `service-discovery` against `widgetapi-aws-eks`
 
-Simulated run of the IaC path against this fixture. First recorded 2026-04-15; re-run 2026-10-26 for secrets-by-projection, the Secrets Store CSI template and Step 2V (live cross-check); re-run 2026-10-27 for the deployed-ref, membership, parameter-provenance and evidence-label rules. Instance: `prod`.
+Simulated run of the IaC path against this fixture. First recorded 2026-04-15; re-run 2026-10-26 for secrets-by-projection, the Secrets Store CSI template and Step 2V (live cross-check); re-run 2026-10-27 for the deployed-ref, membership, parameter-provenance and evidence-label rules; re-run 2026-11-09 for the merged stops: 11 → 3 operator stops (GATE 1, GATE 2, GATE 3), measured in simulated dry-runs before and after with the same operator answers. Instance: `prod`.
 
 ## What the fixture exercised
 
@@ -9,7 +9,7 @@ Simulated run of the IaC path against this fixture. First recorded 2026-04-15; r
 | IaC tool detection (multi-tool) | Terraform (`*.tf`) + Helm (`Chart.yaml`, `templates/*.yaml`, `values*.yaml`) in one repo |
 | Stack boundaries | 3 stacks (`infra/`, `platform/`, `helm/widgetapi/`); platform references infra via `terraform_remote_state` — recorded as dependency, not chased |
 | Parameter resolution | `envs/<env>.tfvars` for TF; `values-<env>.yaml` for Helm; prod vs staging |
-| Multi-instance | Two envs — skill prompts "which instance?" |
+| Multi-instance | Two envs — GATE 1 lists `prod` and `staging` with their parameter files; the operator picks in the GATE 1 answer (no separate "which instance?" stop) |
 | Cloud × Kubernetes orthogonality | Runbook needs both `examples/aws.md` (EKS control plane, ALB, RDS, ElastiCache, S3, SQS, CloudFront, Secrets Manager) and `examples/kubernetes.md` (Deployment, Service, Ingress, HPA, PDB, Helm release) |
 | Registry modules | `module.vpc`, `module.eks`, `module.widgetapi_irsa` (`terraform-aws-modules/*`) recorded as remote modules by source + version (`~> 5.8`, `~> 20.8`, `~> 5.39`); not fetched, their internal resources (subnets, NAT, node group, IAM role internals) are not enumerated |
 | Secrets by projection | `templates/secretproviderclass.yaml` (`provider: aws`, gated by `secretsStore.enabled`): catalog records secret **name** `widgetapi/prod/db`, objects/aliases `db_username`/`db_password`, synced Kubernetes Secret `widgetapi-db` with keys `DB_USERNAME`, `DB_PASSWORD`. Never fetched (`secretsmanager get-secret-value` is never run). See "Secrets handling" |
@@ -17,8 +17,8 @@ Simulated run of the IaC path against this fixture. First recorded 2026-04-15; r
 | Doc-declared SLO | `docs/oncall.md:22` declares 99.9% over 30 days (monitor `widgetapi-prod-slo-burn`). Surfaced as a doc claim (`source=doc`, Medium at most), to be verified; not "no SLO declared" |
 | Naming patterns | `widgetapi-${env}-<component>` detected consistently across all TF resources |
 | Conditional resources | RDS `deletion_protection` on env==prod; CloudFront `price_class` on env==prod; cache `automatic_failover_enabled` on num_nodes>1; Helm `web.autoscaling.enabled`, `ingress.enabled`, `podDisruptionBudget.enabled`, `secretsStore.enabled` |
-| Step 2V live cross-check | Offered at Gate 2, accepted; 29 projected reads; 2 drift rows, 1 not found (below) |
-| Deployed ref | Nothing in the repo shows which ref is applied: `README.md:28-29` describes a manual `terraform apply -var-file=...` and `helm upgrade` ("or similar"), and there is no CI file or Argo CD / Flux object. The skill asks and records `Deployed ref: main (operator-stated)` |
+| Step 2V live cross-check | Offered at GATE 1 (profile and context named there, which approves the identity probe); batch shown and approved at GATE 2; 29 projected reads; 2 drift rows, 1 not found (below) |
+| Deployed ref | Nothing in the repo shows which ref is applied: `README.md:28-29` describes a manual `terraform apply -var-file=...` and `helm upgrade` ("or similar"), and there is no CI file or Argo CD / Flux object. The skill asks inside GATE 1 and records `Deployed ref: main (operator-stated)` |
 | Membership (stack is not a service) | Not asked: one name prefix `widgetapi` in every stack (`infra/main.tf:32`, `platform/main.tf:32`, release and chart name `widgetapi`). Recorded `membership: single prefix widgetapi, code:infra/main.tf:32, platform/main.tf:32`; Unattributed is empty |
 | Parameter provenance | Every prod value is recorded `value <- file:line` (e.g. `db_instance_class <- infra/envs/prod.tfvars:10`). The `-var-file` the apply uses is not visible to the repo, so the operator names it at Gate 1 (`operator-stated`). Variables that have a default and no prod value would read `default / source unconfirmed`; none do in prod |
 
@@ -81,9 +81,9 @@ Counting rule: one row per Terraform `resource` or registry `module` call, and o
 | `helm/widgetapi/` | 9 | Deployment `widgetapi-web`, Deployment `widgetapi-worker`, ConfigMap `widgetapi-env`, Service, ServiceAccount, Ingress*, HPA*, PDB*, SecretProviderClass* (`*` = conditional; all enabled in prod). Datadog subchart `3.60.1` is a dependency, not a row |
 | **Total** | **29** | staging would be 28 (`secretsStore.enabled: false` there, so no SecretProviderClass) |
 
-## Step 2V — live cross-check (accepted at Gate 2)
+## Step 2V — live cross-check (accepted at GATE 1, batch approved at GATE 2)
 
-**Pinned identity (probe batch shown and approved first):**
+**Pinned identity (probe shown at GATE 1, run after the GATE 1 answer):**
 
 | Probe | Result |
 |-------|--------|
@@ -93,7 +93,7 @@ Counting rule: one row per Terraform `resource` or registry `module` call, and o
 
 Matches the code (`region = "eu-west-1"`, cluster `widgetapi-prod`). Every call below carries `--profile widgetapi-prod-ro --region …` or `--context …`; identity re-checked before the batch.
 
-**Verification batch (GATE: approved as shown).** Scope: `eu-west-1` unless stated; kube context `arn:aws:eks:eu-west-1:123456789012:cluster/widgetapi-prod`, namespace `widgetapi`. All reads; control-plane/metadata calls are free, S3/SQS requests are billed per request (total well under $0.01).
+**Verification batch (shown at GATE 2 with the probe result, approved as shown).** Scope: `eu-west-1` unless stated; kube context `arn:aws:eks:eu-west-1:123456789012:cluster/widgetapi-prod`, namespace `widgetapi`. All reads; control-plane/metadata calls are free, S3/SQS requests are billed per request (total well under $0.01).
 
 | # | Row | Call (projected) | Scope | Compared fields | Est. cost |
 |---|-----|------------------|-------|-----------------|-----------|
@@ -159,7 +159,7 @@ Drift rows go at the top of Assumptions and Caveats; the catalog keeps the **cod
 
 - `## Naming Patterns` — `widgetapi-${env}-<component>` with `{env}` placeholder.
 - `## Identifying Dimensions` — env, region, pod/replica, CloudFront geography, DB primary vs replica.
-- `## Dependency Graph` — platform → infra (cross-stack); helm → platform + infra (cross-stack); remote registry modules by source + version (not fetched); secret references (names/ARNs only): `widgetapi/prod/db` (CSI), RDS-managed secret from `DB_SECRET_ARN`, Kubernetes Secrets `widgetapi`, `datadog-secret`; third-party: Datadog, PagerDuty (code + doc), Stripe, SendGrid, LaunchDarkly (doc only); each edge records its basis (`code:` / `operator-stated` / `inferred`). Edges the code cannot show as synchronous (the SQS async queue, Datadog, PagerDuty, and the three doc-only SaaS) are `critical-path: unknown` until the operator confirms at the dependency gate; none is defaulted to async. `Downstream: none found in this repo — consumers in other repos / stacks are not visible`.
+- `## Dependency Graph` — platform → infra (cross-stack); helm → platform + infra (cross-stack); remote registry modules by source + version (not fetched); secret references (names/ARNs only): `widgetapi/prod/db` (CSI), RDS-managed secret from `DB_SECRET_ARN`, Kubernetes Secrets `widgetapi`, `datadog-secret`; third-party: Datadog, PagerDuty (code + doc), Stripe, SendGrid, LaunchDarkly (doc only); each edge records its basis (`code:` / `operator-stated` / `inferred`). Edges the code cannot show as synchronous (the SQS async queue, Datadog, PagerDuty, and the three doc-only SaaS) are `critical-path: unknown` until the operator confirms at GATE 2; none is defaulted to async. `Downstream: none found in this repo — consumers in other repos / stacks are not visible`.
 - `## Signal Envelopes` — availability SLO 99.9% / 30d, `declared` in a doc (`docs/oncall.md:22`, `source=doc`), Medium, to be verified against Datadog monitor `widgetapi-prod-slo-burn`; no latency threshold stated; HPA target CPU 65% is the one code-`declared` saturation limit; rest "not declared". No `observed` entry: Step 2V reads configuration, not metric statistics.
 - `## Investigation Runbooks` — 5 trees (latency, 5xx, upload failures, async delay, auth failures). Every `MUTATION` step (`kubectl rollout restart`, `helm rollback`, `kubectl scale`) states its blast radius from evidence: the behaviour cites a Kubernetes or Helm docs URL fetched this session, and the limiters cite code (web `minReplicas: 4` at `values-prod.yaml:12`, PodDisruptionBudget `minAvailable: 1` at `values.yaml:36`). If the docs were not fetched the step reads `blast radius UNVERIFIED — assume the whole service`. The Owner of the workload is Helm (no GitOps controller in the repo), so the first route is a values/chart change and `helm upgrade`; a direct `kubectl scale` is shown as a labelled emergency option that becomes drift at the next release.
 - `## Stack-Specific Tooling` — `examples/aws.md` + `examples/kubernetes.md`; notes for Datadog/PagerDuty/Stripe/SendGrid/LaunchDarkly.
