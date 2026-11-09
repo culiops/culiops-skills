@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **cost-optimize-plan: three operator stops instead of four.** The three gates and every check still run. Only the prompts that wait for you merged, and no check was removed.
+  - GATE 1 now asks what used to be asked on its own: the IaC repo path(s) when the first message gives none, the explicit acceptance of a report older than 14 days, and whether to read a sibling record that exists only under the other output root. The message ends with a `Reply with:` line. If the answer leaves one of these open, only that part is asked again. A plain "confirmed" still does not accept a stale report.
+  - GATE 2 is unchanged: every verification query, optional row and documentation read is approved in that one batch.
+  - GATE 3 still reviews the plan before it is written. The skill no longer asks about committing: on the default branch the plan stays uncommitted and the `Next:` line names it. The commit rule applies only when the output root is the repo's `.culiops/`.
+  - The run ends with one `Next:` line.
+  - Measured in simulated dry-runs on `happy-path` (the skill played against canned API responses, not a real account): 4 → 3 stops. With the clock moved so the report is 23 days old, the new text stops 3 times; v0.18.0 would stop 5 times (counted from the text, not run).
+- **cost-optimize-plan fixtures:** `happy-path` gains the missing classic-ELB mock for the optional target-group sweep (`rightsize-ec2.md` Query 6). Without it, a run that plans the sweep halts on a failed read. The `happy-path` and `missing-catalog` notes describe the IaC repo question as part of GATE 1.
+
 ## [0.18.0] — 2026-11-08
 
 ### Changed
