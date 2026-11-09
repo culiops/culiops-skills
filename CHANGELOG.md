@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **change-comms: fewer operator stops, no check removed.**
+  - **GATE 1 now carries the question batch.** One message shows the sources line, then the questions. The no-records case already worked this way. Correcting a record, service, environment, execution path or message type re-plans the questions and shows GATE 1 again. Answers and a format change are used as given. If there are two or more candidate records, or a record sits only under the other output root, the operator picks one on its own first.
+  - **Outcome follow-ups move into the same batch.** Next steps, whether it was rolled back, and, for an abort, what was applied and why, are now conditional items in the batch. They are no longer a second round of questions after a non-success answer.
+  - **GATE 2 takes one reply** for all drafts shown together. Some edits are saved and shown without asking again. That needs all of the following: the edit goes in exactly as typed, it adds no redaction row, it changes no Flag (including the impact-vs-Disruption Flag), it needs no line fold, and it touches no fact another draft uses. Any other edit is shown again and confirmed, as before.
+  - **One `Next:` line**, in a defined final message, replaces two offers: the heads-up offer when nothing has been applied yet, and the ticket-close offer for after the last phase.
+  - **Measured** in a simulated dry-run (sonnet runner; the records were built from the fixture README) on `pr-path-happy`, which drafts the heads-up, the result and the ticket-close in one run: 5 → 4 stops. The other fixtures were counted from the text, not run:
+    - heads-up only, or result only: 3 → 2
+    - result and ticket-close: 3–4 → 2
+    - `redaction` (an edit that adds a mask, so the re-show stays): 4 → 3
+    - no records: 2 → 2
+
 ## [0.18.0] — 2026-11-08
 
 ### Changed
