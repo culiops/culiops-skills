@@ -228,9 +228,9 @@ Sidecars contain **projected fields only** (request + selected response fields; 
 
 | Call ID | Source | API | Cost | Approved at |
 |---|---|---|---|---|
-| probe-001..009 | Scoping probe | sts, iam, organizations, resource-explorer-2 (ListIndexes, GetIndex, ListViews, GetView), cloudtrail (DescribeTrails, LookupEvents 1 page) | $0.00 | Gate 1 stop (GATE 1a batch) |
-| probe-010 | Scoping probe | ce:GetCostAndUsage (1 day, tag-filtered) | $0.01 | Gate 1 stop (GATE 1a batch) |
-| probe-011 | Scoping probe | cloudwatch:ListMetrics (1 page) | $0.00 (free tier) | Gate 1 stop (GATE 1a batch) |
+| probe-001..009 | Scoping probe | sts, iam, organizations, resource-explorer-2 (ListIndexes, GetIndex, ListViews, GetView), cloudtrail (DescribeTrails, LookupEvents 1 page) | $0.00 | Gate 1 stop (GATE 1a rows p1–p5) |
+| probe-010 | Scoping probe | ce:GetCostAndUsage (1 day, tag-filtered) | $0.01 | Gate 1 stop (GATE 1a row p6) |
+| probe-011 | Scoping probe | cloudwatch:ListMetrics (1 page) | $0.00 (free tier) | Gate 1 stop (GATE 1a row p7) |
 | re-001 | Resource Explorer | resource-explorer-2:Search (probe p8) | $0.00 | Gate 1 stop (GATE 1a row p8); set confirmed at Gate 3 |
 | ce-001 | Cost Explorer | ce:GetCostAndUsage (SERVICE, DAILY, tag-filtered), 1 page | $0.01 | Gate 3 row 1 (run in the Gate 4 CE block) |
 | ce-002 | Cost Explorer | ce:GetCostAndUsage (USAGE_TYPE, DAILY, tag-filtered), 1 page | $0.01 | Gate 3 row 2 (run in the Gate 4 CE block) |
