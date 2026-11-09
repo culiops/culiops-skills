@@ -39,8 +39,8 @@ THE CHEAPEST QUERY THAT CAN ANSWER THE QUESTION, NARROWED FIRST. TRY TO DISPROVE
    - Show the resolved root in the run's first message, and tell the user it is local and is never committed. If `.culiops/` is not ignored by git (`git check-ignore -q .culiops/sre-investigate`), say so; do not edit `.gitignore`. Never offer a commit. Under `CULIOPS_HOME` the files are outside the repo, so print absolute paths.
    - If the root cannot be written, STOP and ask. Never fall back to another location.
    - A record this skill reads from a sibling skill (the `service-discovery` catalog) is looked up under the same root. If it is missing there but exists under the other root (repo `.culiops/` versus `$CULIOPS_HOME`), say so and let the user pick.
-   - The only writes are: `environment.md` when the user accepts the copy; the run's `ledger.md`, `profile.md`, `report.md` and raw pulls; and the record files after the user replies in Phase 6.
-6. **Command discipline.** A wave's commands are printed in full (every flag, no `...`, no paraphrase), then run without waiting for approval. Three things always stop and ask, in both modes: a Logs Insights query whose padded estimate (the log group's `IncomingBytes` over the window first, a padded `storedBytes` lower bound as fallback; see the logs playbook) is still above `insights_ask_threshold_gb` after narrowing, or whose estimate cannot be computed, a query that would take the run past its `budgets.<mode>` totals, and a window wider than its `budgets.windows` cap (see [environment.template.md](environment.template.md#budgets)). If you are unsure whether a query is metered or how much it reads, treat it as metered and estimate it first. Deep mode also stops at checkpoints #1 and #2.
+   - The only writes are: `environment.md` when the user accepts the copy, and its `timezone` line when the user accepts that Phase 6 item; the run's `ledger.md`, `profile.md`, `report.md` and raw pulls; and the record files after the user replies in Phase 6.
+6. **Command discipline.** A wave's commands are printed in full (every flag, no `...`, no paraphrase), then run without waiting for approval. Three things always stop and ask, in both modes: a Logs Insights query whose padded estimate (the log group's `IncomingBytes` over the window first, a padded `storedBytes` lower bound as fallback; see the logs playbook) is still above `insights_ask_threshold_gb` after narrowing, or whose estimate cannot be computed, a query that would take the run past its `budgets.<mode>` totals, and a window wider than its `budgets.windows` cap (see [environment.template.md](environment.template.md#budgets)). If you are unsure whether a query is metered or how much it reads, treat it as metered and estimate it first. Deep mode also stops at its checkpoint after Phase 3.
 7. **Write-capable credentials: warn, then continue.** The write-checks in Phase 0 never stop the run. Any allowed write prints the boxed warning, with a read-only role (or Culibox, once available) suggested, and the run continues. A denied simulation prints the informational "write capability unknown (gap)" notice, which is not the warning. Never write in a report that the credentials are read-only unless a check said so, and quote what it said. The report's `Access:` line repeats each write-check result, so a reader of the report alone sees write-capable credentials.
 8. **Culibox.** Run only `command -v agentbox-env`. If it succeeds, print exactly `Culibox detected; Culibox integration is not available yet (culiops-skills #38). Running as standalone, so tokens that are not in env vars will be recorded as gaps.` and continue as standalone. Never call `agentbox-env` or read what it would provide. If it fails, say nothing about Culibox.
 9. **Secrets and values.** Tokens are referenced by environment variable name only. Check presence with `${VAR:+x}`, use `$VAR` inside commands, and never echo, store or summarise a value. Never open token files, dotenv files, the AWS credentials file, the SSO cache, a kubeconfig's embedded credentials, or Secret objects. The same rule covers configuration: env vars, ConfigMap keys and parameters are recorded by name, with the fact that they changed, never with their values.
@@ -94,7 +94,7 @@ THE CHEAPEST QUERY THAT CAN ANSWER THE QUESTION, NARROWED FIRST. TRY TO DISPROVE
 |---|---|---|
 | When | ongoing incident, an alert, "now", "quick" | an incident that is already over, the words "postmortem", "RCA" or "deep", or a request to go deeper |
 | Who queries | the main session, in waves | the main session for phases 0–3; one evidence worker per hypothesis in Phase 4 |
-| Stops | no checkpoints; only Constraint 6's asks and the Phase 0 questions (missing `environment.md`, unknown time zone, unwritable root, account mismatch) | checkpoint #1 after Phase 2, checkpoint #2 after Phase 3 |
+| Stops | no checkpoints; only Constraint 6's asks and the Phase 0 questions (missing `environment.md`, unknown time zone, unwritable root, account mismatch) | one checkpoint, after Phase 3 |
 | Size | at most 3 waves after wave 0 and the profile build; about five minutes of wall time | thorough, inside `budgets.deep` |
 | Report | TL;DR, Impact, Causal chain, Gaps, To confirm, Follow-ups, Cost | every section of [report.md](templates/report.md) |
 
@@ -135,7 +135,7 @@ Every dispatch passes `model` explicitly. When to start on the stronger tier, wh
 
 ```
 Phase 0  access, mode, intake ──► Build profile (first run for the service) ──► Phase 1 scope, impact, severity
-   ──► Phase 2 change correlation ──► [Deep: checkpoint #1] ──► Phase 3 hypotheses ──► [Deep: checkpoint #2]
+   ──► Phase 2 change correlation ──► Phase 3 hypotheses ──► [Deep: checkpoint]
    ──► Phase 4 evidence ──► Phase 5 conclude (report) ──► Phase 6 record (diff, write after the user replies)
 ```
 
@@ -153,7 +153,7 @@ Read a backend's playbook before its first query in the session. Each playbook g
    2. **Any other time of day, however rough** ("this morning", "around nine", "since lunch") is local time. Convert it with `timezone` from `environment.md`. If that is empty, ask the user for their zone and run no window-dependent query until they answer (wave 0 can run meanwhile); a zone they give in chat is used and recorded. Never take the zone from the offset a tool printed. The window then runs from 30 minutes before that anchor to now (Fast) or to the recovery the user reports or the data shows (Deep).
    3. **A relative time** ("half an hour ago", "for the last hour") is anchored on the current UTC time and needs no zone.
    4. **A date without a time** ("yesterday", a weekday) is local. Convert it, or ask for the zone as in rule 2, and the window covers that whole local day.
-   5. **No onset at all.** Fast: the last two hours. Deep: ask for the window, or start from the alarm's first transition into `ALARM` and say so.
+   5. **No onset at all.** Fast: the last two hours. Deep: when wave 0's alarm or alert history shows the trigger's first transition into `ALARM` (or firing) in the current episode, start from it and say so; the checkpoint after Phase 3 confirms the window. Only when there is no such history, ask for the window, and run no window-dependent query until the user answers (wave 0 can run meanwhile).
 
    State the resulting window in UTC to the user, and record the assumption and the zone used (and where it came from) under "Assumptions made at intake".
 7. **Wave 0**, printed in full and then run:
@@ -174,7 +174,7 @@ Read a backend's playbook before its first query in the session. Each playbook g
 
 When `<output root>/profiles/<service>-<env>.md` does not exist, dispatch a helper with `TASK: PROFILE` ([agents/helper.md](agents/helper.md#task-profile)), passing the identifier lessons. If a helper cannot be dispatched (no worker support, or the user asked for none), run the same checklist in the main session as one wave of free reads, under the helper's rules, and note "profile built inline" in the ledger; it does not count against a wave cap. While it runs, start the change-correlation queries that need no identifiers (IaC history, cluster and service listings).
 
-Write the returned profile to the run's `profile.md`, keeping every `(unverified)` mark, and re-apply Constraint 14's tie rule to the helper's `verified` marks before writing. Show it to the user and continue without waiting: corrections are applied as they arrive, and in Deep mode the profile is shown again at checkpoint #1 for confirmation. A name that returns nothing on a later query moves to the run profile's Stale identifiers table. The stored profile under `profiles/` changes only in Phase 6, after the user replies.
+Write the returned profile to the run's `profile.md`, keeping every `(unverified)` mark, and re-apply Constraint 14's tie rule to the helper's `verified` marks before writing. Show it to the user and continue without waiting: corrections are applied as they arrive, and in Deep mode the profile is shown again at the checkpoint for confirmation. A name that returns nothing on a later query moves to the run profile's Stale identifiers table. The stored profile under `profiles/` changes only in Phase 6, after the user replies.
 
 ### Phase 1 — Scope, impact and severity
 
@@ -235,7 +235,7 @@ Write the returned profile to the run's `profile.md`, keeping every `(unverified
 5. **A denied source is a gap.** If CloudTrail or another source is denied, record the missing permission and build the timeline from the others (deployment events, scaling activities, Kubernetes events and rollout history, logs, git).
 6. **The ticket behind a change** is read only when a commit or PR names one, or when the timeline shows a change nobody can account for. It is context, not evidence.
 7. **Everything goes on the ledger timeline** with its UTC time, source and query ID.
-8. **Deep checkpoint #1.** Show the windows, the blast radius, the recurrence class, the change list and the run profile, and ask: is the window right, and did anything change that the run cannot see (manual actions, vendor issues)? Wait for the reply before Phase 3.
+8. **No stop here.** Go on to Phase 3. In Deep mode the windows, the blast radius, the recurrence class, the change list and the run profile are shown at the checkpoint after Phase 3, together with the hypotheses.
 
 ### Phase 3 — Hypotheses
 
@@ -268,7 +268,9 @@ Inputs: the impact and shape from Phase 1, the change list from Phase 2, the dep
 - **Model tier.** In Deep mode, decide each hypothesis's tier now ([For the dispatcher](agents/evidence.md#for-the-dispatcher)) and note it in the ledger.
 - **History after ranking.** Only once the run's own ranked list exists, grep the front matter of `<output root>/incidents/` for the service, its dependencies and the symptom words, and read the `failure-mode` lines of `lessons.md` ([Lookup rules](templates/incident.md#lookup-rules)). Every match becomes its own hypothesis entry with ID `from-history:<file>.md` (the incident file's name exactly, extension included), even when it overlaps a hypothesis already on the list; its note cross-references that ID ("overlaps H2"). You write its statement, expected evidence and falsification query from the match, as for any other entry. History is a lead, never evidence: the entry starts with no label and is tested like the others, by its own evidence worker in Deep mode. Log the lookup in the ledger's Memory table: the grep, the matched file names and the matched fields only, never a past incident's cause, cause category or label, and never `failure-mode` lesson text. Workers read only the ledger's Windows, Timeline, Code repos, Query log and Gaps sections and their own hypothesis row ([agents/evidence.md](agents/evidence.md)).
 - **Docs.** When the service or the failure mode is unfamiliar, search runbooks and past-incident pages through the user's read-only wiki access. A known failure mode found there becomes a `from-docs:<page id>` lead.
-- **Deep checkpoint #2.** Show the ranked list with each hypothesis's falsification query, and let the user add, drop or re-rank before the expensive queries. Wait for the reply.
+- **Deep checkpoint.** One message, once the ranked list and the history lookup are done. Show the windows, the blast radius, the recurrence class, the change list and the run profile, then the ranked list with each hypothesis's falsification query. Ask three things: is the window right; did anything change that the run cannot see (manual actions, vendor issues); and does the user want to add, drop or re-rank anything before the expensive queries? Wait for the reply; Phase 4 starts only after it.
+  - **Shown again** only after a correction to the window, the service, the environment or the sibling set. Re-run the Phase 1–2 queries the correction affects (queries already run keep their rows, as with a re-anchor in Phase 1 step 2), re-rank, and show the checkpoint again before any worker is dispatched.
+  - **Applied without showing it again:** everything else in the reply. A change the run could not see becomes its own hypothesis, with a falsification query you write; a profile correction goes into the run profile; additions, drops and re-ranks are applied as asked; "go on", or a question the reply leaves unanswered, accepts what was shown. Reporting a change the run could not see is not a correction of the window.
 
 ### Phase 4 — Evidence
 
@@ -278,8 +280,8 @@ Inputs: the impact and shape from Phase 1, the change list from Phase 2, the dep
 - **Drill down** endpoint, then dependency, then host (on Kubernetes, pod then node); one host or pod out of line with its peers means a local cause ([Drill-down ladder](playbooks/metrics.md#drill-down-ladder)).
 - **Error tracker:** compare each issue's first-seen time with the onset and its rate with the baseline before calling it new ([First seen vs onset](playbooks/errors.md#first-seen-vs-onset)).
 - **Infra state** explains a shape; it rarely dates it. Live config against IaC, probes, limits and HPAs come from the [infra-state playbook](playbooks/infra-state.md#live-config-vs-iac); drift is a finding, not a cause, and today's state is not the state at the onset.
-- **Fast:** the top one to three hypotheses, in one or two waves planned to test several at once. After the third wave, stop: write the best answer with honest labels, list what is open, and offer "go deep".
-- **Deep:** one evidence worker per hypothesis, all dispatched in one message. Every entry on the checkpoint #2 list gets a worker, `from-history:` entries included, and so does one that Phase 1–2 data already seems to contradict: that worker cites the existing ledger rows (`reused <query ID>`) as its falsification and writes the verdict. In Deep mode the main session gives no hypothesis a label before its worker's verdict is merged; its own reading of the wave data is a hint to the worker, while the ledger rows themselves are evidence the worker may cite. Each worker gets the prompt in [agents/evidence.md](agents/evidence.md), its tier per Model Routing, an even share of the remaining budget, and the run's `profile.md` as its profile (never the stored one). Workers never receive `failure-mode` lessons or past incidents; a `from-history:` worker receives only the hypothesis you wrote, never the incident file, its body or its label. When verdicts return, the main session alone merges them into the ledger: renumber worker query IDs to `W<wave>-Q<n>` (keeping the old ID in the cell), apply the escalation and capping rules, copy `lesson_candidates` to Lesson candidates and `untrusted_text` to Untrusted text, and flag the latter to the user.
+- **Fast:** the top one to three hypotheses, in one or two waves planned to test several at once. After the third wave, stop: write the best answer with honest labels, list what is open, and offer "go deep" in the run's `Next:` line (Phase 6).
+- **Deep:** one evidence worker per hypothesis, all dispatched in one message. Every entry on the checkpoint's list, as the reply left it, gets a worker, `from-history:` entries included, and so does one that Phase 1–2 data already seems to contradict: that worker cites the existing ledger rows (`reused <query ID>`) as its falsification and writes the verdict. In Deep mode the main session gives no hypothesis a label before its worker's verdict is merged; its own reading of the wave data is a hint to the worker, while the ledger rows themselves are evidence the worker may cite. Each worker gets the prompt in [agents/evidence.md](agents/evidence.md), its tier per Model Routing, an even share of the remaining budget, and the run's `profile.md` as its profile (never the stored one). Workers never receive `failure-mode` lessons or past incidents; a `from-history:` worker receives only the hypothesis you wrote, never the incident file, its body or its label. When verdicts return, the main session alone merges them into the ledger: renumber worker query IDs to `W<wave>-Q<n>` (keeping the old ID in the cell), apply the escalation and capping rules, copy `lesson_candidates` to Lesson candidates and `untrusted_text` to Untrusted text, and flag the latter to the user.
 - **A `Confirmed` verdict** must cite a query whose result itself exhibits the mechanism within the incident's window and scope; otherwise it is recorded as `Likely` (or escalated, per the dispatcher rules).
 
 ### Phase 5 — Conclude
@@ -290,7 +292,7 @@ Inputs: the impact and shape from Phase 1, the change list from Phase 2, the dep
 4. **Deep mode** adds why it became an incident: what delayed detection, which limit or protection was missing, which capacity was short.
 5. **History.** Name similar past incidents in the TL;DR. A repeat says which occurrence this is and over what period, and makes a permanent fix the first follow-up. A `recurring` pattern names its count in the follow-ups; a `chronic` one adds an alert-tuning item.
 6. **Fixes and mitigations** go into Follow-ups as prose recommendations (Constraint 12): what to change, why, and its trade-off. A change to a limit (a timeout, a pool size, a replica count) says what it costs. No command, patch or config fragment appears with it. Every one is a candidate for a human, to be checked with `pre-flight` before it is applied.
-7. **Write `report.md`** from [templates/report.md](templates/report.md), with the sections of the mode. Fast: print the TL;DR (cause and label, weakest link, impact, recommended action) in chat first, then write the file and give its path. Deep: print the TL;DR and the path, and end with "open items need your input" when gaps exist. The cost line is last in both, always.
+7. **Write `report.md`** from [templates/report.md](templates/report.md), with the sections of the mode. Fast: print the TL;DR (cause and label, weakest link, impact, recommended action) in chat first, then write the file and give its path. Deep: print the TL;DR and the path. The cost line is last in both, always; open items that need the user go in the `Next:` line (Phase 6).
 
 ### Phase 6 — Record
 
@@ -299,8 +301,9 @@ After the report, never before:
 1. Propose additions as one diff against the files under the output root:
    - `incidents/<date>-<service>.md` per [templates/incident.md](templates/incident.md), when the run named a cause at any label or the user asks; a Fast run that found nothing creates none unless asked;
    - `lessons.md` lines per [templates/lesson.md](templates/lesson.md), built only from the ledger's Lesson candidates, each with its query ID, plus the confirm, re-verify, contradict and drop updates in [Updates](templates/lesson.md#updates);
-   - `profiles/<service>-<env>.md`: the run's `profile.md` merged into the stored profile (or created from it on a first run), covering identifiers added, verified, found stale or found to differ between backends.
-2. Show the diff and wait. Write nothing until the user replies; they may accept, edit or skip each item. No reply means no write.
+   - `profiles/<service>-<env>.md`: the run's `profile.md` merged into the stored profile (or created from it on a first run), covering identifiers added, verified, found stale or found to differ between backends;
+   - `environment.md`: when its `timezone` is empty and the user gave a zone in chat this run, set `timezone` to that zone, so later runs do not ask again.
+2. Show the diff and wait. Write nothing until the user replies; they may accept, edit or skip each item. No reply means no write. The message's last line is one `Next:` line, its parts joined by ` · ` in this order: `reply accept, edit or skip per item`; `say "go deep" to continue this run in Deep mode` after a Fast run; the open items that need the user (the Gaps fixes and "To confirm" checks they can run) when gaps exist; `run service-discovery for <service> after the incident` when no catalog exists. No other offer.
 3. A lesson that would hold beyond this estate is noted as a candidate for the skill itself, to be proposed later in a normal session, not during the investigation.
 
 ## Rationalization Prevention
@@ -330,7 +333,7 @@ After the report, never before:
 | "I'll give the timeout or pool-size change as a ready-to-apply snippet so they can move fast." | STOP: write it as a recommendation in prose with its trade-off ("consider raising the client timeout, at the cost of …"). No command, flag or config fragment. It never becomes an action of the run and never changes the label of the cause. |
 | "These lessons are obviously right, so I'll save them now." | STOP: show the diff and wait for the reply. |
 | "In Deep mode I'll just test all the hypotheses myself, or rule out the ones my waves already contradict." | STOP: one evidence worker per hypothesis, falsification query first, all dispatched in one message. Your wave data is a hint for the worker; the label comes from its verdict. |
-| "The run is going well; I'll skip the checkpoint." | STOP: Deep mode waits at checkpoints #1 and #2. Questions left for the end of the report are a skipped checkpoint. |
+| "The run is going well; I'll skip the checkpoint." | STOP: Deep mode waits at its checkpoint after Phase 3. Questions left for the end of the report are a skipped checkpoint. |
 
 ## Red Flags — STOP and Follow Process
 
@@ -361,7 +364,7 @@ After the report, never before:
 | An identifier used before it was listed from the backend, or a broader stream read as the service's logs | STOP → discover it, mark it `(unverified)` until it returns data, and propose the profile update in Phase 6 |
 | Past incidents read before the run's own hypotheses were ranked, an incident file or its label sent to a worker, or a history match folded into an existing hypothesis instead of its own `from-history:` entry | STOP → rank first; add each match as its own `from-history:<file>.md` entry; its worker gets only the hypothesis you wrote |
 | Deep mode giving any hypothesis a label in the main session before its worker returns, including one that Phase 1–2 data already contradicts | STOP → dispatch one evidence worker per hypothesis with an explicit `model`; a worker may cite existing ledger rows (`reused <query ID>`) as its falsification |
-| Deep mode past Phase 2 or Phase 3 without the user's reply | STOP → show the checkpoint and wait |
+| Deep mode past Phase 3 without the user's reply at the checkpoint, or a worker dispatched after a window, service, environment or sibling-set correction before the checkpoint was shown again | STOP → show the checkpoint and wait |
 | A wave's results used in chat or in the next wave before their query-log rows are in `ledger.md` | STOP → write the wave's query rows, gaps, timeline entries and assumptions to the ledger first |
 | A report missing a heading of its mode, or with headings renamed or turned into bold text | STOP → copy the template's headings for the mode exactly; a section with nothing to say reads "none" |
 | The run ends with no record-phase diff, or with lessons written before the reply | STOP → show the Phase 6 diff and wait |
@@ -386,12 +389,12 @@ In chat:
 - **First message:** the mode and why, the output root (local, never committed), and the Culibox notice if `agentbox-env` exists.
 - **After wave 0:** the write-check warnings or notices, the S3 log module line, and the gaps found.
 - **Before Phase 2:** the impact block.
-- **Deep:** checkpoint #1 and checkpoint #2, each waiting for a reply.
-- **End, Fast:** the TL;DR inline, then the report path. **End, Deep:** the TL;DR, the report path, and "open items need your input" when gaps exist. Both end with the cost line.
-- **After the output:** the Phase 6 diff, then wait.
+- **Deep:** the checkpoint after Phase 3, waiting for a reply.
+- **End, Fast:** the TL;DR inline, then the report path. **End, Deep:** the TL;DR and the report path. Both end with the cost line.
+- **After the output:** the Phase 6 diff, ending with the run's one `Next:` line, then wait.
 
 ## Integration with Other Skills
 
-- **`service-discovery`.** When its catalog for the service exists (`.culiops/service-discovery/<service>[-<instance>].md`, or `$CULIOPS_HOME/<workspace>/service-discovery/` when `CULIOPS_HOME` is set), read it during the profile build and Phase 3 for the dependency map: upstreams, downstreams, shared stores, third parties. It describes the service as it was when written, so it is a lead; prefer live data where the two disagree, and say so. Without it, the profile's Dependencies table and the IaC are the map; suggest running `service-discovery` after the incident.
+- **`service-discovery`.** When its catalog for the service exists (`.culiops/service-discovery/<service>[-<instance>].md`, or `$CULIOPS_HOME/<workspace>/service-discovery/` when `CULIOPS_HOME` is set), read it during the profile build and Phase 3 for the dependency map: upstreams, downstreams, shared stores, third parties. It describes the service as it was when written, so it is a lead; prefer live data where the two disagree, and say so. Without it, the profile's Dependencies table and the IaC are the map; the `Next:` line suggests running `service-discovery` after the incident.
 - **`iac-change-execution`.** The run never implements a fix. Follow-ups that need an infrastructure or config change are handed to `iac-change-execution` in a new session, with the report path as its context.
 - **`pre-flight`.** Any fix, rollback or mitigation in the follow-ups should be assessed with `pre-flight` before it is applied; its incident-context path takes this run's report as the evidence for the active incident.
