@@ -1,0 +1,4 @@
+{
+  "_note": "Query 5 (item #1), classic-ELB part of the optional target-group sweep (rightsize-ec2.md Query 6): aws elb describe-load-balancers --query \"LoadBalancerDescriptions[?Instances[?InstanceId=='i-0a1b2c3d4e5f67890']].LoadBalancerName\". The account has no classic ELB.",
+  "LoadBalancerDescriptions": []
+}

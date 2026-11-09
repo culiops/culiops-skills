@@ -47,6 +47,7 @@ Row = the `#` in the plan's "Verification queries run" table.
 | `mock-responses/co-rec-i-0a1b2c3d4e5f67890.json` | 4 | Compute Optimizer recommendation (14d lookback) |
 | `mock-responses/describe-target-groups-vpc-0abc123def456789a.json` | 5 | Target groups in the instance's VPC |
 | `mock-responses/describe-target-health-prod-api-tg.json` | 5 | 2 healthy targets |
+| `mock-responses/describe-load-balancers-classic.json` | 5 | No classic ELB in the account |
 | `mock-responses/describe-alarms-state-alarm-i-0a1b2c3d4e5f67890.json` | 6 | No alarms in ALARM |
 | `mock-responses/get-savings-plans-coverage-i-0a1b2c3d4e5f67890.json` | 7 | 0% SP coverage |
 | `mock-responses/get-reservation-coverage-i-0a1b2c3d4e5f67890.json` | 7 | 0 reserved hours |
