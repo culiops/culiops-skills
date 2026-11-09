@@ -92,7 +92,7 @@ NO GREEN WITHOUT EVIDENCE. EVERY SCORE CITES ITS SOURCE.
 Seven structured questions, asked once before scoring:
 
 > **Pre-flight context check:**
-> 1. Is there an active incident affecting this service or its dependencies? (yes/no — if yes, also answer the Incident Context follow-up)
+> 1. Is there an active incident affecting this service or its dependencies? (yes/no — if yes, also answer the follow-up printed below this question)
 > 2. Is there a deploy freeze or change window restriction? (yes/no)
 > 3. Will the expected apply time be in peak traffic for this service? (yes/no/unsure — for CI or GitOps delivery, the apply happens at merge, not now)
 > 4. Have you changed this service before? (many times / a few times / first time)
@@ -106,7 +106,7 @@ Skip a question only when L1 holds evidence that answers it (e.g. a change-freez
 
 **Q8 — whenever L1 found an app-facing change.** Ask in the same batch: "This change touches what the app depends on: <attributes>. Where is the application source? (a) a local checkout — give the path; (b) a GitHub repo through `gh` — give `owner/repo` and the deployed ref (tag, SHA or image tag). Choosing (b) approves only these `GET` reads: `gh auth status`, resolve the ref to a SHA, list the file tree at that SHA, fetch file contents at that SHA; (c) not available." Answer (c) → category 11 is ⚪. Choosing (b) is the approval for those reads — don't ask again; anything beyond them (a clone, any other endpoint) needs its own approval. If the app code is already inside the target repo, say so and confirm it is the deployed version instead of asking for a location.
 
-The matched assessor (from `assessors/*.md`) may add assessor-specific questions. Those are asked after the standard 7, in the same prompt. One that GATE 1 already answered (e.g. how the change is delivered) is not asked again.
+The matched assessor (from `assessors/*.md`) may add assessor-specific questions. Those are asked after the standard 7, in the same prompt. One that GATE 1 fully answered (e.g. how the change is delivered) is not asked again; one it answered in part is asked for the rest (e.g. whether the plan used `-target` or `-refresh=false`, after GATE 1 settled the workspace and var-file).
 
 Inline mode: the caller's `L2 answers:` are the operator's answers, tagged as above. Ask only what the caller block lacks, in one batch: any of Q1–Q5 and Q7; Q8 when L1 found an app-facing change (a caller's Q8 answer approves the same reads); Q6 unless L1 scores cost from the plan; the Incident Context follow-up when Q1 is yes; and each assessor question that neither an `<assessor>.<n>=` answer nor evidence in the block answers (e.g. `Delivery model:` answers how the change is delivered; `Plan hash:` with its plan command and `Target:` answer how the plan was made). Nothing missing → no L2 stop.
 
@@ -171,7 +171,7 @@ Inline mode: don't ask the opt-in question above. Cite each of the caller's `Liv
 | A Green score on category 2, 9 or 10 citing only `operator` or `UNVERIFIED` | STOP → downgrade to ⚪ (Constraint 8) |
 | Skipping L2 questions because "the operator seems busy" | STOP → L2 is mandatory. 7 quick questions. Inline mode: the caller's `L2 answers:` count; ask only what the caller block lacks. |
 | Downgrading a Red to Yellow without operator justification | STOP → hard blocks require written justification recorded in the report |
-| Presenting mitigations without checking if operator commits to them | STOP → record committed vs. declined mitigations. Inline mode: on GREEN / YELLOW the caller's execution gate asks; the record says so (GATE 2). |
+| Presenting mitigations without checking if operator commits to them | STOP → record committed vs. declined mitigations (standalone: or `Decision: pending` when the operator defers, Step 6). Inline mode: on GREEN / YELLOW the caller's execution gate asks; the record says so (GATE 2). |
 | Running L3 queries that modify state | STOP → L3 is read-only. Check the command against `examples/` before executing |
 | Live identity (account / region / context) differs from the plan's target | STOP → don't run L3 against it. Standalone: ask the operator to switch, or skip L3. Inline mode: run nothing further, score nothing, return the target mismatch to the caller (Step 4) |
 | A secret value, raw env var value, or Secret data about to go into chat or the record | STOP → summarize names only (Constraint 9) |
@@ -223,7 +223,7 @@ digraph preflight {
     gate2 -> record    [label="Red soft block\noperator acknowledges\nwith reason"];
     gate2 -> record    [label="Red hard block\noperator provides\njustification"];
     gate2 -> input     [label="operator aborts\nor modifies action"];
-    report -> record   [label="GREEN (no GATE 2);\nInline mode: GREEN/YELLOW\nreturned to caller", style=dashed];
+    report -> record   [label="GREEN, fresh eyes settled\n(no GATE 2); Inline mode:\nGREEN/YELLOW returned to caller", style=dashed];
 }
 ```
 
@@ -252,7 +252,7 @@ Load every `assessors/*.md` file and match against the input:
 
 Present the detected action type, scope, target, delivery model, and matched assessor to the operator.
 
-**GATE 1:** Human confirms action scope. "I detected this as a [action type] change affecting [resources] in [target], delivered by [<delivery model>]. Is this correct?" The same prompt names the output root (Constraint 13) and asks what Step 1 could not settle: unknown target parts, the delivery model, which assessor applies, which root's sibling record to use. A correction goes back to Step 1 and shows GATE 1 again.
+**GATE 1:** Human confirms action scope. "I detected this as a [action type] change affecting [resources] in [target], delivered by [<delivery model>]. Is this correct?" The same prompt names the output root (Constraint 13) and asks what Step 1 could not settle: unknown target parts, the delivery model, which assessor applies, which root's sibling record to use. Supplying what the prompt asked for is applied as given; a correction of what was detected goes back to Step 1 and shows GATE 1 again.
 
 Inline mode: skip GATE 1; the caller has confirmed scope and target. Take the target, delivery model and plan hash (with its plan command) from the caller block, and show the detection without a stop. If the plan's target differs from the caller's `Target:`, stop and ask.
 
@@ -272,12 +272,17 @@ Categories 5 (timing), 6 (familiarity), and 10 (resource health) require L2 or L
 ### Step 3 — L2 human context and the L3 read batch (one stop)
 
 Standalone, this is one prompt with one reply, in this order:
-1. The 7 structured questions from the Context Layers section above, plus Q8 when L1 found an app-facing change. Skip questions only where L1 holds evidence that answers them.
-2. The assessor-specific questions from `## L2 — Context Questions`, except any GATE 1 already answered.
+1. The 7 structured questions from the Context Layers section above, plus Q8 when L1 found an app-facing change. Skip questions only where L1 holds evidence that answers them. Print the Incident Context follow-up under Q1.
+2. The assessor-specific questions from `## L2 — Context Questions`, except what GATE 1 already answered (Layer 2).
 3. What L1 found that needs the operator: drift rows (should the plan overwrite them?), unexpected resources, and the assessor's own asks (e.g. a partner allowlist for a released public IP).
 4. The L3 opt-in (Layer 3) with the full numbered read batch (Step 4.1–4.2), built now from L1. When L1 found an app-facing change, include the category-11 reads (e.g. IAM last-accessed, send metrics for a removed contract) without waiting for the app scan.
 
-Answers to the questions are applied without showing the prompt again. An answer that changes the target or the scope (e.g. a different workspace or var-file) goes back to Step 1 and GATE 1; an answer that changes what the batch reads re-plans it and shows this prompt again. Either way, no read runs until the operator approves the re-planned batch. Inline mode: ask only what Layer 2's inline rule leaves open, assessor questions included; missing reads are proposed at Step 4 (Layer 3).
+Answers to the questions are applied without showing the prompt again, and so is approving part of the batch or declining it. Three kinds of answer change what runs next:
+- An answer that changes the target or the scope (e.g. a different workspace or var-file) goes back to Step 1 and GATE 1.
+- An answer that says the plan itself is wrong (the drift must not be overwritten, a resource was not intended) is the operator changing the action: ask for the new plan and start again at Step 1, as GATE 2's "modifies action" does.
+- An answer that adds or changes a read re-plans the batch and shows only the batch again.
+
+Answers already given that still apply are kept, and no read runs until the operator approves the re-planned batch. Inline mode: ask only what Layer 2's inline rule leaves open, assessor questions included; missing reads are proposed at Step 4 (Layer 3).
 
 Fill in categories 5 (timing context) and 6 (operator familiarity). Record the cost answer (Q6) as `operator-stated` input to category 8.
 
@@ -295,7 +300,7 @@ If the read fails (no access, token not approved, repo too large for the API), o
 ### Step 4 — L3 live signals (optional)
 
 1. Build the list of read-only queries from the assessor's `## L3 — Live Query Hooks` section and `examples/aws.md` / `examples/kubernetes.md`. Leave out anything the caller's evidence table already answers.
-2. Put the **target check** first (`aws sts get-caller-identity`, region, `kubectl config current-context`). Show the full numbered list and ask for one approval (Constraint 2); standalone, that is the Step 3 prompt, and this step runs what it approved.
+2. Put the **target check** first (`aws sts get-caller-identity`, region, `kubectl config current-context`). Show the full numbered list and ask for one approval (Constraint 2); standalone, that is the Step 3 prompt, and this step runs what it approved. A read found needed later (e.g. the app scan finds a second queue) gets its own approval, or its category stays ⚪ with that reason.
 3. Run the target check. If the identity doesn't match the target recorded in Step 1, stop L3 and tell the operator.
 4. Run the rest. Fetch only the fields needed; summarize results without secret values.
 5. Record results as `live:<query #>` and use them to fill in category 10 (resource health) and refine categories 2, 3, 5, 7, 8, 11 (e.g. IAM last-accessed or send metrics as live evidence that a removed contract is or isn't used). Code ↔ live disagreements become drift rows.
@@ -348,7 +353,9 @@ For Green categories, show the category name, "Green" and its evidence source �
 - **Red (soft block):** Acknowledge each Red finding with a stated reason, or abort
 - **Red (hard block):** Provide written justification for each hard block, or abort
 
-On GREEN there is no GATE 2 stop: no finding to acknowledge and no mitigation to commit. Write `none — GREEN, no GATE 2 stop` under `## Acknowledged Risks` and `## Mitigations Committed`. An answer that defers the decision ("I'll decide after reading it") is not an acknowledgement: write the record with `Decision: pending — <the operator's words>` under both headings, and end the run (Step 7).
+Standalone on GREEN there is no GATE 2 stop: no finding to acknowledge and no mitigation to commit. Write `none — GREEN, no GATE 2 stop` under `## Acknowledged Risks` and `## Mitigations Committed`. A fresh-eyes disagreement left unsettled (Step 5b) keeps GATE 2 on GREEN, so the operator decides it.
+
+Standalone, an answer that defers the decision ("I'll decide after reading it") is not an acknowledgement. Write the record with `Decision: pending — <the operator's words>` under both headings, and under `## Hard Blocks` as `justification: pending` for each one, then end the run (Step 7). When the operator gives the decision later, run GATE 2 on that record's report and replace the pending lines in the same record.
 
 Inline mode: Step 6 still presents the full report to the operator; only the GATE 2 question moves to the caller. On GREEN or YELLOW, skip GATE 2. Return the verdict to the caller with each Yellow and ⚪ finding and its mitigation, so the caller's execution stop can show them, and write `verdict returned to caller — operator acknowledges at the caller's execution gate` in the record under `## Acknowledged Risks` and `## Mitigations Committed`. On RED, run GATE 2 as above, then return the report, the verdict and the operator's acknowledgements or justifications to the caller.
 
@@ -362,7 +369,7 @@ If the operator aborted, still write the record with verdict "ABORTED" and the r
 
 **No commit.** Leave the record uncommitted. A calling skill decides what to do with it (e.g. links it from its PR).
 
-**Final message (standalone).** Report the record path (absolute under `CULIOPS_HOME`) and the verdict. Make no other offer. The last line is one `Next:` line, its parts joined by ` · ` in this order: `re-run pre-flight on the changed plan` when the operator aborted or changes the action; `do the <n> committed mitigations before the apply` when any were committed; `tell me your decision to record it` when the decision is pending; `check by hand what Verification lists as not verified` when that list is not empty; `run service-discovery for <service>` when no catalog was found; `commit <path> if pre-flight records live in this repo` when the root is the repo's `.culiops/` and `git check-ignore -q <path>` fails. With none of these, the line is `Next: apply when ready`.
+**Final message (standalone).** Report the record path (absolute under `CULIOPS_HOME`) and the verdict. Make no other offer. The last line is one `Next:` line, its parts joined by ` · ` in this order: `re-run pre-flight on the changed plan` when the operator aborted or changes the action; `do the <n> committed mitigations before the apply` when any were committed; `tell me your decision to record it` when the decision is pending; `check by hand what Verification lists as not verified` when that list is not empty; `run service-discovery for <service>` when no catalog was found; `commit <path> if pre-flight records live in this repo` when the root is the repo's `.culiops/`, `git check-ignore -q <path>` exits 1 and the current branch is not the default branch. With none of these, the line is `Next: apply when ready`.
 
 ## Output Format
 
@@ -408,7 +415,7 @@ The pre-flight record written to `.culiops/pre-flight/<service>-<action>-<YYYYMM
 - Not verified: <claims resting on operator-stated / UNVERIFIED / search limits, or none>
 
 ## Hard Blocks
-<none, or list with required justification provided by operator>
+<none, or list with required justification provided by operator; deferred: `justification: pending` per hard block>
 
 ## Acknowledged Risks
 <list of Yellow/Red/⚪ items operator acknowledged, with their stated reason; standalone GREEN: none — GREEN, no GATE 2 stop; deferred: Decision: pending — <the operator's words>; Inline mode on GREEN / YELLOW: verdict returned to caller — operator acknowledges at the caller's execution gate>
