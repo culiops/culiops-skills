@@ -21,9 +21,9 @@ Tag-based: `service=platform-core`.
 ## Expected gate behavior
 
 - Gate 1: accepted with the metric-cap override and the CE window recorded.
-- GATE 1a: 10 read-only probes; only the CE probe is billed ($0.01).
+- GATE 1a: the read-only probe batch, approved at the Gate 1 stop (p8 is the Step 2b `Search`); only the CE probe is billed ($0.01).
 - Gate 2: no source is ✗ (Resource Explorer, CloudTrail, Cost Explorer ✓ probed; Wiring and `GetMetricData` `untested`).
-- Step 2b: free Resource Explorer `Search` `tag:service=platform-core` resolves **612** resources (`Count.Complete=true`).
+- Step 2b: probe p8, free Resource Explorer `Search` `tag:service=platform-core` resolves **612** resources (`Count.Complete=true`).
 - Gate 3: plan priced against the 612 resources:
   - CE: ~110 pages x $0.01 = **$1.10**
   - CloudWatch: 12,000 metrics / 1,000 x $0.01 = **$0.12**

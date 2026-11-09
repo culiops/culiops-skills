@@ -32,7 +32,7 @@ intent-category: takeover
 
 | Source | Status | Reason |
 |---|---|---|
-| Scoping probe (GATE 1a) | ✓ ran | 10 read-only calls, 1 billed (CE, $0.01) |
+| Scoping probe (GATE 1a) | ✓ ran | 12 read-only calls incl. the p8 resource-set `Search` (`re-001`), 1 billed (CE, $0.01) |
 | Resource Explorer (resolve + cross-Region) | ✓ ran | Step 2b, `re-001`; aggregator view in us-east-1 |
 | Cost Explorer | ✓ ran | |
 | CloudTrail LookupEvents | ✓ ran | |
@@ -228,16 +228,17 @@ Sidecars contain **projected fields only** (request + selected response fields; 
 
 | Call ID | Source | API | Cost | Approved at |
 |---|---|---|---|---|
-| probe-001..009 | Scoping probe | sts, iam, organizations, resource-explorer-2 (ListIndexes, GetIndex, ListViews, GetView), cloudtrail (DescribeTrails, LookupEvents 1 page) | $0.00 | GATE 1a |
-| probe-010 | Scoping probe | ce:GetCostAndUsage (1 day, tag-filtered) | $0.01 | GATE 1a |
-| re-001 | Resource Explorer | resource-explorer-2:Search | $0.00 | Step 2b (shown at Gate 3) |
-| ce-001 | Cost Explorer | ce:GetCostAndUsage (SERVICE, DAILY, tag-filtered), 1 page | $0.01 | Gate 3 row 1; Gate 4 CE block |
-| ce-002 | Cost Explorer | ce:GetCostAndUsage (USAGE_TYPE, DAILY, tag-filtered), 1 page | $0.01 | Gate 3 row 2; Gate 4 CE block |
-| ct-001..005 | CloudTrail | cloudtrail:LookupEvents, 5 series x 1 page | $0.00 | Gate 3 row 3; Gate 4 CloudTrail block |
-| wr-001..008 | Wiring | lambda:GetPolicy x3, lambda:ListEventSourceMappings x3, sqs:GetQueueAttributes x1, sqs:ListDeadLetterSourceQueues x1 | ~$0.00 (within free tiers) | Gate 3 row 4; Gate 4 Wiring block |
-| cw-001 | CloudWatch | cloudwatch:GetMetricData, 23 metrics | $0.00023 | Gate 3 row 5; Gate 4 CloudWatch block |
-| cw-002 | CloudWatch | cloudwatch:ListMetrics (existence check, 1 request) | $0.00 (free tier) | Gate 3 row 6 (conditional); Gate 4 CloudWatch block |
+| probe-001..009 | Scoping probe | sts, iam, organizations, resource-explorer-2 (ListIndexes, GetIndex, ListViews, GetView), cloudtrail (DescribeTrails, LookupEvents 1 page) | $0.00 | Gate 1 stop (GATE 1a batch) |
+| probe-010 | Scoping probe | ce:GetCostAndUsage (1 day, tag-filtered) | $0.01 | Gate 1 stop (GATE 1a batch) |
+| probe-011 | Scoping probe | cloudwatch:ListMetrics (1 page) | $0.00 (free tier) | Gate 1 stop (GATE 1a batch) |
+| re-001 | Resource Explorer | resource-explorer-2:Search (probe p8) | $0.00 | Gate 1 stop (GATE 1a row p8); set confirmed at Gate 3 |
+| ce-001 | Cost Explorer | ce:GetCostAndUsage (SERVICE, DAILY, tag-filtered), 1 page | $0.01 | Gate 3 row 1 (run in the Gate 4 CE block) |
+| ce-002 | Cost Explorer | ce:GetCostAndUsage (USAGE_TYPE, DAILY, tag-filtered), 1 page | $0.01 | Gate 3 row 2 (run in the Gate 4 CE block) |
+| ct-001..005 | CloudTrail | cloudtrail:LookupEvents, 5 series x 1 page | $0.00 | Gate 3 row 3 (run in the Gate 4 CloudTrail block) |
+| wr-001..008 | Wiring | lambda:GetPolicy x3, lambda:ListEventSourceMappings x3, sqs:GetQueueAttributes x1, sqs:ListDeadLetterSourceQueues x1 | ~$0.00 (within free tiers) | Gate 3 row 4 (run in the Gate 4 Wiring block) |
+| cw-001 | CloudWatch | cloudwatch:GetMetricData, 23 metrics | $0.00023 | Gate 3 row 5 (run in the Gate 4 CloudWatch block) |
+| cw-002 | CloudWatch | cloudwatch:ListMetrics (existence check, 1 request) | $0.00 (free tier) | Gate 3 row 6 (conditional; run in the Gate 4 CloudWatch block) |
 
 Cost arithmetic: 3 CE requests x $0.01 = $0.03 (probe + `ce-001` + `ce-002`; 1 page each, no extra pages) + 23 metrics / 1,000 x $0.01 = $0.00023. Total cost: **$0.0302** (≤ $1.00 cap).
 
-Gate sign-offs: alice — Gate 1 @ 15:25Z, GATE 1a @ 15:26Z, Gate 2 @ 15:27Z, Gate 3 @ 15:29Z, Gate 4 (CE @ 15:31Z, CloudTrail @ 15:33Z, Wiring @ 15:34Z, CloudWatch @ 15:36Z), Gate 5 @ 15:38Z, Gate 6 @ 15:40Z.
+Gate sign-offs: alice — Gate 1 (with the GATE 1a batch) @ 15:25Z, Gate 3 (with the Gate 2 matrix and the Step 2b set) @ 15:29Z, Gate 5 (with the Gate 6 file list) @ 15:38Z.

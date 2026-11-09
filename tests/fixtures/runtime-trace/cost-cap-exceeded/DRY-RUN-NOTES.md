@@ -21,10 +21,10 @@
 
 ## Gate transitions
 
-1. Gate 1 — operator inputs accepted; metric-cap override (12,000) and the 12-month CE window recorded.
-2. GATE 1a — 10 read-only probes; CE probe billed $0.01.
-3. Gate 2 — all sources available. Operator confirms.
-4. Step 2b — free RE `Search` resolves 612 resources.
+1. Gate 1 — operator inputs accepted; metric-cap override (12,000) and the 12-month CE window recorded. The same answer approves the GATE 1a batch.
+2. GATE 1a — the read-only probe batch; CE probe billed $0.01.
+3. Gate 2 — all sources available; shown in the Gate 3 message.
+4. Step 2b — probe p8, free RE `Search`, resolves 612 resources.
 5. Gate 3 — plan $1.22, cumulative $1.23. **Skill refuses.** Prints plan, arithmetic, cap, three options. Operator chooses abort (option 3).
 6. Gates 4-6 — never executed.
 
