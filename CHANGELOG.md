@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **sre-investigate: one Deep checkpoint instead of two, no check removed.** Fast mode is unchanged: it stops only at the record diff, plus the conditional cost and time-zone asks.
+  - **Checkpoint #1 merged into the checkpoint after Phase 3.** No metered query ran between the two. One message now shows the windows, blast radius, recurrence class, change list and run profile, then the ranked hypotheses with their falsification queries, and asks the three questions together. This replaces the founder decision "Deep mode stops at its two checkpoints" (sre-investigate design spec, 2026-10-28), with the owner's approval.
+    - A correction to the window, the sibling set or an identifier a Phase 1–2 query used re-runs those queries, re-ranks and shows the checkpoint again. A service or environment correction restarts from Phase 0 step 4, so wave 0's identity and write-checks run for the new target.
+    - A reported change, a profile fix, or adding, dropping or re-ranking hypotheses applies without a re-show. A reported change goes on the Timeline, and hypotheses added this way are listed when the workers are dispatched. A question back is not acceptance.
+  - **Deep with no stated onset** starts from the most recent episode in the alarm or alert history and lets the checkpoint confirm the window. It asks up front only when there is no such history.
+  - **Time zone asked once.** When `environment.md` has no `timezone` and the user named a zone, the record diff offers to save it (IANA names only).
+  - **One `Next:` line** ends the record-diff message: the reply the diff needs, `go deep` after a Fast run that hit its wave cap, the count of open gaps and "To confirm" checks, and the service-discovery hint. It replaces the separate "go deep" offer, the "open items need your input" ending (also removed from `templates/report.md`) and the service-discovery suggestion. The S3 module's purge notice goes above it.
+  - **Measured** in simulated dry-runs (sonnet runner, canned output) on `n-plus-one-flat-db-p95`: 3 → 2 stops, on both the pre-review and the final text. The fixture's README and operator script follow the single checkpoint.
+
 ## [0.18.0] — 2026-11-08
 
 ### Changed
