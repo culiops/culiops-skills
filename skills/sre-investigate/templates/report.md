@@ -80,7 +80,7 @@ One entry per claim in the chain: what was observed, at what time and scope, the
 |---|---|---|
 | <source not read> | <which statements it weakens> | <a variable name, a person to ask, or a re-auth step the user runs themselves, written exactly as `! aws sso login --profile <p>` (a login is not a change to an investigated system)> |
 
-The last column never holds a command that changes an investigated system. If gaps exist, end the printed summary with: open items need your input.
+The last column never holds a command that changes an investigated system. Open items that need the user go in the run's `Next:` line (SKILL.md Phase 6), not at the end of the printed summary.
 
 ## To confirm, a human would…
 
