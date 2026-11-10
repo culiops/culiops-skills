@@ -21,7 +21,7 @@ Note: `get-rds-database-recommendations` and `get-idle-recommendations` are now 
 - Catalog lookup: finds `.culiops/service-discovery/orders.md`: "Found service catalog for `orders`: 8 resources across ECS, RDS, S3, SQS and Step Functions; tag convention `Service=orders`, `Component=<name>`."
 - Scoping summary: mode=attribution, account=`123456789012` (`acme-prod`, member), service=orders, period=2026-04, catalog=orders.md (8 resources), IaC repo=none.
 
-**GATE 1:** operator confirms.
+**GATE 1a** is the only stop before the probe: the operator confirms mode, period, catalog (`orders.md`, which also names the tag key) and IaC repo (none) and approves the probe in one answer. The probe results (account, member status, us-east-1) open the GATE 2 message as its Target block; there is no separate GATE 1.
 
 ## Step 2C - Attribution mode query plan
 
@@ -38,7 +38,7 @@ The period comparison needs no extra query (both months are in the same window).
 **Total estimated API cost:** $0.02 for the batch ($0.03 with the scoping probe); Q7 is free.
 **IAM permissions needed:** `ce:GetCostAndUsage`, `ce:ListCostAllocationTags` (plus the probe's `sts:GetCallerIdentity`, `iam:ListAccountAliases`, `organizations:DescribeOrganization`).
 
-**GATE 2:** operator approves.
+**GATE 2:** operator confirms the Target block (account, member status, regions) and approves the batch in one answer.
 
 ## Step 3 - Execute
 
@@ -222,7 +222,7 @@ None.
 - Document a cost-split rule for the shared NAT gateway, and fix the VPC module's `default_tags` so it stops carrying `Service=orders`.
 - Run `cost-optimize-plan` only if a waste or anomaly investigation produces remediation rows.
 
-**GATE 4:** operator approves the report; skill commits only the report file (default-branch / public-remote warning applies).
+**Final message:** report path and totals; the report is not committed. Last line: `Next: review Informational / excluded in <path>` (empty remediation table), plus the commit part when the output root is the repo's `.culiops/`. Stops in this run: GATE 1a, GATE 2, GATE 3 (declined).
 
 ## Gaps surfaced
 

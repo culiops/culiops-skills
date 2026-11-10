@@ -50,10 +50,14 @@ aws ce get-cost-and-usage \
   --granularity MONTHLY --metrics AmortizedCost \
   --filter '{"Dimensions":{"Key":"RECORD_TYPE","Values":["Usage","DiscountedUsage","SavingsPlanCoveredUsage"]}}' \
   --group-by Type=DIMENSION,Key=REGION
+# 5. Attribution mode without a catalog only: the active cost-allocation tag keys
+#    (SKILL.md Step 1.6), shown at GATE 2 beside the plan.
+aws ce list-cost-allocation-tags --status Active \
+  --query "CostAllocationTags[].[TagKey,LastUpdatedDate]"
 ```
 
-**IAM:** `sts:GetCallerIdentity`, `iam:ListAccountAliases`, `organizations:DescribeOrganization`, `ce:GetCostAndUsage`.
-**API cost:** ~$0.01 (one CE page); the rest are free.
+**IAM:** `sts:GetCallerIdentity`, `iam:ListAccountAliases`, `organizations:DescribeOrganization`, `ce:GetCostAndUsage` (+ `ce:ListCostAllocationTags` with #5).
+**API cost:** ~$0.01 (one CE page; +$0.01 with #5); the rest are free.
 
 ## Step 2A — Anomaly mode
 
@@ -471,7 +475,7 @@ aws ce get-cost-and-usage \
 
 ## Step 5 — Verification (shared)
 
-No mutation occurs, so verification is just re-reading the report file before commit:
+No mutation occurs, so verification is just re-reading the report file after it is written:
 
 ```bash
 # Operator inspects the report draft

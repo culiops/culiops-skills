@@ -27,7 +27,7 @@ Cost Explorer `get-cost-and-usage` with `MONTHLY` granularity is **not per-resou
 
 ## What this fixture exercises
 
-- **Mode detection from question phrasing:** "what does X cost / break it down by resource" gives attribution mode (suggested at GATE 1).
+- **Mode detection from question phrasing:** "what does X cost / break it down by resource" gives attribution mode (suggested in the GATE 1a message).
 - **Scoping probe (GATE 1a):** identity, alias, `organizations describe-organization` (member account, so no `LINKED_ACCOUNT` filter), CE by `REGION` filtered to the tag. Regions covered: us-east-1 (100% of `Service=orders` spend).
 - **Catalog consumption:** attribution mode requires a catalog or an operator-confirmed tag convention. The catalog is present and also records the tag convention.
 - **Untraced resource:** `orders-dev-db` is in the catalog and has no 2026-04 cost row. The skill flags it `untraced` and does NOT claim $0 (absence of a row is not confirmed zero spend). The 2026-03 row ($27.60, partial month) is consistent with a mid-March deletion, but nothing here proves it; verification (`rds describe-db-instances`, CloudTrail `DeleteDBInstance`) is a GATE 3 option the operator declines.

@@ -221,3 +221,19 @@ Past-incident isolation: the from-history worker received only the line the main
 - **Final FAIL, row 6 (literal ID):** the run wrote `from-history:2026-08-14-orders-api`, without the `.md` the README names. Everything else about the entry is right: it was created after ranking, got its own worker, received only the main session's line, and was ruled out. Gap: SKILL.md and `templates/ledger.md` say `from-history:<file>` but do not say that `<file>` keeps its extension. Proposed fix P16 (applied after the final round; case not re-run, see the row 6 note):
   - `skills/sre-investigate/SKILL.md`, Phase 3 "History after ranking": after "with ID `from-history:<file>`" insert "(the file name as listed, extension included, for example `from-history:2026-01-05-checkout-api.md`)".
   - `skills/sre-investigate/templates/ledger.md`: in the line "Each history match is its own entry with the ID `from-history:<file>`", append "(file name with its extension)".
+
+## Single checkpoint (2026-11-09)
+
+Stop counts for the change that merged Deep checkpoint #1 into the checkpoint after Phase 3. Simulated runs played the skill text against `world/`, `repo/` and `operator-script.md` only (README, these notes and `expected-output/` hidden), with the clock at 2026-10-20T15:30Z and the profile helper and evidence workers simulated inline. The runs wrote to `/tmp`; nothing in this fixture was rewritten by them.
+
+| Run | Skill text | Stops |
+|---|---|---|
+| baseline | `origin/main` (v0.18.0) | 3: checkpoint #1, checkpoint #2, record diff |
+| after | single checkpoint, before review | 2: checkpoint, record diff |
+| final | single checkpoint, after review | 2: checkpoint, record diff |
+
+Final run against the updated README: the checkpoint message showed the windows, blast radius, recurrence class, change list and run profile together with the 8 ranked hypotheses and their falsification queries; history was read after ranking (`from-history:2026-08-14-orders-api.md`); 8 workers for 8 entries; nothing was written before the diff reply; the diff message ended with one `Next:` line.
+
+`expected-output/` was not regenerated: its `run-log.md` still shows the two old checkpoints (`:352`–`:433`) and the old ending.
+
+Seen in all three runs and not caused by this change: "early this afternoon UTC" fits both window rule 1 and rule 2; `world/iam-02.json` returns actions outside the skill's fixed ten, so the write-check reads "partly checked"; Constraint 6's no-estimate ask names Logs Insights only, while this fixture's `environment.md` asks before large Loki queries.

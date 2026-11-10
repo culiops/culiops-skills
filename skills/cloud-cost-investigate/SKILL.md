@@ -83,7 +83,7 @@ Every cost and savings figure must be derived from what is actually billed, and 
 1. **Read-only.** No mutations of any kind. Not even tagging fixes, even if they would "improve future investigations".
 2. **Per-batch query approval.** No queries run before GATE 1a (scoping probe), GATE 2 (initial batch) or GATE 3 (drill-down batch) approval. Skill never silently extends a batch.
 3. **API costs and IAM in the plan.** Every query plan itemizes IAM permissions and (where applicable) API per-request costs. Cost Explorer bills **every paginated page** as a request — estimate pages, not calls. Operators must not be surprised by an unexpected bill from Cost Explorer queries.
-4. **Single account by default — enforced, not assumed.** In an AWS Organizations management (payer) account, unfiltered Cost Explorer returns the whole organization. Single-account scope there means a `LINKED_ACCOUNT` filter on **every** CE call. Org-wide is opt-in and triggers a stricter scope confirmation. Skill never escalates from single to org silently.
+4. **Single account by default — enforced, not assumed.** In an AWS Organizations management (payer) account, unfiltered Cost Explorer returns the whole organization. Single-account scope there means a `LINKED_ACCOUNT` filter on **every** CE call. Org-wide is opt-in at GATE 1a and needs a stricter confirmation: the GATE 2 answer must say `approve org-wide`; a plain approve does not count. Skill never escalates from single to org silently.
 5. **Regions covered are stated, never implied.** Resource-state, Compute Optimizer and CloudWatch calls are regional; Cost Explorer is global. Sweeps run in every region that carries spend in the window (Step 1.4); the report header lists `Regions covered:`. A sweep never run in a region is a gap, not "no waste".
 6. **Catalog-or-tag for attribution mode.** Attribution mode refuses to run without either a service-discovery catalog or an operator-confirmed tag convention.
 7. **Source-labelled, evidence-cited savings claims.** Every dollar figure in the remediation list carries `source`, rate basis, `confidence` and an evidence reference (Law 3). Informational and excluded items (untagged spend, residual charges, binding-constraint exclusions) go to their own report section — never the remediation table, which downstream skills parse as actions.
@@ -93,7 +93,7 @@ Every cost and savings figure must be derived from what is actually billed, and 
 11. **Stop on query failure.** Auth errors, rate limits, service unavailability halt the investigation and surface to the operator. The skill does not silently skip and produce a partial report disguised as complete.
 12. **No auto-remediation handoff.** Even if a remediation fits perfectly into `iac-change-execution`, the skill stops at the report. Operator triggers the next skill explicitly.
 13. **Supported owners only for remediation.** Cost from resources owned by CloudFormation / Serverless / SAM / CDK (tag `aws:cloudformation:stack-name`) is reported, but its remediation row is marked `Owner: unsupported-owner (cloudformation)` and carries no IaC change suggestion. GCP / Azure are out of scope — if the operator's question is about them, say so and stop.
-14. **Output root.** Every `.culiops/` path in this skill (the files it writes and the sibling records it reads) sits under one output root, resolved once at the start and shown to the operator at the first gate. If `CULIOPS_HOME` is unset or empty, the root is `.culiops/` at the repo root, as before. If it is set, the root is `$CULIOPS_HOME/<workspace>/`: `<workspace>` is the path of `git remote get-url origin` after the host, without `.git` (`git@github.com:acme/payments-infra.git` and `https://github.com/acme/payments-infra.git` both give `acme/payments-infra`); with no `origin`, the repo root's directory name; outside a git repo, the current directory's name. The operator may rename it. When the skill creates `$CULIOPS_HOME` itself, it runs `chmod 700` on it. If the root can't be written, STOP and ask; never fall back to the repo. Under `CULIOPS_HOME` the records are outside the repo: skip every commit offer and print absolute paths instead. If a sibling record is missing under the root but exists under the other one (repo `.culiops/` vs `$CULIOPS_HOME`), say so and let the operator pick.
+14. **Output root.** Every `.culiops/` path in this skill (the files it writes and the sibling records it reads) sits under one output root, resolved once at the start and shown to the operator at the first gate. If `CULIOPS_HOME` is unset or empty, the root is `.culiops/` at the repo root, as before. If it is set, the root is `$CULIOPS_HOME/<workspace>/`: `<workspace>` is the path of `git remote get-url origin` after the host, without `.git` (`git@github.com:acme/payments-infra.git` and `https://github.com/acme/payments-infra.git` both give `acme/payments-infra`); with no `origin`, the repo root's directory name; outside a git repo, the current directory's name. The operator may rename it. When the skill creates `$CULIOPS_HOME` itself, it runs `chmod 700` on it. If the root can't be written, STOP and ask; never fall back to the repo. Under `CULIOPS_HOME` the records are outside the repo: skip every commit offer and print absolute paths instead. If a sibling record is missing under the root but exists under the other one (repo `.culiops/` vs `$CULIOPS_HOME`), say so in the GATE 1a message and let the operator pick in the GATE 1a answer.
 
 ## Rationalization Prevention
 
@@ -133,18 +133,18 @@ Every cost and savings figure must be derived from what is actually billed, and 
 | About to call any non-`Get` / non-`Describe` / non-`List` API | STOP — read-only. The skill never calls write APIs. |
 | Operator asks for a recommendation outside the report's source set | STOP — bring the question into the next investigation, don't fabricate. |
 | A planned Cost Explorer query will paginate (DAILY × many groups, long window) | Estimate pages × $0.01 in the plan; prefer MONTHLY or fewer group-bys where the question allows. |
-| Authenticated account is an Organizations management account | Add `LINKED_ACCOUNT` to every CE call unless the operator opted in to org-wide at GATE 1. |
+| Authenticated account is an Organizations management account | Add `LINKED_ACCOUNT` to every CE call unless the operator opted in to org-wide at GATE 1a and answered GATE 2 with `approve org-wide`. |
 | A query result would contain env vars, secrets or kubeconfig data | STOP — re-run with a projection that excludes them; never copy them into the report. |
 | Catalog references resources missing from the cost lookup (attribution mode) | Flag as "untraced", do NOT silently drop from the report. |
 | Cost line items with no matching catalog resource (attribution mode) | Flag as "context cost", do NOT attribute to the service. |
 | Operator asks "just summarize without showing me the queries" | STOP — query plan visibility is non-negotiable. Explain why. |
-| Drill-down query batch is large (>10 queries or >$1 estimated API cost) | STOP — split into smaller batches with separate gates. |
+| Drill-down query batch is large (>10 rows in the plan table — a query repeated per region is one row, as in Step 2 — or >$1 estimated API cost) | STOP — split into smaller batches with separate gates. |
 | Resource-state query returns thousands of items | STOP — narrow scope (region, tag) and re-batch rather than dump everything. |
-| Recommender returns conflicting recommendations for the same resource | STOP — present both, let operator pick. Do not pick one silently. |
+| Recommender returns conflicting recommendations for the same resource | STOP — present both, let operator pick: in the GATE 3 message when a drill-down is proposed, otherwise on its own. Do not pick one silently. |
 
 ## Workflow
 
-Fixed pipeline with mode-specific middle (Steps 2 and 4 branch per mode; Steps 1, 3, and 5 are shared). One branch point at Step 2.
+Fixed pipeline with mode-specific middle (Steps 2 and 4 branch per mode; Steps 1, 3, and 5 are shared). One branch point at Step 2. A normal run stops two or three times: GATE 1a, GATE 2, and GATE 3 when a drill-down is proposed. Every question the skill has before the probe goes into the GATE 1a message, and the probe's results are confirmed in the GATE 2 message. The only other stops are error halts (no authentication, an output root that can't be written, a failed query, Compute Optimizer not opted in, no OpenCost / Kubecost), re-batching after an oversized result, and conflicting recommendations when no GATE 3 is shown.
 
 ```dot
 digraph cost_investigate {
@@ -153,28 +153,25 @@ digraph cost_investigate {
 
     input    [label="Input: cost question\n(operator-described)"];
     detect   [label="Step 1: Detect & Scope\n(cloud, mode, time range,\ncatalog, IaC repo)"];
-    gate1a   [label="GATE 1a: Operator\napproves scoping probe\n(target + regions)", shape=diamond];
-    probe    [label="Run scoping probe"];
-    gate1    [label="GATE 1: Operator\nconfirms scope + mode", shape=diamond];
+    gate1a   [label="GATE 1a: Operator\nconfirms mode + inputs,\napproves scoping probe", shape=diamond];
+    probe    [label="Run scoping probe\n(target + regions)"];
     branch   [label="Mode?", shape=diamond];
     qa       [label="Step 2A: Anomaly\nquery plan"];
     qw       [label="Step 2B: Waste\nquery plan"];
     qattr    [label="Step 2C: Attribution\nquery plan"];
-    gate2    [label="GATE 2: Operator\napproves query batch", shape=diamond];
+    gate2    [label="GATE 2: Operator\nconfirms target + regions,\napproves query batch", shape=diamond];
     exec     [label="Step 3: Execute\napproved queries"];
     analyze  [label="Step 4: Analyze\n(mode-specific)"];
     drill    [label="Drill-down\nneeded?", shape=diamond];
     gate3    [label="GATE 3: Operator\napproves drill-down batch", shape=diamond];
-    report   [label="Step 5: Compose report\n+ remediation list"];
-    gate4    [label="GATE 4: Operator\napproves report\n(commit / revise)", shape=diamond];
+    report   [label="Step 5: Write report\n+ remediation list\n(final message, Next: line)"];
     done     [label="Done", shape=doublecircle];
 
     input -> detect;
     detect -> gate1a;
     gate1a -> probe       [label="approved"];
-    probe -> gate1;
-    gate1 -> branch       [label="approved"];
-    gate1 -> detect       [label="corrections"];
+    gate1a -> detect      [label="corrections"];
+    probe -> branch;
     branch -> qa          [label="anomaly"];
     branch -> qw          [label="waste"];
     branch -> qattr       [label="attribution"];
@@ -182,16 +179,15 @@ digraph cost_investigate {
     qw -> gate2;
     qattr -> gate2;
     gate2 -> exec         [label="approved"];
-    gate2 -> branch       [label="trim / change mode"];
+    gate2 -> branch       [label="trim / change mode\n/ change regions"];
+    gate2 -> detect       [label="wrong target"];
     exec -> analyze;
     analyze -> drill;
     drill -> gate3        [label="yes"];
     drill -> report       [label="no"];
     gate3 -> exec         [label="approved (loop)"];
     gate3 -> report       [label="declined"];
-    report -> gate4;
-    gate4 -> report       [label="revise"];
-    gate4 -> done         [label="approved"];
+    report -> done;
 }
 ```
 
@@ -201,36 +197,38 @@ digraph cost_investigate {
 
 **What the skill does:**
 
-1. **Detect cloud.** Check for authentication signals: `AWS_PROFILE` / `AWS_REGION` env vars and `~/.aws/` (AWS), `kubectl config current-context` (Kubernetes). If both are configured, list them and ask which to investigate. If none, ask the operator to authenticate. A question about GCP or Azure → out of scope (Constraint 13); say so and stop.
-2. **Detect mode from question phrasing.** Heuristic: "spike / increase / why" → anomaly; "waste / unused / idle / save" → waste; "what does X cost / breakdown / per-service" → attribution. Always confirms — never auto-runs.
-3. **Establish the target** — the **scoping probe** (items 3–4). Show it as a mini batch (same table shape as GATE 2: 4 read-only calls, 1 Cost Explorer request ≈ $0.01) and run it only on the operator's approval (**GATE 1a**). It is the only query run before GATE 1:
-   - `sts get-caller-identity` + `iam list-account-aliases` → account ID and alias, shown at GATE 1 so the operator can catch "wrong profile".
+1. **Detect cloud.** Check for authentication signals: `AWS_PROFILE` / `AWS_REGION` env vars and `~/.aws/` (AWS), `kubectl config current-context` (Kubernetes). If both are configured, list both in the GATE 1a message with the probe for each; the answer picks one, and only that probe runs. If none, ask the operator to authenticate. A question about GCP or Azure → out of scope (Constraint 13); say so and stop.
+2. **Detect mode from question phrasing.** Heuristic: "spike / increase / why" → anomaly; "waste / unused / idle / save" → waste; "what does X cost / breakdown / per-service" → attribution. Always confirmed at GATE 1a — never auto-runs.
+3. **Establish the target** — the **scoping probe** (items 3–4). Show it as a mini batch (same table shape as GATE 2: 4 read-only calls, 1 Cost Explorer request ≈ $0.01; one more of each in attribution mode without a catalog, item 6) and run it only on the operator's approval (**GATE 1a**, item 8). It is the only query run before GATE 2:
+   - `sts get-caller-identity` + `iam list-account-aliases` → account ID and alias, shown at the top of the GATE 2 message so the operator can catch "wrong profile".
    - `organizations describe-organization` → is this account the management (payer) account? The call works from any account in the organization (`docs: https://docs.aws.amazon.com/sdk-for-go/api/service/organizations/index.html`), so compare `MasterAccountId` with the caller: equal = payer, different = member. `AWSOrganizationsNotInUseException` = standalone. Any other error, `AccessDenied` included, leaves payer status `unverified`: treat the account as payer. Payer or unverified + single-account scope → every CE call gets a `LINKED_ACCOUNT` filter (Constraint 4); on a member or standalone account the filter changes nothing.
    - Kubernetes: the context's cluster name and API server, and whether OpenCost / Kubecost is installed (`examples/kubernetes.md`).
    Default scope is that single account / cluster. Org-wide or multi-cluster only when the operator says so.
-4. **Find the regions with spend.** One CE call, `MONTHLY`, last 30d, grouped by `REGION` (global line items show as `global` / `NoRegion`). Every region above the noise floor (default 1% of spend) becomes a sweep region (Constraint 5). The operator can add or drop regions at GATE 1.
+4. **Find the regions with spend.** One CE call, `MONTHLY`, last 30d, grouped by `REGION` (global line items show as `global` / `NoRegion`). Every region above the noise floor (default 1% of spend) becomes a sweep region (Constraint 5). The operator can add or drop regions in the GATE 2 answer; the plan is then rebuilt and GATE 2 shown again.
 5. **Set time range.** Defaults per mode:
    - Anomaly: last 30d vs. previous 30d (or last 7d vs. previous 7d if request mentions recent), **ending 2 days ago** — the most recent CE days are estimated and still filling in. Windows are equal length; never compare a month-to-date or forecast against a full month.
    - Waste: current resource state + last 30d utilization metrics for resize candidates (Principle 3); delete / decommission candidates require a 60–180d confirmation window, fetched at the Step 3 drill-down.
    - Attribution: previous complete billing month.
-   Operator can override.
-6. **Look up catalog.** Check `.culiops/service-discovery/<service>.md`. Required for attribution mode unless the operator confirms a tag convention (the tag key is the team's own — list the active keys with `ce list-cost-allocation-tags --status Active`; Kubernetes: the label key the catalog names). A key must be activated as a cost-allocation tag to appear in CE, activation takes up to 48 h (`docs: https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/activating-tags.html`), and earlier periods cannot be assumed to carry it (a backfill API exists). Check the key's `LastUpdatedDate`: a tag-filtered figure, or a trend, that spans activation is `UNVERIFIED`. Optional for the other modes.
-7. **Ask for the IaC / manifest repo** (optional) — a local checkout, or a GitHub repo read through `gh`. With one, remediation rows can cite `code:<path:line>` for the resource definition, and anomaly drivers can cite the commit or merge that introduced the change; without one, ownership comes from tags and labels only. Full ownership probing is `cost-optimize-plan`'s job — this skill does not duplicate it.
-8. **Present scoping summary:**
+   Operator can override at GATE 1a.
+6. **Look up catalog.** Check `.culiops/service-discovery/<service>.md`. Required for attribution mode unless the operator confirms a tag convention (the tag key is the team's own — list the active keys with `ce list-cost-allocation-tags --status Active`; Kubernetes: the label key the catalog names). The key comes from the catalog or the first message; otherwise the GATE 1a message asks for it (attribution: the service's key; waste: the key for the untagged-spend query). In attribution mode without a catalog, the active-keys call is part of the scoping probe, and GATE 2 shows the keys beside the plan so a wrong key is caught before the batch runs. A key must be activated as a cost-allocation tag to appear in CE, activation takes up to 48 h (`docs: https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/activating-tags.html`), and earlier periods cannot be assumed to carry it (a backfill API exists). Check the key's `LastUpdatedDate`: a tag-filtered figure, or a trend, that spans activation is `UNVERIFIED`. Optional for the other modes.
+7. **Get the IaC / manifest repo** (optional) from the first message; if it gives none, ask for it in the GATE 1a message, not as a separate question — a local checkout, or a GitHub repo read through `gh`. With one, remediation rows can cite `code:<path:line>` for the resource definition, and anomaly drivers can cite the commit or merge that introduced the change; without one, ownership comes from tags and labels only. Full ownership probing is `cost-optimize-plan`'s job — this skill does not duplicate it.
+8. **Present the GATE 1a message** — everything known before the probe, then the probe itself. The probe's results (account, payer status, regions) are confirmed at the top of the GATE 2 message (Step 2).
 
 > "**Cost question:** `<freeform>`
 > **Mode:** anomaly / waste / attribution (suggested from phrasing)
-> **Cloud:** `<aws|kubernetes>`
-> **Target:** `<account-id>` (`<alias>`) — `<payer | member | standalone | unverified (treated as payer)>`  ·  or cluster `<name>`
-> **Scope:** single (say `org-wide` to expand) — `<LINKED_ACCOUNT filter applied | not needed>`
-> **Regions to sweep:** `<list, with % of spend>`
+> **Cloud:** `<aws (profile <name>) | kubernetes (context <name>)>` *(both configured: list both — reply with one)*
+> **Scope:** single (say `org-wide` to expand)
 > **Time range:** `<from> → <to>`
-> **Catalog:** `<path or 'none — using tag convention <key>' or 'none — proceeding account-wide'>`
-> **IaC repo(s):** `<path(s) or 'none — owner from tags only'>`
+> **Catalog:** `<path or 'none — using tag convention <key>' or 'none — reply with the tag key' or 'none — proceeding account-wide'>`
+> **IaC repo(s):** `<path(s) from the first message>`, or `none given — reply with the path(s), or 'none' (owner from tags only)`
+> **Output root:** `<root>`
+> **Sibling record under the other root:** *(only when a record this skill reads exists only there)* `<path>` — read it?
 >
-> **Confirm to proceed to query planning.**"
+> **Scoping probe:** `<mini batch, same table shape as GATE 2>`
+>
+> **Reply with:** approve the probe · corrections to anything above · the IaC repo path(s) or "none" and the tag key (if asked above) · which cloud (if both are listed) · whether to read the sibling record (if shown)."
 
-**GATE 1.** Operator confirms or corrects.
+**GATE 1a.** Operator approves the probe and confirms or corrects the lines above, in one answer. If the answer leaves an asked item open, ask again for only that item; Step 2 does not start until every asked item is answered.
 
 ### Step 2 — Mode-specific query plan (branch point)
 
@@ -266,6 +264,14 @@ Typical batch:
 
 #### Common batch presentation (all three modes)
 
+The GATE 2 message opens with the target the probe found, so a wrong account is caught before any query in the batch runs:
+
+> **Target (scoping probe):** `<account-id>` (`<alias>`) — `<payer | member | standalone | unverified (treated as payer)>` — `<LINKED_ACCOUNT filter applied | not needed>`  ·  or cluster `<name>`
+> **Scope:** single | **org-wide** *(org-wide: approve with `approve org-wide`)*
+> **Regions to sweep:** `<list, with % of spend>`
+> **Active tag keys:** *(attribution without a catalog only)* `<key (LastUpdatedDate), …>` — the plan uses `<key>`
+> Wrong account, profile or cluster? Say so instead of approving — nothing below runs until you answer.
+>
 > **Query plan for `<mode>` investigation:**
 >
 > | # | API | Scope | Region(s) | Time | IAM | Est. cost | Why |
@@ -276,9 +282,9 @@ Typical batch:
 > **Total estimated API cost:** $0.0X
 > **IAM permissions needed:** `<consolidated list>`
 >
-> **Approve this batch?** (approve / trim / change mode)
+> **Approve this batch?** (approve / trim / change mode / change regions / wrong target)
 
-**GATE 2.** Operator approves, trims (drops specific queries), or changes mode (loops back to Step 1's mode confirmation).
+**GATE 2.** Operator confirms the target and approves the batch in one answer, or trims (drops specific queries), changes mode or changes regions (Step 2 re-plans and shows GATE 2 again; anything the new mode needs that GATE 1a did not ask, such as attribution's tag key, is asked in that message), or names a wrong account, profile or cluster (back to Step 1 and GATE 1a). Org-wide scope runs only on `approve org-wide`.
 
 ### Step 3 — Execute approved queries (shared mechanics)
 
@@ -309,7 +315,7 @@ Run the approved batch. Raw output stays in the session for analysis; it is **ne
 - **Kubernetes rightsize rows** start `Realizable: conditional on node reduction` (Principle 4). Peak (not average) CPU and memory and OOM-kill / throttling history come from Prometheus when present; without it the row is `UNVERIFIED` (cap `low`). Check for an HPA / VPA on the workload first.
 - **Check the binding constraint for databases (Principle 3 window applies).** A DB rightsize recommendation is only valid if the *binding* resource (memory, connections) has headroom over ≥30d — not merely low average CPU. A writer at 12% CPU but 1.7 GB free of 16 GB with rising connections is memory-bound and not downsizeable. Where Compute Optimizer says "Optimized," trust it over a raw CPU line-item instinct.
 - **Apply the window rule to no-activity types.** For unattached volumes and unassociated EIPs, the unused-since date is the detach / disassociate event. If it is older than CloudTrail Event history (90 days) and no Config history exists, the row is `confidence: low` + `window-unverified`.
-- Filter: drop candidates below a threshold (default $5/mo) to reduce noise; operator can adjust at GATE 4. List the count and total of dropped candidates under Gaps.
+- Filter: drop candidates below a threshold (default $5/mo) to reduce noise; operator can set another at GATE 1a or GATE 2, or ask for a revised report. List the count and total of dropped candidates under Gaps.
 - Move informational and excluded items (untagged spend, residual charges, binding-constraint exclusions, backups) to the Informational / excluded section — out of the remediation table.
 - Group by remediation type: delete / rightsize / archive / lifecycle-policy.
 - Output: prioritized waste list with per-candidate evidence.
@@ -347,7 +353,7 @@ Write to `.culiops/cloud-cost-investigate/<scope-slug>-<mode>-<YYYYMMDD-HHmm>.md
 <operator's question, verbatim>
 
 ## Scoping decisions
-<what was confirmed at GATE 1 — target, scope, regions, time range, mode>
+<what was confirmed at GATE 1a and GATE 2 — target, scope, regions, time range, mode>
 
 ## Queries run
 | # | API | Scope | Region(s) | Time | Status | Rows |
@@ -379,9 +385,9 @@ Write to `.culiops/cloud-cost-investigate/<scope-slug>-<mode>-<YYYYMMDD-HHmm>.md
 <suggestions for the operator: which findings to investigate further; `cost-optimize-plan` to triage the remediation list before any change>
 ````
 
-> "Report drafted at `<path>`. Review it. Approve to commit, or tell me what to revise."
+**Before writing**, re-check the draft for Constraint 10 (no env values, secrets, tokens, kubeconfig data). The skill writes the report file and does not commit it: cost data and account IDs are business-sensitive, so committing is the operator's step. If the operator later asks for changes, revise the file in place and repeat the Constraint 10 check.
 
-**GATE 4.** Operator reviews, requests revisions, or approves. Before committing, re-check the draft for Constraint 10 (no env values, secrets, tokens, kubeconfig data). On approve, skill commits **only the report file**. If the current branch is the repo's default branch, or the remote is public (cost data and account IDs are business-sensitive), say so and ask before committing; the operator may choose to keep the report uncommitted.
+**Final message.** Report the path written and the savings totals. Make no other offer. The last line is one `Next:` line, its parts joined by ` · ` in this order: `run cost-optimize-plan on <path>` when the remediation table has rows; `review Informational / excluded in <path>` when that section is not empty; when the output root is the repo's `.culiops/`, `commit <path> on a non-default branch if the team keeps these`, or `keep <path> out of the repo — the remote is public` when it is. Without either of the first two parts, it starts with `nothing to act on — see Gaps in <path>`.
 
 ## Model Routing
 

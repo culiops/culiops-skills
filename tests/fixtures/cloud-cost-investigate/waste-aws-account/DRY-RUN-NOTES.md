@@ -23,7 +23,7 @@ Cost view: every Cost Explorer figure below is the three usage record types (`Us
 - Time range: previous complete month 2026-04-01 to 2026-05-01 for cost; utilization 30d hourly (2026-04-08 to 2026-05-08). Catalog: none (waste mode allows this). IaC repo: none, so Owner comes from tags only.
 - Scoping summary: mode=waste, account=`123456789012` (`acme-prod`, member), scope=single, regions=us-east-1 (62.0%) + eu-west-1 (35.0%).
 
-**GATE 1:** operator confirms scope, mode, regions and time range.
+**GATE 1a** is the only stop before the probe: the operator confirms mode, time range, catalog (none), IaC repo (none) and the untagged-spend tag key (`Service`) and approves the probe in one answer. The probe results (account, member status, regions) open the GATE 2 message as its Target block, where the operator confirms scope and regions; there is no separate GATE 1.
 
 ## Step 2B - Waste mode query plan (GATE 2 batch)
 
@@ -48,7 +48,7 @@ Regional calls run once per sweep region and are shown as one row. Queries 1-4 a
 **Total estimated API cost:** $0.05 for the batch (plus $0.01 probe). CloudTrail `LookupEvents` is throttled (2 requests/s per region): 12 lookups are spaced out.
 **IAM permissions needed:** the consolidated list of the IAM column plus the probe's `sts:GetCallerIdentity`, `iam:ListAccountAliases`, `organizations:DescribeOrganization`.
 
-**GATE 2:** operator approves.
+**GATE 2:** operator confirms the Target block (account, member status, regions) and approves the batch in one answer.
 
 ## Step 3 - Execute the batch
 
@@ -244,7 +244,7 @@ Row 7 ($280.00/mo `list-price`, `Realizable: covered until 2027-02-14`) is exclu
 - After rows 1-2 are executed, re-run the snapshot checks: 4 backups lose their source volume.
 - Review the 30 backup snapshots' retention with the backup owner.
 
-**GATE 4:** operator approves the report; skill commits only the report file (default-branch / public-remote warning applies).
+**Final message:** report path and savings totals; the report is not committed. Last line: `Next: run cost-optimize-plan on <path> · review Informational / excluded in <path>`, plus the commit part when the output root is the repo's `.culiops/`. Stops in this run: GATE 1a, GATE 2, GATE 3.
 
 ## Gaps surfaced
 

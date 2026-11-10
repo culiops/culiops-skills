@@ -333,3 +333,13 @@ Rollback: not needed. Revert the PR and re-apply if required.
 | Final-fix I2: no apply claim from a PR-created line | pass | ticket-close.md l.24 (PR from the Execution line, shown as a link only), l.27 and l.31 (apply from the operator) |
 
 Round 6: 14 pass, 0 FAIL (README lines plus final-fix checks). No skill change.
+
+## Round 7 (fewer stops, 3126aee)
+
+Measured before and after the stop merge (#51). The fixture holds no record files. The runner read records built in `/tmp` from this README's Records table. The iac record has no `Applied:` line, as described. The operator script was rewritten by meaning, with the same answers. The simulated runs did not read this README or these notes.
+
+Stops before (v0.18.0 text): 5. The steps were GATE 1 (sources), the heads-up batch, GATE 2 (heads-up), the after-apply batch, and GATE 2 (result + ticket-close). An "accept each draft" reading of the old GATE 2 gives 6.
+
+Stops after (3126aee): 4. GATE 1 now carries the heads-up batch. Then come GATE 2 (heads-up), the after-apply batch (next steps, rolled back and abort items as conditionals), and GATE 2 (result + ticket-close, one reply). The run ends with `Next: paste the drafts`.
+
+Every README MUST and MUST-NOT line passed in both runs, checked with grep against the saved drafts. The drafts match round 6, and the ticket-close still reads `Applied: <TODO: apply date> 14:12 ICT`.

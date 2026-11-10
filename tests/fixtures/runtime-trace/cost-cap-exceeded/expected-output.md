@@ -46,6 +46,7 @@ Cannot proceed: estimated cumulative cost $1.23 exceeds the hard cap of $1.00.
 |---|---|---|---|
 | probe-001..009 | Scoping probe | sts, iam, organizations, resource-explorer-2 x4, cloudtrail x2 | $0.00 |
 | probe-010 | Cost Explorer | ce:GetCostAndUsage (1d, tag-filtered, capability test) | $0.01 |
-| re-001 | Resource Explorer | resource-explorer-2:Search (Step 2b, 612 resources) | $0.00 |
+| probe-011 | Scoping probe | cloudwatch:ListMetrics (1 page, p7) | $0.00 (free tier) |
+| re-001 | Resource Explorer | resource-explorer-2:Search (probe p8, the Step 2b set: 612 resources) | $0.00 |
 
 Total spent: $0.01. Planned-but-refused: $1.22.

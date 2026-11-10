@@ -187,4 +187,4 @@ Rollback: not needed. Revert each PR + apply if required, <TODO: rollback>
 ```
 
 - **Abort across phases:** title `Change aborted`, `Outcome: aborted at phase N of M, <state>`, one `Reason:` line, and the same per-phase `PR` and `Outcome` lines (`applied`, `not applied`). Use `Rollback: not needed, nothing was applied` only if no phase was applied.
-- **Partial with phases remaining, or last phase not confirmed applied:** the change gets a result only. The skill refuses to write a ticket-close and says why: the ticket-close is posted when the work is finished, and the work is not. On the PR path the last phase's apply status arrives in the question batch, so the refusal can come after it. Offer it again after the last phase or an abort.
+- **Partial with phases remaining, or last phase not confirmed applied:** the change gets a result only. The skill refuses to write a ticket-close and says why: the ticket-close is posted when the work is finished, and the work is not. On the PR path the last phase's apply status arrives in the question batch, so the refusal can come after it. The run's `Next:` line says it can be drafted after the last phase or an abort.

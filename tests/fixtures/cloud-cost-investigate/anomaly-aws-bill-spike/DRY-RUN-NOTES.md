@@ -13,7 +13,7 @@ Note: `get-rds-database-recommendations` and `get-idle-recommendations` are now 
 - Operator figures: "$68K → $92K" is the cash bill (Unblended whole bill $67,720.18 → $91,773.50, including the one-time $9,000.00 upfront); the skill restates them as explicit dates and amortized usage, and does not compare a calendar month with month-to-date or forecast.
 - Catalog: none (anomaly mode allows this). IaC repo: none.
 
-**GATE 1:** operator confirms.
+**GATE 1a** is the only stop before the probe: the operator confirms mode, time range, catalog (none) and IaC repo (none) and approves the probe in one answer. The probe results (account, member status, us-east-1) open the GATE 2 message as its Target block; there is no separate GATE 1.
 
 ## Step 2A - Anomaly mode query plan (GATE 2 batch)
 
@@ -32,7 +32,7 @@ Note: `get-rds-database-recommendations` and `get-idle-recommendations` are now 
 
 **Total estimated API cost:** $0.09 for the batch (plus $0.01 probe). **IAM:** consolidated list above plus the probe's `sts:GetCallerIdentity`, `iam:ListAccountAliases`, `organizations:DescribeOrganization`.
 
-**GATE 2:** operator approves.
+**GATE 2:** operator confirms the Target block (account, member status, regions) and approves the batch in one answer.
 
 ## Step 3 - Execute
 
@@ -186,7 +186,7 @@ No rows. Anomaly mode explains a change; it does not turn drivers into savings. 
 - Decide on the r5 Savings Plan renewal after checking r5 utilization.
 - Run `cost-optimize-plan` to triage the remediation list before any change.
 
-**GATE 4:** operator approves the report; skill commits only the report file (default-branch / public-remote warning applies).
+**Final message:** report path and savings totals; the report is not committed. Last line: `Next: review Informational / excluded in <path>` (empty remediation table), plus the commit part when the output root is the repo's `.culiops/`. Stops in this run: GATE 1a, GATE 2.
 
 ## Gaps surfaced
 

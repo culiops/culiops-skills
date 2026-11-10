@@ -23,14 +23,14 @@ Tag-based: `service=payments`.
 
 ## Expected gate behavior
 
-- **Gate 1 (Scoping):** all inputs accepted.
-- **GATE 1a (Scoping probe):** one approved mini-batch, 10 read-only calls, only the CE probe is billed ($0.01): `sts:GetCallerIdentity` (account must equal the operator-typed ID), `iam:ListAccountAliases`, `organizations:DescribeOrganization` (member account here; `AWSOrganizationsNotInUseException` = standalone is equally fine), Resource Explorer `ListIndexes` / `GetIndex` / `ListViews` / `GetView` in `us-east-1`, `cloudtrail:DescribeTrails`, `cloudtrail:LookupEvents` (1 page, `MaxResults=1`), `ce:GetCostAndUsage` (1 day, tag-filtered).
-- **Gate 2 (Capability matrix):** built from the probe results. Resource Explorer, CloudTrail, Cost Explorer: ✓ probed. Wiring reads and `cloudwatch:GetMetricData` have no probe: `untested` until their first Gate 4 call. No source is ✗. Operator confirms.
-- **Step 2b (Resolve resource set, free):** Resource Explorer `Search` `tag:service=payments` in the aggregator Region returns 5 resources; the list is shown to the operator.
-- **Gate 3 (Plan):** priced against the resolved set (5 resources, 23 metrics). Plan estimate $0.0202, plus $0.01 already spent in GATE 1a = projected $0.0302. Below the soft warning ($0.25). Operator approves.
-- **Gate 4 (Execution), order: Cost Explorer -> CloudTrail -> Wiring -> CloudWatch.** Each source is shown and approved separately. Resource Explorer does not get a Gate 4 block (it ran at Step 2b).
-- **Gate 5 (Synthesis):** operator approves with no revisions.
-- **Gate 6 (Write):** writes `.culiops/runtime-trace/payments-runtime-profile.md` and projected-field JSON sidecars under `.culiops/runtime-trace/payments-audit/`. No redacted export (flag not set). Sidecars are not committed by the skill.
+- **Gate 1 (Scoping), stop 1 of 3:** all inputs accepted. The same message shows the GATE 1a batch, and the operator's one answer approves it.
+- **GATE 1a (Scoping probe):** one mini-batch approved at the Gate 1 stop, 12 read-only calls, only the CE probe is billed ($0.01): `sts:GetCallerIdentity` (account must equal the operator-typed ID), `iam:ListAccountAliases`, `organizations:DescribeOrganization` (member account here; `AWSOrganizationsNotInUseException` = standalone is equally fine), Resource Explorer `ListIndexes` / `GetIndex` / `ListViews` / `GetView` in `us-east-1`, `cloudtrail:DescribeTrails`, `cloudtrail:LookupEvents` (1 page, `MaxResults=1`), `ce:GetCostAndUsage` (1 day, tag-filtered), `cloudwatch:ListMetrics` (1 page, p7), and p8: Resource Explorer `Search` `tag:service=payments` (`re-001`, the Step 2b set).
+- **Gate 2 (Capability matrix):** built from the probe results. Resource Explorer, CloudTrail, Cost Explorer: ✓ probed. Wiring reads and `cloudwatch:GetMetricData` have no probe: `untested` until their first Gate 4 call. No source is ✗. Shown in the Gate 3 message and confirmed there.
+- **Step 2b (Resolve resource set, free):** probe p8, Resource Explorer `Search` `tag:service=payments` in the aggregator Region, returns 5 resources; the list opens the Gate 3 message.
+- **Gate 3 (Plan):** priced against the resolved set (5 resources, 23 metrics). Plan estimate $0.0202, plus $0.01 already spent in GATE 1a = projected $0.0302. Below the soft warning ($0.25). Stop 2 of 3: the operator's one answer confirms the set and the matrix and approves the plan.
+- **Gate 4 (Execution), order: Cost Explorer -> CloudTrail -> Wiring -> CloudWatch.** Each source is shown with the running cost; no stop between sources (no trigger fires). Resource Explorer does not get a Gate 4 block (it ran at Step 2b).
+- **Gate 5 (Synthesis), stop 3 of 3:** the draft and the Gate 6 file list are shown; the operator approves with no revisions.
+- **Gate 6 (Write):** no stop of its own (approved at Gate 5); writes `.culiops/runtime-trace/payments-runtime-profile.md` and projected-field JSON sidecars under `.culiops/runtime-trace/payments-audit/`. No redacted export (flag not set). Sidecars are not committed by the skill.
 
 ## Notable findings (driven by mock data)
 
