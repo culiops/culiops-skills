@@ -16,7 +16,7 @@ Fixture "now" is 2026-05-08; the cost window is the complete month 2026-04-01 to
 
 ## What this fixture exercises
 
-- **Mode detection from question phrasing:** "waste audit / delete or rightsize" gives waste mode (suggested at GATE 1).
+- **Mode detection from question phrasing:** "waste audit / delete or rightsize" gives waste mode (suggested in the GATE 1a message).
 - **Payer vs member and regions (H1/H2):** the scoping probe (`scoping-probe.json`) shows the caller is NOT the payer (`MasterAccountId` 999988887777), so no `LINKED_ACCOUNT` filter is needed (a payer variant would need it on every CE call). CE by `REGION` gives us-east-1 62.0%, eu-west-1 35.0%, NoRegion 3.0%; sweeps run in BOTH regions, findings exist in both, and the report header lists `Regions covered`.
 - **Compute Optimizer is a lead, not a saving (H6):** CO rows start at `low`; after the 30d hourly drill-down (`utilization-metrics.json`) they are `medium`; rate basis is `list-price`.
 - **Confidence floors (Law 3):** `high` needs a bill-derived rate, `live:` activity or event evidence, the window met and `Realizable` known. Rows 1-2 meet all four. Rows 3, 4 and 7 have the same evidence with a `list-price` rate: `medium`. Rows 5-6 have a bill-derived but upper-bound rate: `medium`. Rows 8-10 miss the window or the owner: `low`.

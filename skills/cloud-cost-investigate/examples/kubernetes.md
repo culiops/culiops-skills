@@ -182,7 +182,7 @@ curl 'http://localhost:9090/model/allocation?window=30d&aggregate=label:app&filt
 
 ## Step 5 — Verification (shared)
 
-No mutation occurs, so verification is just re-reading the report file before commit:
+No mutation occurs, so verification is just re-reading the report file after it is written:
 
 ```bash
 # Operator inspects the report draft

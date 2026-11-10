@@ -31,6 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
     - `redaction` (an edit that adds a mask, so the re-show stays): 4 → 3
     - no records: 2 → 2
 
+- **cloud-cost-investigate: two or three operator stops instead of five to seven.** GATE 1a now holds every question that comes before the scoping probe: mode, cloud, time range, catalog or tag key, IaC repo, output root, single or org-wide scope, and whether to read a record found only under the other output root. The IaC repo is no longer asked separately. The scope confirmation (the old GATE 1) is now a Target block at the top of the GATE 2 message, showing the account, payer status, regions, and the active tag keys when attribution runs without a catalog. No batch query runs before that answer, and org-wide scope runs only on `approve org-wide`. GATE 4 is gone, because the report was already written by then and approving it only committed the file. The skill now writes the report after the same secrets re-check, does not commit it, and ends the run with one `Next:` line. The `Next:` line suggests committing on a non-default branch, or says to keep the file out of the repo when the remote is public. GATE 3 (drill-down) is unchanged. The ">10 queries" drill-down split now counts rows in the plan table. No check was removed. Measured in a simulated dry-run (sonnet runner, canned responses) on `waste-aws-account`: 7 → 3 stops. Counted from the text, not run: `anomaly-aws-bill-spike` → 2, `attribution-aws-orders` → 3.
+
 ## [0.18.0] — 2026-11-08
 
 ### Changed

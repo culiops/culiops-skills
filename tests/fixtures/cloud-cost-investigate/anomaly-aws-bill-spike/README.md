@@ -20,7 +20,7 @@ Smaller facts: an RDS dev instance deleted on 2026-04-10 gives a -$607.81 offset
 
 ## What this fixture exercises
 
-- **Mode detection from question phrasing:** "spiked / why" gives anomaly mode (suggested at GATE 1).
+- **Mode detection from question phrasing:** "spiked / why" gives anomaly mode (suggested in the GATE 1a message).
 - **Scoping probe (GATE 1a):** identity, alias, `organizations describe-organization` (member account, so no `LINKED_ACCOUNT` filter), CE by `REGION` (us-east-1 only). `scoping-probe.json`.
 - **Equal complete windows:** the query ends 2 days before "now" (End 2026-05-06 exclusive); the response flags 2026-05-04 and 2026-05-05 `Estimated: true` (partial values), the skill drops them, leaving 60 complete days = 2 x 30. No forecast, no month-to-date.
 - **Usage = three record types at AmortizedCost:** filtering `Usage` alone would drop the covered m5 and r5 usage and turn the plan expiry into a $9,000.00 "new on-demand spend" (the recurring-fee drop then sits on the other side of the ledger). With covered usage included at its effective rate the r5 driver is $2,520.00.
