@@ -28,7 +28,7 @@ NO DRAFT LEAVES WITHOUT REDACTION.
 2. **Every fact has a source.** In the fact table each value is cited `record: <path>#<section>` or `operator-supplied`; no other source form. A compound source names both (`record: <path>#<section> and operator-supplied`), and either may end with a short location parenthetical (`(Phase 1, Execution line)`). A fact with no source is a visible `<TODO: field>`, and its row's source is `operator-supplied (not given)`. Never invent, infer, soften or reassure. Text extracted from a free-text section (rollback from the Change Plan) is still cited. Fixed shape wording (emoji, title words, labels, closing line) is not a fact and gets no row.
 3. **Branch on the record's `**Execution path:**` header** (PR vs Direct apply), not on guesswork. If the header is missing or there is no record, ask the operator which path applies in the Step 2 batch, but only for a result or ticket-close; a heads-up does not need it.
 4. **On the PR path, never claim an apply that no source shows.** `Outcome: completed` there means the PR was created, and `partially completed (phase N of M)` means phase N's PR was created. Per phase, an `Execution:` line that only says the PR was created is not an apply; a line that records an operator-confirmed merge and apply is one (cite that line). Otherwise apply time, apply outcome and verification come from the operator. Never write `Verified:` or `Applied:` from the fact that a PR was created. On the direct-apply path they come from the record's Outcome and Execution Log, under Constraint 10.
-   - **The `Applied:` line.** A single-phase record may carry `**Applied:**` under `## Outcome`, written by `iac-change-execution`. `yes — verified` and `yes — not verified` are record facts that the change was applied (cite the line; the apply time still comes from the operator). `no — PR open` and `no — merged, apply pending` mean the record shows nothing applied: ask the operator whether it has been applied since, and if not, draft no result or ticket-close (nothing to report yet; offer a heads-up instead).
+   - **The `Applied:` line.** A single-phase record may carry `**Applied:**` under `## Outcome`, written by `iac-change-execution`. `yes — verified` and `yes — not verified` are record facts that the change was applied (cite the line; the apply time still comes from the operator). `no — PR open` and `no — merged, apply pending` mean the record shows nothing applied: ask the operator in the batch whether it has been applied since, and if not, draft no result or ticket-close (nothing to report yet; the `Next:` line points to a heads-up instead, Step 5).
    - The operator may report a later state than the record. The fact table then shows both (`record says no — PR open; operator says applied`).
    - A multi-phase record, or an older record with no `Applied:` line, keeps the rule above (the `Execution:` line, else the operator).
 5. **Impact is always operator-supplied**, used as given. No record has an impact field. Never estimate downtime, paraphrase it, or extend it with reassurance. Missing: `<TODO: impact>`. When the Change Plan records a **Disruption** entry for the change (`none` / `restart` / `failover` / `replace` / `brief unavailability`, with its evidence label), show it beside the impact question and cite it in the fact table, with its own label (`docs:`, `live:`, `plan:` or `UNVERIFIED`). The draft still uses the operator's words. Raise a `Flag:` when the operator's impact is milder than the recorded Disruption (for example "none" against `failover` or `replace`), or when the recorded Disruption is `UNVERIFIED` (the impact then rests on the operator alone). The skill does not fetch documentation to settle it (Constraint 1).
@@ -49,7 +49,7 @@ NO DRAFT LEAVES WITHOUT REDACTION.
 16. **Message shapes and length** follow [`examples/messages.md`](examples/messages.md): heads-up at most 8 non-blank lines inside the block; result 2-4 lines; ticket-close with the fixed label lines. No extra asks beyond the closing line the shape defines. The default draft has no markup. When the operator names a tool, the title line follows that tool's note in [`examples/messages.md#tool-formatting`](examples/messages.md#tool-formatting) and nothing else changes.
 17. **Do not edit records.** The skill reads `.culiops/iac-change-execution/` and `.culiops/pre-flight/` and writes only to `.culiops/change-comms/`. It does not commit the saved files.
 18. **A rollback line keeps the record's caveats.** When the Change Plan labels the change `one-way` or `irreversible`, or the rollback `untested`, the Rollback line says so (for example `Rollback: none, this change is one-way` or `... (untested)`), and no revert instruction is given for a one-way change. A label recorded as `UNVERIFIED` is carried as `unverified`. The fact table cites the label next to the rollback row. With no label (an older record), the line stays as the plan states it and the fact table row says `reversibility not recorded`. The skill never assigns a label itself.
-19. **Output root.** Every `.culiops/` path in this skill (the files it writes and the sibling records it reads) sits under one output root, resolved once at the start and shown to the operator at the first gate. If `CULIOPS_HOME` is unset or empty, the root is `.culiops/` at the repo root, as before. If it is set, the root is `$CULIOPS_HOME/<workspace>/`: `<workspace>` is the path of `git remote get-url origin` after the host, without `.git` (`git@github.com:acme/payments-infra.git` and `https://github.com/acme/payments-infra.git` both give `acme/payments-infra`); with no `origin`, the repo root's directory name; outside a git repo, the current directory's name. The operator may rename it. When the skill creates `$CULIOPS_HOME` itself, it runs `chmod 700` on it. If the root can't be written, STOP and ask; never fall back to the repo. Under `CULIOPS_HOME` the records are outside the repo: skip every commit offer and print absolute paths instead. If a sibling record is missing under the root but exists under the other one (repo `.culiops/` vs `$CULIOPS_HOME`), say so and let the operator pick.
+19. **Output root.** Every `.culiops/` path in this skill (the files it writes and the sibling records it reads) sits under one output root, resolved once at the start and shown to the operator at the first gate. If `CULIOPS_HOME` is unset or empty, the root is `.culiops/` at the repo root, as before. If it is set, the root is `$CULIOPS_HOME/<workspace>/`: `<workspace>` is the path of `git remote get-url origin` after the host, without `.git` (`git@github.com:acme/payments-infra.git` and `https://github.com/acme/payments-infra.git` both give `acme/payments-infra`); with no `origin`, the repo root's directory name; outside a git repo, the current directory's name. The operator may rename it. When the skill creates `$CULIOPS_HOME` itself, it runs `chmod 700` on it. If the root can't be written, STOP and ask; never fall back to the repo. Under `CULIOPS_HOME` the records are outside the repo: print absolute paths instead. If a sibling record is missing under the root but exists under the other one (repo `.culiops/` vs `$CULIOPS_HOME`), say so and let the operator pick, on its own before GATE 1 (Step 1).
 
 ## Rationalization Prevention
 
@@ -98,7 +98,7 @@ NO DRAFT LEAVES WITHOUT REDACTION.
 | Multi-phase heads-up whose What line does not name the change and every phase | STOP → `What: <change>, 3 phases: a → b → c`, then which phase(s) this window covers |
 | Heads-up with no `GREEN` / `YELLOW` / `RED` word, or a verdict from a phase this window does not cover | STOP → take the covered phase(s)' verdict from the pre-flight record or the iac record's verdict line (Constraint 7), else `<TODO: pre-flight verdict>` |
 | A rollback line with no `record:` citation in the fact table | STOP → cite the Change Plan or `<TODO: rollback>` |
-| A "Next" or follow-up the operator never stated | STOP → remove it; `<TODO: next steps>` |
+| A "Next" or follow-up in a draft that the operator never stated | STOP → remove it; `<TODO: next steps>` |
 | A promise made for the operator ("I'll post when...", "will not be retried until...") | STOP → delete it |
 | Plan counts, a CLI command, a commit hash or a `.culiops/` path inside a draft | STOP → move it to the fact table; describe in words |
 | A ticket-close draft opening with prose, using bullets, or using any markup | STOP → rewrite as plain `Label: value` lines |
@@ -126,22 +126,22 @@ digraph changecomms {
 
     input   [label="Input: message type(s), service,\ntool (optional), source records"];
     locate  [label="Step 1: Locate source records,\nread Execution path"];
-    gate1   [label="GATE 1: Operator confirms\nsources + service/env", shape=diamond];
     extract [label="Step 2: Extract facts\n(fact table + one batch of questions)"];
+    gate1   [label="GATE 1: Operator confirms sources\n+ service/env and answers the batch", shape=diamond];
     draft   [label="Step 3: Draft + redact\n(patterns, TODOs, Flags)"];
     present [label="Step 4: Present drafts, fact table,\nredaction log, Open TODOs, Flags"];
-    gate2   [label="GATE 2: Operator edits or accepts", shape=diamond];
-    save    [label="Step 5: Save to\n.culiops/change-comms/"];
+    gate2   [label="GATE 2: Operator edits or accepts\n(one reply for all drafts shown)", shape=diamond];
+    save    [label="Step 5: Save to\n.culiops/change-comms/, Next: line"];
 
     input -> locate;
-    locate -> gate1;
-    gate1 -> extract [label="confirmed"];
-    gate1 -> locate  [label="corrections"];
-    extract -> draft;
+    locate -> extract;
+    extract -> gate1;
+    gate1 -> draft   [label="confirmed + answers"];
+    gate1 -> locate  [label="source corrected:\nre-plan the batch"];
     draft -> present;
     present -> gate2;
     gate2 -> draft   [label="edit: re-scan\nfull text"];
-    gate2 -> save    [label="accepted"];
+    gate2 -> save    [label="accepted, or edit\nin as typed, nothing new"];
 }
 ```
 
@@ -157,13 +157,18 @@ Show the operator the candidate record(s) for this change, each with its **path 
 
 If no iac record exists (normal at heads-up time, since the record is written after execution): use the pre-flight record if there is one, and fall back to operator-supplied facts. With no records at all, the minimum fields (service, environment, what, when, rollback, ticket) join the Step 2 batch, so the operator is asked once. These are labelled `operator-supplied`. Do not guess.
 
-**GATE 1:** the operator confirms the sources. Say, as plain text (never a `>` blockquote):
+**GATE 1:** the operator confirms the sources and answers the question batch, in one message. Build the Step 2 fact table from the candidate records first (local reads only), so the batch can be shown with the sources. Say, as plain text (never a `>` blockquote):
 
 ```text
-I'll use <path> (Date <date>) [and <path>] for <service> / <env>[, execution path <PR / Direct apply>]. Format: <plain text | tool>. Is this right?
+I'll use <path> (Date <date>) [and <path>] for <service> / <env>[, execution path <PR / Direct apply>]. Format: <plain text | tool>. Output root: <root>. If any of that is wrong, say so first and I'll re-plan the questions below.
+<the Step 2 batch>
 ```
 
-The execution path part is left out for a heads-up-only run (Constraint 3). With no records, GATE 1 and the Step 2 batch are one message: "No records found; I'll use operator-supplied facts only." followed by the batch. If the operator asked for a ticket-close that the record already rules out (phases remaining), say so here.
+The execution path part is left out for a heads-up-only run (Constraint 3). With no records, the first line is "No records found; I'll use operator-supplied facts only." If no batch item applies, end with "Is this right?" instead. If the operator asked for a ticket-close that the record already rules out (phases remaining), say so here.
+
+- **A source correction** (another record, service, environment, execution path or message type) re-runs Steps 1 and 2 and shows GATE 1 again with the re-planned batch before anything is drafted. Answers already given that still apply carry over, except the impact when the corrected source has a different Disruption entry: item 3 is asked again beside it (Constraint 5).
+- **Answers to the batch**, and a format change, are used as given (after the redaction pass, Constraints 13-14). They do not show GATE 1 again.
+- **An ambiguous source** (two or more candidate records for this change, or a sibling record found only under the other output root, Constraint 19) is asked on its own first: the operator picks, then GATE 1 shows the sources and the batch.
 
 ### Step 2 — Extract facts
 
@@ -197,7 +202,7 @@ Build the fact table, one row per fact: `| Field | Value | Source |`, source `re
 - **No record:** the execution path, outcome and verification come from the operator.
 - None has it: the outcome is a `<TODO>`, never inferred.
 
-**One batch of questions per point in time.** Collect every missing operator field and ask them together, once: one batch before apply (heads-up), and one after apply (result, ticket-close) when a run covers both. A reply that arrives in pieces is one answer; do not re-ask, and a timezone already given carries over. Items that depend on an outcome the operator reports in this batch (next steps, rolled back) are asked once, right after a non-success answer. Ask only the items whose condition applies, in this order, renumbered 1..n, as plain text (never a `>` blockquote):
+**One batch of questions per point in time.** Collect every missing operator field and ask them together, once: one batch before apply (heads-up), and one after apply (result, ticket-close) when a run covers both. The first batch of a run is shown at GATE 1 (Step 1). The after-apply batch of a run that also covers the heads-up is asked on its own, after the heads-up is saved. A reply that arrives in pieces is one answer; do not re-ask, and a timezone already given carries over. Items that depend on an outcome the operator reports in this batch (next steps, rolled back) are asked in the same batch as conditional items ("if it did not succeed: ..."), never in a later message. Ask only the items whose condition applies, in this order, renumbered 1..n, as plain text (never a `>` blockquote):
 
 ```text
 To draft these I need from you:
@@ -210,10 +215,10 @@ To draft these I need from you:
 7. Apply date and time (result, ticket-close; not if aborted; not if the Execution Log states one).
 8. Apply outcome and verification (result, ticket-close; whenever no record shows a clean direct apply; not if aborted; not for a phase whose `Execution:` line records an operator-confirmed apply). Multi-phase: whether the last phase is applied.
 9. PR link (PR path only, if no Execution: line has one and none records an abort at the gate).
-10. Next steps (if the outcome is not success).
-11. Was anything applied? (if aborted; needed before the aborted result).
-12. Abort reason (if aborted and the record's Execution: line gives none).
-13. Rolled back or not? (if failed).
+10. Next steps (if the outcome is not success; when item 8 is asked, as "if it did not succeed: next steps").
+11. Was anything applied? (if aborted; needed before the aborted result; when item 8 is asked, as "if it was aborted: was anything applied?").
+12. Abort reason (if aborted and the record's Execution: line gives none; when item 8 is asked, as "if it was aborted: why?").
+13. Rolled back or not? (if failed; when item 8 is asked, as "if it failed: was it rolled back?").
 14. Ticket key (if Ticket Reference is "none").
 15. Rollback text (if the Change Plan has none).
 16. No records: also service, environment, what, ticket, PR link (if any). Window, impact, verdict, path and rollback are items 2, 3, 5, 6 and 15 (with no Change Plan, item 15 always applies).
@@ -226,7 +231,7 @@ Use the operator's answers as given, after the redaction pass (Constraints 13-14
 - **heads-up:** one message for the whole change. Its What line names the change first, then every phase, for example "billing-ledger move to Aurora, 3 phases: dual-write → cutover → decommission", with the window covering all of them. If the operator's window covers only some phases, the What line still names the change and every phase, then says which this window covers ("<change>, 3 phases: dual-write → cutover → decommission; this window: cutover"). Which phases are pending comes from the per-phase `Execution:` lines, cited `#Execution Log`. With one phase pending, the window covers it; with more than one, the batch asks which. Risk is the covered phase(s)' verdict (Constraint 7), and the PR shown is the covered phase's PR.
 - **result:** one message per phase, which says "phase N of M". The PR URL shown is that phase's PR. Partial or aborted outcomes say which phase stopped and the current state.
 - **ticket-close:** only after the last phase, or after an abort. It lists every phase's PR URL and its outcome.
-- A ticket-close needs the last phase applied (a record fact, or the operator's answer on the PR path) or an abort. A partial outcome with phases remaining gets the `⏸` result only: refuse the ticket-close at GATE 1 and say why (it is posted when the work is finished, and the work is not). Check again after the Step 2 batch, since on the PR path the last phase's apply status arrives there: if the operator does not confirm it, refuse then with the same reason. Write no ticket-close file. Offer it after the last phase or an abort.
+- A ticket-close needs the last phase applied (a record fact, or the operator's answer on the PR path) or an abort. A partial outcome with phases remaining gets the `⏸` result only: refuse the ticket-close at GATE 1 and say why (it is posted when the work is finished, and the work is not). Check again after the Step 2 batch, since on the PR path the last phase's apply status arrives there: if the operator does not confirm it, refuse then with the same reason. Write no ticket-close file; the `Next:` line says it can be drafted after the last phase or an abort (Step 5).
 
 Shapes and a worked multi-phase ticket-close: [`examples/messages.md#multi-phase`](examples/messages.md#multi-phase).
 
@@ -246,13 +251,19 @@ Then run the redaction pass in the order in `redaction.md#patterns`, over each d
 
 Show all drafts of one point in time together (before apply; after apply), in this order: each draft in its own `text` block (no blockquote), the **fact table** (`| Field | Value | Source |`, already redacted, so the operator can check every line against its source), the **redaction log** (a table, or `Redaction log: nothing masked`), the **Open TODOs**, and the **Flags**. Make plain which facts came from the operator.
 
-**GATE 2:** the operator edits or accepts each draft; save each as it is accepted. After any edit, run the full redaction pass again on the edited text, then re-present the drafts, fact table, log, TODOs and Flags (new log rows included) and re-confirm at GATE 2 before saving. An edit goes in as its own line. If that would break the line limit, fold it into a line only where it does not change that line's meaning; otherwise ask the operator which line to merge or drop. Tell the operator either way.
+**GATE 2:** one reply from the operator edits or accepts every draft shown together ("accept both", "accept the result, edit the ticket-close: ..."); save each as it is accepted. After any edit, run the full redaction pass again on the edited text. If the operator's text went in exactly as typed (a line added or replaced, or a value put in its slot), the pass added no log row, no Flag is new or changed (redaction, credential or Constraint 5 impact Flag), no line was folded, and no other draft in the reply uses the changed fact, save it and show the saved draft with its changed fact-table rows; do not ask again. Otherwise (the skill worded the change itself, a new log row, a new or changed Flag, a fold, a fact shared with another draft), re-present the drafts, fact table, log, TODOs and Flags (new log rows included) and re-confirm at GATE 2 before saving. An edit goes in as its own line. If that would break the line limit, fold it into a line only where it does not change that line's meaning; otherwise ask the operator which line to merge or drop. Tell the operator either way.
 
 ### Step 5 — Save
 
 Write one file per message type to `.culiops/change-comms/<service>-<action>-<YYYYMMDD-HHmm>-<type>.md` (`<type>` = `heads-up` | `result` | `ticket-close`) in the target repo. `<action>` is the source record's filename minus the `<service>-` prefix and the `-YYYYMMDD-HHmm.md` suffix (or a slug of the operator's "what" when there are no records); `<YYYYMMDD-HHmm>` is the local session time. Do not commit it.
 
 The file holds the final draft, the fact table with sources (including record paths, plan counts and hashes where relevant), the redaction log, Open TODOs and Flags. **The redaction log never contains original values.** Before saving, the orchestrator re-reads the file text for any secret or raw identifier (the full pattern pass); this check is not delegated.
+
+**Final message.** Once, after the run's last save (a run that also covers the after-apply batch shows none after the heads-up). List the saved paths (absolute under `CULIOPS_HOME`) and say that nothing was sent: the operator pastes each draft. Make no other offer. The last line is one `Next:` line, for example:
+- after a heads-up: `Next: paste the heads-up · after the apply, ask me for the result (and the ticket-close after the last phase)`
+- after a result with phases remaining, or a refused ticket-close: `Next: paste the result · ask me for the ticket-close after the last phase or an abort`
+- nothing applied yet (Constraint 4): `Next: ask me for a heads-up before the apply, or for the result once it is applied`
+- after a ticket-close: `Next: paste the drafts`
 
 ## Output Format
 
@@ -301,8 +312,8 @@ The file holds the final draft, the fact table with sources (including record pa
 | Step | Model | Inputs | Outputs | Rationale |
 |------|-------|--------|---------|-----------|
 | Step 1: Locate & confirm sources | orchestrator | Message type(s), service, `.culiops/` listing, `Execution path` headers | Confirmed record paths, service/env, execution path | Interactive confirmation with the operator at GATE 1 |
-| Step 2: Extract facts | sonnet | Confirmed records, source table | Fact table with a source per row, list of missing fields | Section lookup and citation. GATE 2 shows every fact and its source |
-| Step 2: Question batch | orchestrator | List of missing fields | Operator answers, redacted (Constraints 13-14) | Interactive: only the orchestrator talks to the operator. Asked once |
+| Step 2: Extract facts | sonnet | Candidate records (re-run after a source correction), source table | Fact table with a source per row, list of missing fields | Section lookup and citation. GATE 2 shows every fact and its source |
+| Step 2: Question batch | orchestrator | List of missing fields | Operator answers, redacted (Constraints 13-14) | Interactive: only the orchestrator talks to the operator. Asked once: the first batch at GATE 1 with the sources, an after-apply batch on its own |
 | Step 3: Draft & redact | sonnet | Fact table, `examples/messages.md`, `examples/redaction.md` | Drafts, redaction log, Open TODOs, Flags | Template fill plus a mechanical pattern pass. GATE 2 catches errors |
 | Step 4: Present & edit | orchestrator | Drafts, fact table, log, TODOs, Flags | Accepted drafts, or edits re-scanned | Interactive review, re-scan after every edit |
 | Step 5: Save | sonnet | Accepted drafts, fact table, log, output template | `.culiops/change-comms/` file text | Template assembly from content approved at GATE 2 |
