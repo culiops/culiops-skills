@@ -336,7 +336,7 @@ Round 6: 14 pass, 0 FAIL (README lines plus final-fix checks). No skill change.
 
 ## Round 7 (fewer stops, 3126aee)
 
-Measured before and after the stop merge (#51). The fixture holds no record files. The runner read records built in `/tmp` from this README's Records table. The iac record has no `Applied:` line, as described. The operator script was rewritten by meaning, with the same answers. Sonnet runners did not read this README or these notes.
+Measured before and after the stop merge (#51). The fixture holds no record files. The runner read records built in `/tmp` from this README's Records table. The iac record has no `Applied:` line, as described. The operator script was rewritten by meaning, with the same answers. The simulated runs did not read this README or these notes.
 
 Stops before (v0.18.0 text): 5. The steps were GATE 1 (sources), the heads-up batch, GATE 2 (heads-up), the after-apply batch, and GATE 2 (result + ticket-close). An "accept each draft" reading of the old GATE 2 gives 6.
 

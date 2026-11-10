@@ -224,7 +224,7 @@ Past-incident isolation: the from-history worker received only the line the main
 
 ## Single checkpoint (2026-11-09)
 
-Stop counts for the change that merged Deep checkpoint #1 into the checkpoint after Phase 3. A sonnet runner played the skill text against `world/`, `repo/` and `operator-script.md` only (README, these notes and `expected-output/` hidden), with the clock at 2026-10-20T15:30Z and the profile helper and evidence workers simulated inline. The runs wrote to `/tmp`; nothing in this fixture was rewritten by them.
+Stop counts for the change that merged Deep checkpoint #1 into the checkpoint after Phase 3. A simulated run played the skill text against `world/`, `repo/` and `operator-script.md` only (README, these notes and `expected-output/` hidden), with the clock at 2026-10-20T15:30Z and the profile helper and evidence workers simulated inline. The runs wrote to `/tmp`; nothing in this fixture was rewritten by them.
 
 | Run | Skill text | Stops |
 |---|---|---|
