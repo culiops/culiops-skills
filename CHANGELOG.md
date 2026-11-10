@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **pre-flight (standalone): fewer operator stops, no check removed.** Inline mode (called by iac-change-execution) is unchanged.
+  - **GATE 1 takes Step 1's open questions.** It asks there for unknown target parts, the delivery model when no pipeline file shows it, which assessor applies, and which output root's sibling record to use. Supplying a missing part is used as given; correcting what was detected shows GATE 1 again.
+  - **One prompt for context and live reads (Step 3).** It holds the seven L2 questions, Q8 (where the app source is), and the assessor's questions, minus what GATE 1 already answered (the `-target` / `-refresh=false` question is still asked). It also holds what L1 found that needs you (drift, unintended resources, a public-IP partner allowlist), the incident follow-up printed under Q1, and the numbered L3 read batch with its opt-in. These used to be two or three separate stops.
+    - Answers, and approving part of the batch or declining it, apply without a re-show.
+    - A target or scope change goes back to GATE 1.
+    - An answer that rejects the plan starts again with a new plan.
+    - A new or changed read shows only the batch again.
+    - A read found later, for example by the app-source scan, still needs its own approval.
+  - **GATE 2 stays for YELLOW and RED.** The diagram no longer loops a soft block back to the report. GREEN makes no GATE 2 stop, unless fresh eyes left a disagreement open. A deferred decision ("I'll decide after reading it") writes the record with `Decision: pending`, and hard blocks with `justification: pending`, instead of leaving the run open with no record.
+  - **No commit offer.** The run ends with one `Next:` line. It lists committed mitigations, a pending decision, what was not verified, the service-discovery hint when there is no catalog, and a commit hint only when the record is in a tracked `.culiops/` on a non-default branch.
+  - **Measured** in simulated dry-runs (sonnet runner, canned command output) on `app-impact-iam-narrowing`, an IAM narrowing that the app still depends on: 4 → 3 stops. The baseline ended at an open GATE 2, so a normal acknowledgement there adds the commit offer as a fifth. The after-count was measured twice, on the pre-review and the final text. Both runs met the fixture's MUST list. Counted from the text: `low-risk-cloudwatch-alarm` 4 → 3, or 2 when it reaches GREEN with L3 approved.
+
 ## [0.18.0] — 2026-11-08
 
 ### Changed
