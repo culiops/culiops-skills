@@ -303,7 +303,7 @@ If a parameter cannot be resolved (file not present, registry not reachable, val
 >
 > **Step 2V live cross-check:** identity `<account / region / context>` — `<matches code: … / operator-stated>`; read batch `<the Step 2V.2 table>`. Approve the batch, or `skip`. *(If skipped at GATE 1: "Step 2V skipped. To run it, name the profile (and region) and/or context; that approves only this probe: `<Step 2V.1 probe commands>`, then the batch is shown for approval.")*
 >
-> Is this correct? Anything missing or wrong in the inventory, the dependencies or the failure modes?"
+> Is this correct? Anything missing or wrong in the inventory, the dependencies or the failure modes? *(When a Step 2V batch is shown above:)* And do you approve that read batch, or `skip`?"
 
 Wait for confirmation. Any answer that changes a resolved value, a resource name or row, membership, or the profile/region/context changes the inventory or the batch: apply it and show GATE 2 again, with the re-planned batch, before anything runs. This holds for answers to the Unresolved list, precedence and `default / source unconfirmed` questions too; "skip with placeholder" and confirming a source already shown change nothing and do not show GATE 2 again. Answers that change neither (dependency edges, critical-path and reliability answers, failure-mode edits) are applied without showing GATE 2 again. Otherwise the read batch runs only after GATE 2 is confirmed and only as shown; a confirming answer that does not say `skip` approves it. If the operator asks for Step 2V here after skipping it at GATE 1, run the probe with the profile/context they name and show the identity and the batch for approval as one more stop.
 
