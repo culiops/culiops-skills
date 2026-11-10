@@ -1,6 +1,6 @@
 # Dry-run of `service-discovery` against `payments-docs-only`
 
-Simulated run of the real-discovery path against this fixture. First recorded 2026-04-24; re-run 2026-10-26 for the membership/absence rules, the Medium cap on document hints, the probe-batch gate, secrets by projection and the Mermaid + unknown-region cases; re-run 2026-10-27 for the same-identifier rule for High, the derived-pattern rule for membership, `declared` vs `observed` envelopes and edge bases.
+Simulated run of the real-discovery path against this fixture. First recorded 2026-04-24; re-run 2026-10-26 for the membership/absence rules, the Medium cap on document hints, the probe-batch gate, secrets by projection and the Mermaid + unknown-region cases; re-run 2026-10-27 for the same-identifier rule for High, the derived-pattern rule for membership, `declared` vs `observed` envelopes and edge bases. Gate flow updated 2026-11-09 for the merged stops (8 → 4); that update follows the skill text and was not re-simulated.
 
 ## Goal
 
@@ -41,15 +41,7 @@ Validate the real-discovery workflow end-to-end: no IaC in the repo, only docume
 | `runbook.md` | Markdown documentation | `doc-detectors/markdown.md` |
 | `infra-overview.png` | Architecture image | `doc-detectors/image.md` |
 
-**Presentation:**
-
-> "No IaC files found in this directory. However, I found documentation and diagrams that may describe the infrastructure: *(table above)*
->
-> I can switch to **real-infrastructure discovery mode** — I'll extract resource hints from these documents, then verify against live cloud APIs (read-only) to build the same service catalog.
->
-> **GATE: Switch to real-discovery mode?**"
-
-**Operator response:** confirmed. *(Gate 1)*
+**Presentation:** the documents table and the switch offer open the Step 2R gate below; they are not a stop of their own. Parsing reads only these local files, so no cloud call happens before that gate is answered.
 
 ### Step 2R: Document parsing and resource hint extraction
 
@@ -85,18 +77,17 @@ Cloud context clues: account `123456789012`; **regions `us-east-1` (normal) and 
 
 Cloud context: provider AWS; account `123456789012`; region **unresolved** (see Step 3R).
 
-**GATE: Confirm resource hints.** Operator confirmed. *(Gate 2)*
+**GATE: Switch to real-discovery mode with these hints?** The same message names the identity probe (Step 3R) that the answer approves and asks for the profile and region; the cloud context clues above show the two candidate regions. Operator: switch, hints confirmed, profile `payments-ro`, region `us-east-1` (failover region is not built, do not query it). *(Stop 1)*
 
 ### Step 3R: Cloud context resolution
 
-**Probe batch (shown first; no call is made until approved):**
+**Probe batch (shown at the Step 2R gate; no call is made until that answer):**
 
 | # | Command | Purpose |
 |---|---------|---------|
 | P1 | `aws sts get-caller-identity --profile payments-ro --query '{Account:Account,Arn:Arn}'` | which account the profile points at (STS returns no region) |
 | P2 | `aws configure get region --profile payments-ro` | which region the profile would use |
 
-**GATE: Approve probe batch.** Operator approved. *(Gate 3)*
 
 | Probe | Result |
 |-------|--------|
@@ -110,13 +101,11 @@ Cloud context: provider AWS; account `123456789012`; region **unresolved** (see 
 | Account | `123456789012` | `123456789012` (runbook) | Match |
 | Region | *(not set)* | `us-east-1` (drawio container, runbook hostnames, runbook "normally"), `us-west-2` (runbook failover drills), none in `flows.mmd` | **Unresolved — ask** |
 
-**Region resolution (asked, not guessed):**
+**Region resolution (asked at the Step 2R gate, not guessed; P2 then confirms the profile sets none):**
 
-> "The profile has no default region, and the documents name two: `us-east-1` (normal) and `us-west-2` (failover drills). `flows.mmd` names none. Which region should I query?"
+> "The documents name two regions: `us-east-1` (normal) and `us-west-2` (failover drills). `flows.mmd` names none. Which region should I query?"
 
-**Operator response:** `us-east-1`; failover region is not built, do not query it.
-
-**GATE: Is this the correct target environment?** Operator confirmed: account `123456789012`, region `us-east-1`; every later command carries `--profile payments-ro --region us-east-1`. *(Gate 4)*
+The target block (account, region, cross-reference above) opens the GATE 4a message.
 
 ### Step 4R: Converging discovery
 
@@ -130,7 +119,7 @@ Cloud context: provider AWS; account `123456789012`; region **unresolved** (see 
 | 2 | `aws rds describe-db-instances --query 'DBInstances[].{id:DBInstanceIdentifier,src:ReadReplicaSourceDBInstanceIdentifier}'` | All RDS instances in the region (to see replicas) | `cloud-discovery/aws.md` |
 | 3 | `aws ec2 describe-instances --instance-ids i-0abc123def456789a --query 'Reservations[].Instances[].State.Name'` | The one documented EC2 instance, by its ID from `runbook.md` (the Tagging API cannot prove absence) | `cloud-discovery/aws.md` |
 
-**GATE 4a: Approve discovery queries.** Operator approved all three. *(Gate 5)*
+**GATE 4a: Is this the correct target environment, and do you approve these discovery queries?** Operator: target confirmed; all three approved. Every later command carries `--profile payments-ro --region us-east-1`. *(Stop 2)*
 
 **Simulated cloud results (Seed B):**
 
@@ -175,18 +164,18 @@ Identifier check behind the confidence column. The documents give names, never A
 
 | Row | Determined ARN | Cloud ARN | Result |
 |-----|----------------|-----------|--------|
-| `payments-api` | `arn:aws:ecs:us-east-1:123456789012:service/payments-prod/payments-api` (account, cluster and name from `runbook.md`; region confirmed at Gate 4) | same | High |
+| `payments-api` | `arn:aws:ecs:us-east-1:123456789012:service/payments-prod/payments-api` (account, cluster and name from `runbook.md`; region confirmed at GATE 4a) | same | High |
 | `payments-db` | `arn:aws:rds:us-east-1:123456789012:db:payments-db` (account and name from `runbook.md`) | same | High |
 | `payments-alb` | not determined: the ARN ends in a hash no document states | `…loadbalancer/app/payments-alb/abc123` | Medium, `name-match-only` |
 | `payments-cache` | not determined: the runbook describes a replication group, Q1 returned a cache-cluster ARN | `…:cluster:payments-cache` | Medium, `name-match-only` |
 
 Unattributed — operator assigns: `analytics-db` (RDS, `arn:aws:rds:us-east-1:123456789012:db:analytics-db`).
 
-**GATE 4b: Confirm resource list.** Operator confirmed. Noted that `payments-legacy-worker` is expected to be absent. Operator said `payments-dlq` belongs to this service and that `analytics-db` belongs to the data team: it stays out of the catalog (listed under Assumptions as "seen, not attributed"). *(Gate 6)*
+**GATE 4b: Confirm resource list.** Operator confirmed. Noted that `payments-legacy-worker` is expected to be absent. Operator said `payments-dlq` belongs to this service and that `analytics-db` belongs to the data team: it stays out of the catalog (listed under Assumptions as "seen, not attributed"). The same message showed the enrichment batch below and the proposed failure modes ("payment requests slow/timing out", "payment requests returning errors", "background processing delayed" — the last from the SQS queue and DLQ in the list); the operator confirmed both. *(Stop 3)*
 
 ### Step 5R: Detailed resource enrichment
 
-Every command is projected (`--query`) and carries `--profile payments-ro --region us-east-1`. No `get-secret-value`, no `describe-task-definition` environment values, no full-object output.
+Only the batch approved at GATE 4b runs. Every command is projected (`--query`) and carries `--profile payments-ro --region us-east-1`. No `get-secret-value`, no `describe-task-definition` environment values, no full-object output.
 
 | Resource | Command (projected) | Key findings |
 |----------|---------------------|--------------|
@@ -205,7 +194,7 @@ Every command is projected (`--query`) and carries `--profile payments-ro --regi
 - **`payments-dlq` holds 14,200 messages** and nothing allows a redrive back to a source queue.
 - **SNS `payments-alerts` → PagerDuty** (HTTPS subscription): outside the service boundary, recorded as a boundary dependency.
 
-**Dependency walking** (each edge is `live:` from the enrichment commands above; whether an edge is on the synchronous request path is labelled `inferred` until the operator confirms it, and the operator confirmed the trees at Gate 7):
+**Dependency walking** (each edge is `live:` from the enrichment commands above; whether an edge is on the synchronous request path is labelled `inferred` until the operator confirms it, and the operator confirmed the trees at the runbook gate):
 
 - ALB → ECS service (target group membership): critical path, `inferred`
 - ECS → RDS (security group rule allowing 5432): critical path, `inferred` (a rule shows allowed traffic, not a call)
@@ -216,21 +205,19 @@ Every command is projected (`--query`) and carries `--profile payments-ro --regi
 - All resources → same VPC `vpc-payments-prod`; ALB in public subnets; ECS + RDS + ElastiCache in private subnets
 - CloudWatch alarms → SNS `payments-alerts` → PagerDuty (boundary)
 
-**Runbooks built:** 3 investigation trees: "payment requests slow/timing out", "payment requests returning errors", "background processing delayed" (the DLQ finding prompted the third). Upstream-first branches in all three.
+**Runbooks built:** 3 investigation trees: "payment requests slow/timing out", "payment requests returning errors", "background processing delayed" (the third was confirmed at GATE 4b; the DLQ backlog found here is its first saturation check). Upstream-first branches in all three.
 
-**GATE: Validate runbooks.** Operator validated. *(Gate 7)*
+**GATE: Validate runbooks.** Operator validated. *(Stop 4)*
 
 ### Step 6R: Write catalog
 
-Catalog written to `.culiops/service-discovery/payments.md`.
-
-**GATE: Review catalog.** Operator approved. *(Gate 8)*
+Catalog written to `.culiops/service-discovery/payments.md` after the Constraint 5 scan, and not committed. The final message ends with one `Next:` line, e.g. `Next: answer the Open Questions in .culiops/service-discovery/payments.md · decide the drift rows in … · commit … on a non-default branch if the team keeps these`. No stop.
 
 ## Findings
 
 ### F1 — Detection routing works correctly for docs-only repos
 
-Zero IaC tools, four document formats matched, real-discovery offered at a gate. The gate prevents accidental cloud queries when the operator meant to supply IaC.
+Zero IaC tools, four document formats matched, real-discovery offered at the Step 2R gate. No cloud call happens before that answer, which prevents accidental cloud queries when the operator meant to supply IaC.
 
 ### F2 — Hint deduplication across four source types works
 
@@ -246,24 +233,22 @@ The four core resources appear in all four sources (draw.io, Mermaid, runbook, i
 
 ### F5 — Region is asked, not inferred
 
-No source settles the region (profile empty, `flows.mmd` silent, runbook names two). The skill asked once at Step 3R and then pinned `--region us-east-1` on every command. The unqueried `us-west-2` is stated in Assumptions ("failover region not queried at the operator's direction").
+No source settles the region (profile empty, `flows.mmd` silent, runbook names two). The skill asked once, at the Step 2R gate, and then pinned `--region us-east-1` on every command. The unqueried `us-west-2` is stated in Assumptions ("failover region not queried at the operator's direction").
 
 ### F6 — Secrets stayed out of the catalog
 
 `payments/prod/db-credentials` appears as a name; the SNS endpoint is withheld; no `get-secret-value`, no task-definition environment values. Acceptance check: the catalog contains no `https://events.pagerduty.com/...` URL and no connection string.
 
-### F7 — All 8 gates fire correctly
+### F7 — Four stops, every check kept (8 before 2026-11-09)
 
-| # | Gate | Step | Purpose |
-|---|------|------|---------|
-| 1 | Switch to real-discovery | Step 1 | Prevents accidental cloud queries |
-| 2 | Confirm resource hints | Step 2R | Operator reviews parsed hints before any cloud call |
-| 3 | Approve probe batch | Step 3R | Operator sees the identity probes before they run |
-| 4 | Confirm target environment | Step 3R | Account + region pinned (the region was asked first) |
-| 5 | Approve discovery queries (4a) | Step 4R | Operator sees exact queries before execution |
-| 6 | Confirm resource list (4b) | Step 4R | Operator reviews merged list, flags, and the Unattributed list |
-| 7 | Validate runbooks | Step 5R | Operator validates investigation trees |
-| 8 | Review catalog | Step 6R | Operator approves before write/commit |
+| # | Stop | Step | What it covers |
+|---|------|------|----------------|
+| 1 | Switch with these hints | Step 2R | Switch to real-discovery (was its own gate); operator reviews parsed hints before any cloud call; names the profile and region; the profile approves the identity probe (was its own gate) |
+| 2 | GATE 4a | Step 3R + 4R | Target block: account + region pinned (was its own gate); operator sees the exact discovery queries before execution |
+| 3 | GATE 4b | Step 4R | Merged list, flags and the Unattributed list; the enrichment batch (before 2026-11-09 it ran without being shown); the failure modes (Step 4a) |
+| 4 | Validate runbooks | Step 5R | Operator validates investigation trees |
+
+The old "Review catalog" gate is gone: the catalog is written after the Constraint 5 scan and never committed, and the run ends with one `Next:` line.
 
 ## What a produced doc would look like
 

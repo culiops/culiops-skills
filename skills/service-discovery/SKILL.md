@@ -35,10 +35,10 @@ ALL CLOUD QUERIES ARE READ-ONLY. NO EXCEPTIONS.
    - **Names only** from `*.tfvars`, `*.auto.tfvars`, Helm values and other parameter files: record variable names and non-secret values. A value is withheld and recorded as `<set in <file>:<line>>` when its variable is declared `sensitive = true`, or its key contains (case-insensitive) `password`, `passwd`, `secret`, `token`, `key`, `private`, `credential`, `dsn`, `conn`, `auth`, or `cert`.
    - **Projected live queries only:** every cloud or cluster command the skill itself runs uses an explicit field allowlist (`--query`, `-o jsonpath`, `-o custom-columns`). No full-object `-o json|yaml`, no AWS Config `configuration` column, no Lambda `Environment`, no container `environment` values, no origin custom headers. Commands marked **terminal only** in `examples/` are for on-callers and are never used to build the catalog.
    - When code or a workload declares a secret reference (e.g., `aws_secretsmanager_secret_version`, `data.vault_generic_secret`, `secretKeyRef`, `valueFrom` ARN), record the *reference* — name, ARN, key names — never a value. A value that is itself a reference (a Secrets Manager / SSM ARN or parameter name, e.g. `DB_SECRET_ARN = arn:aws:secretsmanager:…`) is recorded as-is even when its key matches the names-only list.
-6. **Resolve to a single, named instance — and, for live queries, a single pinned identity.** A repo is a template; the catalog is about a specific instance (one environment, one region, one tenant — whatever the smallest deploy-target unit is in this repo). Confirm with the human which instance is being cataloged before scanning. Live queries (Step 2V, real-discovery) run against one confirmed AWS account + region and/or one kube context; every command carries `--profile`/`--region`, or `--context` (`--kube-context` for Helm), and the identity is re-checked before each batch — a change aborts the run.
+6. **Resolve to a single, named instance — and, for live queries, a single pinned identity.** A repo is a template; the catalog is about a specific instance (one environment, one region, one tenant — whatever the smallest deploy-target unit is in this repo). Confirm with the human which instance is being cataloged before scanning. Live queries (Step 2V, real-discovery) run against one confirmed AWS account + region and/or one kube context; every command carries `--profile`/`--region`, or `--context` (`--kube-context` for Helm), and the identity is re-checked before each batch (the re-check is covered by that batch's approval, not a new one) — a change aborts the run.
 7. **User confirmation at every gate** in the active path (IaC or real-discovery). None are optional; optional *steps* (Step 2V) are offered at a gate, never skipped silently.
 8. **Recognise, don't improvise.** CloudFormation, SAM, Serverless Framework, CDK and Ansible are recognised by `tool-detectors/` but not supported: list what was found, say so, and stop the IaC path for those stacks. "Teach me" is never offered for a recognised unsupported tool.
-9. **Output root.** Every `.culiops/` path in this skill (the files it writes and the sibling records it reads) sits under one output root, resolved once at the start and shown to the operator at the first gate. If `CULIOPS_HOME` is unset or empty, the root is `.culiops/` at the repo root, as before. If it is set, the root is `$CULIOPS_HOME/<workspace>/`: `<workspace>` is the path of `git remote get-url origin` after the host, without `.git` (`git@github.com:acme/payments-infra.git` and `https://github.com/acme/payments-infra.git` both give `acme/payments-infra`); with no `origin`, the repo root's directory name; outside a git repo, the current directory's name. The operator may rename it. When the skill creates `$CULIOPS_HOME` itself, it runs `chmod 700` on it. If the root can't be written, STOP and ask; never fall back to the repo. Under `CULIOPS_HOME` the records are outside the repo: skip every commit offer and print absolute paths instead. If a sibling record is missing under the root but exists under the other one (repo `.culiops/` vs `$CULIOPS_HOME`), say so and let the operator pick.
+9. **Output root.** Every `.culiops/` path in this skill (the files it writes and the sibling records it reads) sits under one output root, resolved once at the start and shown to the operator at the first gate. If `CULIOPS_HOME` is unset or empty, the root is `.culiops/` at the repo root, as before. If it is set, the root is `$CULIOPS_HOME/<workspace>/`: `<workspace>` is the path of `git remote get-url origin` after the host, without `.git` (`git@github.com:acme/payments-infra.git` and `https://github.com/acme/payments-infra.git` both give `acme/payments-infra`); with no `origin`, the repo root's directory name; outside a git repo, the current directory's name. The operator may rename it. When the skill creates `$CULIOPS_HOME` itself, it runs `chmod 700` on it. If the root can't be written, STOP and ask; never fall back to the repo. Under `CULIOPS_HOME` the records are outside the repo: print absolute paths. If a sibling record is missing under the root but exists under the other one (repo `.culiops/` vs `$CULIOPS_HOME`), say so and let the operator pick.
 
 ## Rationalization Prevention
 
@@ -55,7 +55,7 @@ ALL CLOUD QUERIES ARE READ-ONLY. NO EXCEPTIONS.
 | "The documents are clear enough, I don't need to run cloud queries to verify" | STOP — documents may be outdated. The converging discovery approach exists because neither source is reliable alone. |
 | "I'll skip the broad discovery query gate since it's all read-only" | STOP — the operator must see and approve every query before execution. Read-only does not mean ungated. |
 | "This image diagram is too blurry to extract anything useful" | STOP — present what you can extract with `[uncertain]` markers. The operator can confirm or discard. |
-| "The credentials don't match the documents but they're probably the right account" | STOP — flag the mismatch at the Step 3R gate. Mismatched credentials → wrong account → wrong resources in catalog. |
+| "The credentials don't match the documents but they're probably the right account" | STOP — flag the mismatch in the GATE 4a target block. Mismatched credentials → wrong account → wrong resources in catalog. |
 | "I'll run a write API to tag this untagged resource for easier discovery" | STOP — NO WRITE API CALLS. EVER. Record the resource as-is. |
 | "Terraform state would resolve these parameters instantly" | STOP — state holds plaintext secrets. Never read it. Ask the human, or resolve via Step 2V's projected live query. |
 | "The tfvars file is just config, I'll copy the values in" | STOP — names and non-secret values only. Secret-shaped or `sensitive` values become `<set in file:line>`. |
@@ -80,7 +80,7 @@ ALL CLOUD QUERIES ARE READ-ONLY. NO EXCEPTIONS.
 | Producing a runbook that has no "is this an upstream dependency?" branch | STOP → add the dependency-first branch. |
 | Emitting a final catalog without the "Assumptions and Caveats" section | STOP → add it. The catalog is incomplete without it. |
 | Continuing after the human says something is wrong without addressing it | STOP → fix all flagged issues before proceeding. |
-| Running cloud API queries before the operator approves the cloud context (Step 3R gate) | STOP → return to Step 3R and present credentials for approval. |
+| Running any cloud query other than the approved identity probe before the operator confirms the target (GATE 4a) | STOP → return to Step 3R and show the identity in the GATE 4a target block. |
 | Running broad discovery queries before the operator approves them (Step 4R gate 4a) | STOP → return to Step 4R and present proposed queries. |
 | Using a write/mutating API call during any real-discovery step | STOP → replace with the read-only equivalent. There is no exception. |
 | Proceeding with real-discovery when IaC files are present in the directory | STOP → IaC found means IaC path. Real-discovery is the fallback, not an option. |
@@ -102,14 +102,13 @@ digraph discovery {
         label="IaC Path";
         style=dashed;
 
-        gate1    [label="GATE 1: Human confirms\nlayout + instance", shape=diamond];
-        inventory [label="Step 2: Resolve parameters,\nbuild resource inventory\n(with naming, identifiers,\nsignal envelope, conditionals)"];
-        gate2    [label="GATE 2: Human confirms\ninventory; offer Step 2V", shape=diamond];
-        verify   [label="Step 2V (optional): Live\ncross-check, read-only,\napproved batch → Live column"];
-        deps     [label="Step 3: Compute dependency\ngraph (direct + transitive,\nfrom code references)"];
-        gate3    [label="GATE 3: Human confirms\ndependencies", shape=diamond];
+        gate1    [label="GATE 1: Human confirms\nlayout + instance;\nStep 2V: profile or skip", shape=diamond];
+        inventory [label="Step 2: Resolve parameters,\nbuild resource inventory\n(with naming, identifiers,\nsignal envelope, conditionals);\n2V identity probe if accepted"];
+        deps     [label="Step 3: Compute dependency\ngraph (direct + transitive,\nfrom code references);\nStep 4a: propose failure modes"];
+        gate2    [label="GATE 2: Human confirms\ninventory + dependencies +\nfailure modes; approves\nthe 2V batch", shape=diamond];
+        verify   [label="Step 2V: Live cross-check,\nread-only, approved batch\n→ Live column"];
         runbooks [label="Step 4: Build investigation-tree\nrunbooks (user symptoms first,\nupstream branch always)"];
-        gate4    [label="GATE 4: Human validates\nrunbooks", shape=diamond];
+        gate3    [label="GATE 3: Human validates\nrunbooks (+ 2V drift)", shape=diamond];
         write    [label="Step 5: Write discovery doc\n+ Assumptions section\n+ commit-SHA stamp"];
     }
 
@@ -118,21 +117,19 @@ digraph discovery {
         style=dashed;
 
         docroute [label="Document signatures\ndetected"];
-        gateR1   [label="GATE: Switch to\nreal-discovery mode?", shape=diamond];
         parse    [label="Step 2R: Parse documents,\nextract resource hints\n(structured → text → image)"];
-        gateR2   [label="GATE: Confirm\nresource hints", shape=diamond];
-        context  [label="Step 3R: Resolve cloud\ncontext (approved identity\nprobe, cross-ref doc hints)"];
-        gateR3   [label="GATE: Confirm target\nenvironment", shape=diamond];
-        converge [label="Step 4R: Converging discovery\n(merge doc hints +\ncloud query results)"];
-        gateR4a  [label="GATE 4a: Approve\ndiscovery queries?", shape=diamond];
-        gateR4b  [label="GATE 4b: Confirm\nresource list?", shape=diamond];
+        gateR2   [label="GATE: Switch to real-discovery\nwith these hints?\nProfile for identity probe", shape=diamond];
+        context  [label="Step 3R: Run approved identity\nprobe, cross-ref doc hints"];
+        propose  [label="Step 4R: Propose discovery\nqueries (cloud-discovery/)"];
+        gateR4a  [label="GATE 4a: Confirm target +\napprove discovery queries", shape=diamond];
+        converge [label="Step 4R: Run approved queries,\nmerge doc hints +\ncloud query results"];
+        gateR4b  [label="GATE 4b: Confirm resource list,\nenrichment batch,\nfailure modes", shape=diamond];
         enrich   [label="Step 5R: Detailed resource\nenrichment + runbooks"];
-        gateR5   [label="GATE: Validate\nrunbooks", shape=diamond];
+        gateR5   [label="GATE: Validate runbooks\n+ dependency graph\n+ surprises", shape=diamond];
         writeR   [label="Step 6R: Write catalog\n+ confidence flags\n+ unresolved refs"];
     }
 
-    gate5    [label="GATE 5: Human reviews\nfinal doc", shape=diamond];
-    commit   [label="Commit if approved"];
+    final    [label="Final message\n(one Next: line;\nnothing committed)"];
 
     input -> detect;
     detect -> gate1     [label="supported IaC found"];
@@ -141,40 +138,32 @@ digraph discovery {
 
     gate1 -> inventory  [label="confirmed"];
     gate1 -> detect     [label="corrections"];
-    inventory -> gate2;
-    gate2 -> verify     [label="confirmed + 2V accepted"];
-    gate2 -> deps       [label="confirmed, 2V declined"];
-    verify -> deps;
+    inventory -> deps;
+    deps -> gate2;
+    gate2 -> verify     [label="confirmed + 2V batch approved\n(2V requested late: probe, then\nidentity + batch as one more stop)"];
+    gate2 -> runbooks   [label="confirmed, 2V skipped"];
     gate2 -> inventory  [label="corrections"];
-    deps -> gate3;
-    gate3 -> runbooks   [label="confirmed"];
-    gate3 -> deps       [label="corrections"];
-    runbooks -> gate4;
-    gate4 -> write      [label="validated"];
-    gate4 -> runbooks   [label="adjust"];
-    write -> gate5;
+    verify -> runbooks;
+    runbooks -> gate3;
+    gate3 -> write      [label="validated"];
+    gate3 -> runbooks   [label="adjust"];
+    write -> final;
 
-    docroute -> gateR1;
-    gateR1 -> parse     [label="confirmed"];
+    docroute -> parse;
     parse -> gateR2;
     gateR2 -> context   [label="confirmed"];
     gateR2 -> parse     [label="corrections"];
-    context -> gateR3;
-    gateR3 -> converge  [label="confirmed"];
-    gateR3 -> context   [label="corrections"];
-    converge -> gateR4a;
-    gateR4a -> gateR4b  [label="approved"];
-    gateR4a -> converge [label="narrowed"];
+    context -> propose;
+    propose -> gateR4a;
+    gateR4a -> converge [label="approved\n(or narrowed)"];
+    gateR4a -> context  [label="target corrected"];
+    converge -> gateR4b;
     gateR4b -> enrich   [label="confirmed"];
     gateR4b -> converge [label="corrections"];
     enrich -> gateR5;
     gateR5 -> writeR    [label="validated"];
     gateR5 -> enrich    [label="adjust"];
-    writeR -> gate5;
-
-    gate5 -> commit     [label="approved"];
-    gate5 -> write      [label="changes requested\n(IaC path)"];
-    gate5 -> writeR     [label="changes requested\n(real-discovery path)"];
+    writeR -> final;
 }
 ```
 
@@ -182,31 +171,17 @@ digraph discovery {
 
 ### Step 1: Detect IaC Tool, Stack Layout, and Target Instance
 
-**Inputs.** A repo path and a service name. If either is missing, ask. Detect a service name from the current working directory if the user said "discover this" without naming one.
+**Inputs.** A repo path and a service name. If the repo path is missing, ask. Detect a service name from the current working directory if the user said "discover this" without naming one, and show it at the first gate (GATE 1, or the Step 2R gate on the real-discovery path) for confirmation instead of asking separately.
 
 **Detect the IaC tool(s) in the repo.** At the start of Step 1, load every file under `tool-detectors/*.md`. Each detector's `## File signatures` section defines what files signal that tool. Match the repo's files against every loaded detector. Record every tool that matches — a repo can use more than one. The currently-shipped detectors are listed in [`tool-detectors/README.md`](tool-detectors/README.md). Skip `.terraform/`, `node_modules/`, `cdk.out/`, vendored Helm subcharts (`charts/*/`) and `.git/` — they are downloaded or generated copies, not this repo's stacks.
 
-**Recognised but unsupported tools** (detectors marked *recognition only*: CloudFormation, SAM, Serverless Framework, CDK, Ansible): list each match with its stacks, tell the operator it is not supported, and exclude those stacks from the IaC path (Constraint 8). If they are the **only** IaC in the repo, offer real-discovery against live AWS instead (the resources they deploy are AWS resources, which are supported; owner = the `aws:cloudformation:stack-name` tag, where present). That path starts with no resource hints (Seed A is empty unless the repo also holds documents): stack and file names are not resource hints, and the operator supplies the service tag key or name at Gate 4a. In a mixed repo, catalog the supported stacks and record the unsupported ones under Assumptions and Caveats.
+**Recognised but unsupported tools** (detectors marked *recognition only*: CloudFormation, SAM, Serverless Framework, CDK, Ansible): list each match with its stacks, tell the operator it is not supported, and exclude those stacks from the IaC path (Constraint 8). If they are the **only** IaC in the repo, offer real-discovery against live AWS instead, at the Step 2R gate (the resources they deploy are AWS resources, which are supported; owner = the `aws:cloudformation:stack-name` tag, where present). That path starts with no resource hints (Seed A is empty unless the repo also holds documents): stack and file names are not resource hints, and the operator supplies the service tag key/value or name prefix at the Step 2R gate. In a mixed repo, catalog the supported stacks and record the unsupported ones under Assumptions and Caveats.
 
 For each matched detector, the rest of Step 1 (stack boundary detection) and Steps 2–3 (parameter resolution, resource extraction, dependency derivation) consult the corresponding sections of that detector file (`## Stack boundary`, `## Parameter sources`, `## Resource extraction`, `## Typical cross-stack dependencies`). If a detector omits a section, that dimension is unknown for the matched tool — surface the gap and ask the human.
 
 **If no IaC tool is detected: scan for document signatures.** When the detector pass finds zero IaC tools, do not proceed to "Detect unclassified deploy artifacts." Instead, load every file under `doc-detectors/*.md` and scan the directory for matching file signatures. Each doc-detector's `## File signatures` section defines what files signal that format.
 
-If document signatures are found, present:
-
-> "No IaC files found in this directory. However, I found documentation and diagrams that may describe the infrastructure:
->
-> | File | Format | Detected by |
-> |------|--------|-------------|
-> | `architecture.drawio` | Draw.io diagram | `doc-detectors/drawio.md` |
-> | `runbook.md` | Markdown documentation | `doc-detectors/markdown.md` |
-> | `infra-diagram.png` | Architecture image | `doc-detectors/image.md` |
->
-> I can switch to **real-infrastructure discovery mode** — I'll extract resource hints from these documents, then verify against live cloud APIs (read-only) to build the same service catalog.
->
-> **GATE: Switch to real-discovery mode? (Requires cloud credentials configured locally.)**"
-
-If the operator confirms, proceed to **Step 2R** (Document Parsing). If the operator declines, STOP.
+If document signatures are found, go to **Step 2R** (Document Parsing). Parsing reads only the documents in the directory; no cloud call happens before the operator answers. The switch to real-discovery mode is asked at the Step 2R gate, together with the extracted hints. If the operator declines there, STOP.
 
 If neither IaC tools nor document signatures are found, STOP:
 
@@ -237,17 +212,15 @@ This sub-step exists because the Iron Law ("no assumptions, ask the human") cann
 
 List the stacks. Note which produce one instance (one-off) vs. many (parameterized template).
 
-**Identify the target instance.** Ask the human:
-
-> "I see this repo is `<tool(s) detected>` and contains the following stacks: `<list>`. Which specific instance should I catalog? (e.g., name an environment, region, workspace, tenant, or release.)"
+**Identify the target instance.** If the request names it, use that. Otherwise, do not ask separately: GATE 1 lists every instance the repo shows (environment, region, workspace, tenant or release), each with its parameter sources, and the operator picks one in the GATE 1 answer.
 
 Do NOT guess. Multi-instance repos are the norm; the wrong instance produces a wrong catalog.
 
-**Identify the ref that instance deploys from.** The catalog describes the code at one ref, so find which ref the instance is applied from: the branch or tag a pipeline applies, or the Argo CD / Flux `targetRevision` / `ref`. Cite where it was found (`code: <ci file or Application>:<line>`). If nothing in the repo shows it (manual delivery, an external pipeline), it is `UNVERIFIED`: ask, and record the answer as `operator-stated`. The checked-out branch is only a stand-in until then. Run `git status --short` on the stack paths and show uncommitted changes at the gate; the catalog does not describe uncommitted code as if it were a commit.
+**Identify the ref that instance deploys from.** The catalog describes the code at one ref, so find which ref the instance is applied from: the branch or tag a pipeline applies, or the Argo CD / Flux `targetRevision` / `ref`. Cite where it was found (`code: <ci file or Application>:<line>`). If nothing in the repo shows it (manual delivery, an external pipeline), it is `UNVERIFIED`: ask at GATE 1, and record the answer as `operator-stated`. The checked-out branch is only a stand-in until then. Run `git status --short` on the stack paths and show uncommitted changes at the gate; the catalog does not describe uncommitted code as if it were a commit.
 
-**Detect the parameter sources for the chosen instance.** Examples by tool:
+**Detect the parameter sources for the chosen instance** (for each listed instance, when none is named yet). Examples by tool:
 
-- Terraform: `terraform.tfvars`, `*.auto.tfvars`, per-env `*.tfvars`, `TF_VAR_*` env vars (names only — ask the human for values), workspace name. **Never** state (Constraint 5); a `terraform_remote_state` lookup is recorded as a cross-stack dependency, not read.
+- Terraform: `terraform.tfvars`, `*.auto.tfvars`, per-env `*.tfvars`, `TF_VAR_*` env vars (names only — their values are asked at GATE 2), workspace name. **Never** state (Constraint 5); a `terraform_remote_state` lookup is recorded as a cross-stack dependency, not read.
 - ecspresso / lambroll: environment variables and plugin lookups used by template functions (record the reference, e.g. a `tfstate` lookup address — never resolve it from state).
 - Helm: `values.yaml` + `values-<env>.yaml` + `--set` overrides (names-only rule applies).
 - Kustomize: overlay's patches + ConfigMap generators; Secret generators recorded by generator and key names only.
@@ -255,28 +228,31 @@ Do NOT guess. Multi-instance repos are the norm; the wrong instance produces a w
 
 Record where parameters come from, but do not resolve them yet. Apply Constraint 5 to every parameter file before reading it.
 
-**Present and STOP.**
+**Present and STOP (GATE 1).**
 
 > "Service: `<name>`
 > Repo: `<path>`
+> Output root: `<root>`
 > IaC tool(s) detected: `<list>`
 > In-scope stack(s): `<list>`
-> Target instance: `<the one the user named>`
-> Deployed ref: `<ref + basis (code: / operator-stated / UNVERIFIED)>`; checked out: `<branch@sha>`, working tree `<clean / N files changed>`
+> Target instance: `<the one the user named>` — or, when none was named: **pick one:** `<instance → its parameter sources>`, one line each
+> Deployed ref: `<ref + basis (code: / operator-stated / UNVERIFIED)>`; checked out: `<branch@sha>`, working tree `<clean / N files changed>` — when `UNVERIFIED`: **which ref is `<instance>` applied from, and how?**
 > Parameter source(s) for this instance: `<list of files/refs>`
 > Out-of-scope (cross-stack refs to be recorded as dependencies, not followed): `<list>`
 >
+> **Step 2V live cross-check (recommended):** it compares the inventory with the live environment using read-only, projected queries, and catches names that don't exist and config that drifted from code. To run it, name the AWS profile (and region) and/or kube context that hold `<instance>`. That answer approves only the identity probe, run with what you name: `<Step 2V.1 probe commands>`. The read batch itself is shown for approval at GATE 2. Or say `skip`.
+>
 > Is this correct?"
 
-Wait for human confirmation. Apply corrections and re-present until confirmed.
+Wait for human confirmation. Apply corrections and re-present until confirmed. An answer that picks one of the listed instances, gives the ref, and corrects nothing else confirms GATE 1. An answer that names no profile/context and does not say `skip` counts as `skip` for now; GATE 2 offers Step 2V again.
 
 ---
 
 ### Step 2: Resolve Parameters and Build Resource Inventory
 
-**Resolve parameters.** For each parameter the in-scope stack(s) declare, resolve it to the value used by the target instance. Apply the precedence order in the matched detector's `## Parameter sources`. An order the detector marks `UNVERIFIED` is checked against the tool's own documentation (`docs: <URL>`, fetched this session) before it decides a value; if two sources set a value and the order is unverified, ask. Record each resolved value with where it came from (`value ← <file>:<line>`). A value that comes only from a declared default, or from a source the repo cannot show (variables injected by a pipeline or held in a remote workspace, `-var` flags, `valuesFrom`), is recorded `default / source unconfirmed` and the operator is asked where this instance's values come from; Step 2V is the live check for it. Secret-shaped or `sensitive` values are never resolved — they appear as `<set in <file>:<line>>` (Constraint 5).
+**Resolve parameters.** For each parameter the in-scope stack(s) declare, resolve it to the value used by the target instance. Apply the precedence order in the matched detector's `## Parameter sources`. An order the detector marks `UNVERIFIED` is checked against the tool's own documentation (`docs: <URL>`, fetched this session) before it decides a value; if two sources set a value and the order is unverified, ask at GATE 2. Record each resolved value with where it came from (`value ← <file>:<line>`). A value that comes only from a declared default, or from a source the repo cannot show (variables injected by a pipeline or held in a remote workspace, `-var` flags, `valuesFrom`), is recorded `default / source unconfirmed` and the operator is asked at GATE 2 where this instance's values come from; Step 2V is the live check for it. Secret-shaped or `sensitive` values are never resolved — they appear as `<set in <file>:<line>>` (Constraint 5).
 
-If a parameter cannot be resolved (file not present, registry not reachable, value comes from a runtime-only source like an SSM parameter) — DO NOT proceed, and do not fetch it. List the unresolved parameters and ask the human to provide values or to confirm "skip with placeholder, mark as unresolved in catalog."
+If a parameter cannot be resolved (file not present, registry not reachable, value comes from a runtime-only source like an SSM parameter) — do not fetch it and do not guess it. Names that depend on it keep the placeholder. List it under **Unresolved (needs your input)** at GATE 2 and ask the human to provide the value or to confirm "skip with placeholder, mark as unresolved in catalog." A value given there changes resolved names, so GATE 2 is shown again with it before anything runs.
 
 **Scan the in-scope stack(s).** Use file types from Step 1's tool detection. Read every IaC file in the stack(s). Read documentation files (`README.md`, `docs/**/*.md`) inside the stack(s) to pick up author-supplied context. Skip secrets-shaped files unconditionally.
 
@@ -302,7 +278,9 @@ If a parameter cannot be resolved (file not present, registry not reachable, val
 
 **Detect conditional / optional resources.** For each gated resource, write the gating expression and the resolved boolean for the target instance. A resource gated `enable_redis = true` in the target instance → mark "present"; gated and resolved false → mark "not present in this instance." Do this only from a confirmed value; if the gating value is `default / source unconfirmed`, write "present?" or "not present?" and carry it to the caveats.
 
-**Present and STOP.**
+**Before GATE 2.** From this inventory, compute the dependency graph (Step 3) and propose the user-visible failure modes (Step 4a). If Step 2V was accepted at GATE 1, run the identity probe approved there and plan the read batch (Step 2V.1–2). GATE 2 shows all of it, so a correction to the inventory updates each of them before GATE 2 is shown again.
+
+**Present and STOP (GATE 2).**
 
 > "Resolved parameters: `<key parameters with their resolved values>`
 > Unresolved (needs your input): `<list, or "none">`
@@ -316,14 +294,18 @@ If a parameter cannot be resolved (file not present, registry not reachable, val
 > **Optional resources NOT present in this instance:** `<list>`
 > **Unattributed — operator assigns:** `<stack resources with no membership signal, or "none — whole stack is the service (basis)", or "not asked — membership: single prefix <x>, code:<path:line>">`
 >
+> **Dependencies:** `<the Step 3 block>`
+>
+> **User-visible failure modes I'll build runbooks for:** `<list (Step 4a)>` — add, remove or rename.
+>
 > **Open questions:**
 > - …
 >
-> Is this correct? Anything missing or wrong?
+> **Step 2V live cross-check:** identity `<account / region / context>` — `<matches code: … / operator-stated>`; read batch `<the Step 2V.2 table>`. Approve the batch, or `skip`. *(If skipped at GATE 1: "Step 2V skipped. To run it, name the profile (and region) and/or context; that approves only this probe: `<Step 2V.1 probe commands>`, then the batch is shown for approval.")*
 >
-> **Optional — Step 2V live cross-check:** I can verify these resources against the live environment with read-only, projected queries (shown for approval first). Recommended: it catches names that don't exist and config that drifted from code. Run it? (yes / skip)"
+> Is this correct? Anything missing or wrong in the inventory, the dependencies or the failure modes?"
 
-Wait for confirmation. Apply corrections and re-present until confirmed.
+Wait for confirmation. Any answer that changes a resolved value, a resource name or row, membership, or the profile/region/context changes the inventory or the batch: apply it and show GATE 2 again, with the re-planned batch, before anything runs. This holds for answers to the Unresolved list, precedence and `default / source unconfirmed` questions too; "skip with placeholder" and confirming a source already shown change nothing and do not show GATE 2 again. Answers that change neither (dependency edges, critical-path and reliability answers, failure-mode edits) are applied without showing GATE 2 again. Otherwise the read batch runs only after GATE 2 is confirmed and only as shown; a confirming answer that does not say `skip` approves it. If the operator asks for Step 2V here after skipping it at GATE 1, run the probe with the profile/context they name and show the identity and the batch for approval as one more stop.
 
 ---
 
@@ -331,10 +313,10 @@ Wait for confirmation. Apply corrections and re-present until confirmed.
 
 *Code is the source of intent; live infrastructure is the source of state. This step compares them for the confirmed inventory. It never changes either.*
 
-1. **Pin the identity.** Ask which AWS profile/region and/or kube context hold the target instance. Show and run (on approval) the probe: `aws sts get-caller-identity --profile <p> --query Account`, `aws configure get region --profile <p>` (STS does not return a region), `kubectl config current-context` / `kubectl --context <c> get ns <namespace> -o name`. The account/region/context must match what the code and the human say the instance is; a mismatch is a hard stop.
-2. **Plan the batch.** One projected read per inventoried resource, using the enrichment commands in `examples/aws.md` / `examples/kubernetes.md` (never a **terminal only** command). Show the table: `# | resource | command (with --profile/--region or --context) | fields compared | cost (free unless stated)`. Global resources (CloudFront, IAM, Route 53, WAF `CLOUDFRONT`) are queried in `us-east-1`. **GATE: approve the batch.**
-3. **Run and compare.** For each resource, fill the `Live` column: `✓ matches (<fields compared>)` (a match covers only the fields named), `drift: <field> code=<x> live=<y>`, `not found in <account>/<region>` (with the exact query), or `not checked (<reason>)`. Empty is not absent: before writing `not found`, confirm the query was in the right account/region and that the resource type is listable there.
-4. **Surface, don't resolve.** Drift rows are listed at the top of Assumptions and Caveats. The catalog keeps the code value as the declared value and shows the live value beside it; the human decides which is wrong.
+1. **Pin the identity.** The AWS profile/region and/or kube context that hold the target instance come from the GATE 1 answer, which also approves this probe (shown at GATE 1, run after it): `aws sts get-caller-identity --profile <p> --query Account`, `aws configure get region --profile <p>` (STS does not return a region), `kubectl config current-context` / `kubectl --context <c> get ns <namespace> -o name`. When the namespace is not a literal in the GATE 1 message, the `get ns` check is the first row of the batch instead. The account/region/context must match what the code and the human say the instance is; a mismatch is a hard stop for Step 2V: GATE 2 shows the mismatch in place of the batch, and no batch is offered until a matching profile/context is named (probe re-run, batch shown for approval) or the operator says `skip`.
+2. **Plan the batch.** One projected read per inventoried resource, using the enrichment commands in `examples/aws.md` / `examples/kubernetes.md` (never a **terminal only** command). Show the table: `# | resource | command (with --profile/--region or --context) | fields compared | cost (free unless stated)`. Global resources (CloudFront, IAM, Route 53, WAF `CLOUDFRONT`) are queried in `us-east-1`. The batch is approved at GATE 2, with the probe result beside it; re-check the identity before it runs.
+3. **Run and compare** (after GATE 2). For each resource, fill the `Live` column: `✓ matches (<fields compared>)` (a match covers only the fields named), `drift: <field> code=<x> live=<y>`, `not found in <account>/<region>` (with the exact query), or `not checked (<reason>)`. Empty is not absent: before writing `not found`, confirm the query was in the right account/region and that the resource type is listable there.
+4. **Surface, don't resolve.** Drift and not-found rows are shown at GATE 3 with the runbooks and listed at the top of Assumptions and Caveats. The catalog keeps the code value as the declared value and shows the live value beside it; the human decides which is wrong.
 
 If declined, stamp the catalog `**Live verification:** not performed` and keep the `Live` column as `not checked`.
 
@@ -372,7 +354,19 @@ If declined, stamp the catalog `**Live verification:** not performed` and keep t
 
 **Present and STOP.**
 
-> "**Resource hints extracted from documents:**
+> "Service: `<name>` · Repo: `<path>` · Output root: `<root>`
+>
+> No supported IaC found in this directory (`<recognised-unsupported stacks, if any>`). However, I found documentation and diagrams that may describe the infrastructure:
+>
+> | File | Format | Detected by |
+> |------|--------|-------------|
+> | `architecture.drawio` | Draw.io diagram | `doc-detectors/drawio.md` |
+> | `runbook.md` | Markdown documentation | `doc-detectors/markdown.md` |
+> | `infra-diagram.png` | Architecture image | `doc-detectors/image.md` |
+>
+> I can switch to **real-infrastructure discovery mode**: verify these hints against live cloud APIs (read-only) to build the same service catalog.
+>
+> **Resource hints extracted from documents:**
 >
 > | # | Hint | Type | Source | Confidence |
 > |---|------|------|--------|------------|
@@ -385,9 +379,9 @@ If declined, stamp the catalog `**Live verification:** not performed` and keep t
 > - Account: unknown
 > - VPC: `vpc-abc123` (shown in `architecture.drawio`)
 >
-> **GATE: Do these hints look accurate? Remove/add/correct any before proceeding.**"
+> **GATE: Switch to real-discovery mode with these hints? Remove/add/correct any first.** To switch, name the AWS profile and region and/or kube context to use (requires cloud credentials configured locally), and say whether to check cluster reachability (`kubectl --context <c> cluster-info`, optional). That answer approves only the identity probe, run with what you name: `<Step 3R probe commands>`. Discovery queries come later, at GATE 4a."
 
-Wait for confirmation. Apply corrections and re-present until confirmed.
+With no documents (e.g. a repo with only recognised-unsupported IaC and no docs), the hints table is empty and the gate asks the switch, the profile and region, and the service tag key/value or name prefix the discovery queries will use. If the operator declines the switch, STOP. Hint corrections given together with the profile are applied and the probe runs; show this gate again only when an answer is unclear or adds a document to parse.
 
 ---
 
@@ -395,10 +389,10 @@ Wait for confirmation. Apply corrections and re-present until confirmed.
 
 *This step runs instead of Step 3 when the real-discovery path is active.*
 
-**Probe local credentials — show the probe first.** List the probe commands and run them only on approval (they are read-only, but every query is shown before it runs):
+**Probe local credentials — only the probe approved at the Step 2R gate** (read-only, but every query is shown before it runs), with the profile/context the operator named there:
 
 - AWS: `aws sts get-caller-identity --profile <p> --query '{Account:Account,Arn:Arn}'` and `aws configure get region --profile <p>` (or `AWS_REGION`). STS returns no region — the region always comes from the profile/env and is shown separately.
-- Kubernetes: `kubectl config current-context` (local file, no API call) and `kubectl --context <c> cluster-info` only if the operator wants reachability checked.
+- Kubernetes: `kubectl config current-context` (local file, no API call) and `kubectl --context <c> cluster-info` only if the operator said yes to it at the Step 2R gate.
 
 If no credentials are found, STOP:
 
@@ -406,7 +400,7 @@ If no credentials are found, STOP:
 
 **Cross-reference credentials with document hints.** Compare the provider, account/project, and region from the credential probes with the cloud context clues extracted in Step 2R. Flag any mismatches — a credential pointing at `us-west-2` when documents reference `us-east-1` resources is a strong signal that the wrong profile is active.
 
-**Present and STOP.**
+**Do not stop here.** This table is the target block at the top of GATE 4a (Step 4R):
 
 > "**Cloud context resolution:**
 >
@@ -415,13 +409,13 @@ If no credentials are found, STOP:
 > | AWS | `sts get-caller-identity` + `configure get region` (profile `prod-ro`) | Account `123456789012`, region `us-east-1` | Account: unknown, Region: `us-east-1` | Region matches; account unverifiable from docs |
 > | Kubernetes | `kubectl config current-context` | `prod-eks-cluster` | Cluster: `prod-cluster` (from drawio) | Partial — name differs |
 >
-> **GATE: Is this the correct target environment?**"
+> Is this the correct target environment?"
 
-**Hard rule: no discovery queries before this gate passes** — only the approved identity probe above. Running queries against the wrong account produces a catalog of the wrong infrastructure. From here on, every command carries `--profile`/`--region` or `--context`, and the identity is re-checked before each batch (Constraint 6).
+A region or context that no source settles (the Step 2R answer and the profile both left it open) is asked in this block, never guessed; the queries are then shown again with it before any runs.
 
-**Out-of-scope providers.** If document hints reference GCP, Azure or another cloud, record them under Unresolved References as `out of scope — not queried`. If hints span AWS and a Kubernetes cluster, confirm each context independently.
+**Hard rule: no discovery queries before GATE 4a passes** — only the approved identity probe above. Running queries against the wrong account produces a catalog of the wrong infrastructure. From here on, every command carries `--profile`/`--region` or `--context`, and the identity is re-checked before each batch (Constraint 6).
 
-Wait for confirmation. Apply corrections and re-present until confirmed.
+**Out-of-scope providers.** If document hints reference GCP, Azure or another cloud, record them under Unresolved References as `out of scope — not queried`. If hints span AWS and a Kubernetes cluster, show each context on its own row of the target block; each is confirmed on its own.
 
 ---
 
@@ -432,11 +426,13 @@ Wait for confirmation. Apply corrections and re-present until confirmed.
 This step merges two independent discovery seeds to build a verified resource list:
 
 - **Seed A: Confirmed document hints** from Step 2R (operator-reviewed).
-- **Seed B: Cloud-discovery templates** — load matching templates from `cloud-discovery/` based on the confirmed cloud context. Each template defines broad discovery queries for a resource category.
+- **Seed B: Cloud-discovery templates** — load matching templates from `cloud-discovery/` based on the cloud context from Step 3R. Each template defines broad discovery queries for a resource category.
 
-**Present proposed queries and STOP.**
+**Present the target and the proposed queries, and STOP.**
 
-> "**Proposed discovery queries:**
+> "`<Step 3R target block: cloud context resolution table, mismatches flagged, any unsettled region or context asked>`
+>
+> **Proposed discovery queries:**
 >
 > I'll run these read-only queries to discover resources in the confirmed environment:
 >
@@ -447,9 +443,9 @@ This step merges two independent discovery seeds to build a verified resource li
 > | 3 | `aws rds describe-db-instances --db-instance-identifier prod-api-db --profile prod-ro --region us-east-1 --query '<projection>'` | The documented DB only | `cloud-discovery/aws.md` |
 > | 4 | `kubectl --context prod-eks-cluster get deploy,sts,ds,svc,ing -n prod-api -l app=prod-api -o custom-columns=<projection>` | Workloads in the confirmed namespace | `cloud-discovery/kubernetes.md` |
 >
-> **GATE 4a: Approve these discovery queries?**"
+> **GATE 4a: Is this the correct target environment, and do you approve these discovery queries?**"
 
-If the operator declines specific broad queries (e.g., "don't scan all RDS instances, just look for the ones in the documents"), proceed with Seed A only for those resource types. Resources discovered only via Seed A are flagged `documented-only, not verified`.
+If the operator corrects or supplies the account, region or context, re-run Step 3R for it and show GATE 4a again; nothing runs on a corrected target until then. When the target block flags a mismatch or `Partial`, GATE 4a asks about it on its own line (`Confirm account <a> / region <r> / context <c>?`); an answer that does not address that line confirms nothing, and no query runs. If the operator declines specific broad queries (e.g., "don't scan all RDS instances, just look for the ones in the documents"), proceed with Seed A only for those resource types. Resources discovered only via Seed A are flagged `documented-only, not verified`.
 
 **Execute approved queries.** Run each approved query and collect results. Do NOT run any query the operator did not approve.
 
@@ -477,11 +473,18 @@ If the operator declines specific broad queries (e.g., "don't scan all RDS insta
 > | 2 | `api-cache` | ElastiCache cluster | docs only | Low | `documented-not-found` — not-found (queried 123456789012/us-east-1, #4) |
 > | 3 | `prod-api-alb` | ALB | cloud only | Medium | `undocumented` |
 >
-> **GATE 4b: Confirm this resource list before detailed discovery?**"
-
 > **Unattributed — operator assigns:** `<resources found by broad queries with no membership signal>`
+>
+> **Enrichment batch (Step 5R)** for the confirmed resources, including the alarm and metric reads Step 5R uses for observed baselines: `# | resource | command (with --profile/--region or --context) | fields | cost (free unless stated)`
+>
+> **User-visible failure modes I'll build runbooks for:** `<list (Step 4a)>` — add, remove or rename.
+>
+> **Open questions:**
+> - …
+>
+> **GATE 4b: Confirm this resource list, the enrichment batch and the failure modes before detailed discovery?**"
 
-The operator can add, remove, or reclassify resources at this gate, including moving unattributed resources into the inventory (recorded as `operator-assigned`). Resources flagged `documented-not-found` are excluded from enrichment in Step 5R but are recorded in the final catalog's Unresolved References section with their absence class.
+The operator can add, remove, or reclassify resources at this gate, including moving unattributed resources into the inventory (recorded as `operator-assigned`). Removing a resource drops its rows from the batch; adding one adds rows, so GATE 4b is shown again with them. Failure-mode edits and answers to open questions are applied without showing GATE 4b again. Resources flagged `documented-not-found` are excluded from enrichment in Step 5R but are recorded in the final catalog's Unresolved References section with their absence class.
 
 Wait for confirmation. Apply corrections and re-present until confirmed.
 
@@ -491,7 +494,7 @@ Wait for confirmation. Apply corrections and re-present until confirmed.
 
 *This step enriches each confirmed resource from Step 4R with detailed configuration, relationships, and health data.*
 
-**Use the enrichment (projected) commands in `examples/aws.md` / `examples/kubernetes.md`** — the same ones Step 2V uses. Never a command marked **terminal only**. Every command carries `--profile`/`--region` or `--context`; re-check the identity before the batch.
+**Use the enrichment (projected) commands in `examples/aws.md` / `examples/kubernetes.md`** — the same ones Step 2V uses. Never a command marked **terminal only**. Run only the batch approved at GATE 4b; a read the batch lacks is not run and is recorded `not checked (not in approved batch)`. Every command carries `--profile`/`--region` or `--context`; re-check the identity before the batch.
 
 **Data collected per resource:**
 
@@ -513,11 +516,11 @@ Wait for confirmation. Apply corrections and re-present until confirmed.
 
 Note but do not chase references that cross the service boundary (e.g., a security group rule allowing traffic from an unknown CIDR). Record these as boundary dependencies, the same way the IaC path records cross-stack references.
 
-**Report surprises.** If enrichment reveals resources that contradict document hints (e.g., a resource exists but with a different configuration than documented, or a documented relationship doesn't exist in practice), report them inline. This is informational — no gate required. The operator already confirmed the resource list at Gate 4b; surprises are noted in the catalog.
+**Report surprises.** If enrichment reveals resources that contradict document hints (e.g., a resource exists but with a different configuration than documented, or a documented relationship doesn't exist in practice), show them at the runbook gate and note them in the catalog. This needs no stop of its own: the operator already confirmed the resource list at Gate 4b.
 
-**Build runbooks.** Follow the same Step 4 process as the IaC path: enumerate user-visible failure modes, build investigation-tree runbooks with upstream-first branches, validate with the operator. Real-discovery has an advantage here — live health data and actual resource configurations are available. Live metrics give an **observed** baseline (statistic, window, date), recorded as `observed`, never as a limit or threshold. Only alarm, SLO and alerting-rule definitions that were read count as `declared`.
+**Build runbooks.** Follow the same Step 4 process as the IaC path, for the failure modes confirmed at GATE 4b: build investigation-tree runbooks with upstream-first branches, validate with the operator. Real-discovery has an advantage here — live health data and actual resource configurations are available. Live metrics give an **observed** baseline (statistic, window, date), recorded as `observed`, never as a limit or threshold. Only alarm, SLO and alerting-rule definitions that were read count as `declared`.
 
-**Present all runbooks and STOP.** Wait for the operator to validate the trees, same as Step 4 in the IaC path.
+**Present all runbooks and STOP**, with the Step 5R dependency graph (critical-path edges marked; `critical-path: unknown` edges asked), the surprises, and any failure mode `added` from the alarms read in Step 5R. Wait for the operator to validate the trees, same as Step 4 in the IaC path.
 
 ---
 
@@ -561,13 +564,7 @@ Note but do not chase references that cross the service boundary (e.g., a securi
     - *"No drift detection is possible without IaC — the catalog reflects the live state at discovery time."*
 12. `## Open Questions` — anything the operator said "I don't know, ask me later."
 
-**Present and STOP.**
-
-> "Catalog written to `.culiops/service-discovery/<filename>.md`. Please review the file.
->
-> **GATE: Review catalog before writing? Should I commit it?**"
-
-Committing follows the rule in Step 5.
+**Writing and the final message** follow Step 5: the Constraint 5 scan before writing, no commit, one `Next:` line.
 
 ---
 
@@ -593,11 +590,11 @@ For each dependency, record: the upstream resource (or stack), the linkage (outp
 
 If the human can't characterize an upstream, mark it "**unknown — investigation entry point**" and surface it in the runbook so on-callers don't dead-end.
 
-**Critical-path classification.** For each direct dependency, ask: does a user request to this service synchronously traverse it? Yes → critical path. No → eventual / async / observability-only. Record the basis per edge (`code:` / `operator-stated` / `inferred`). Infrastructure code often cannot show whether a call is synchronous: then the edge is `critical-path: unknown`, confirmed at the gate, and never defaulted to async.
+**Critical-path classification.** For each direct dependency, ask: does a user request to this service synchronously traverse it? Yes → critical path. No → eventual / async / observability-only. Record the basis per edge (`code:` / `operator-stated` / `inferred`). Infrastructure code often cannot show whether a call is synchronous: then the edge is `critical-path: unknown`, confirmed at GATE 2 (real-discovery: the runbook gate), and never defaulted to async. An edge the operator leaves unanswered stays `unknown`, becomes an investigation entry point in the runbooks, and is not asked again.
 
 **Render.** Produce a dependency graph (an indented list is fine if a DOT block isn't needed). Mark critical-path edges. Mark cross-stack dependencies. Mark cross-region / cross-account dependencies (these are blast-radius signals).
 
-**Present and STOP.**
+**Shown at GATE 2** (Step 2), with the questions about upstreams the code can't characterize, in this form:
 
 > "**Dependencies for `<service>` / `<instance>`:**
 >
@@ -611,7 +608,7 @@ If the human can't characterize an upstream, mark it "**unknown — investigatio
 >
 > Is this graph correct? Are there upstream/downstream edges I missed?"
 
-Wait for confirmation. Apply corrections and re-present until confirmed.
+Answers about the graph are applied without showing GATE 2 again; only a change covered by the GATE 2 re-plan rule (Step 2) shows it again.
 
 ---
 
@@ -619,7 +616,7 @@ Wait for confirmation. Apply corrections and re-present until confirmed.
 
 For each user-visible failure mode of the service, build a **decision tree**, not a script. The tree's job is to guide a methodical operator from a symptom to a hypothesis to a test to the next narrowing question.
 
-**Step 4a: Enumerate user-visible failure modes.** Ask the human (or derive from existing alarm definitions found in code) which user-facing symptoms the service can exhibit. Frame them in user terms:
+**Step 4a: Enumerate user-visible failure modes.** Propose them at GATE 2 (real-discovery: GATE 4b), derived from existing alarm definitions found in code, else from the categories below, and let the human add, remove or rename them there; do not ask separately. If later data (Step 2V, Step 5R enrichment) shows a failure mode the list lacks, add it and mark it `added` at the runbook gate. Frame them in user terms:
 
 - "User-facing requests slow / timing out"
 - "User-facing requests returning errors"
@@ -638,20 +635,20 @@ These categories replace the legacy alarm-name vocabulary ("5xx spike", "queue b
 5. **Tools branch — what to look at, where.** For each check, name the dashboard / log query / CLI. The skill writes this generically here ("check ALB target group health"); the per-cloud `examples/<cloud>.md` provides exact CLIs. If the operator needs a permission or a secret to run a check, name it ("requires read access to <secret reference>"). Every prescribed CLI is **read-only by default** — the required least-privilege role lives in the matching `examples/<cloud>.md` preamble. If a step would change state (drain, restart, failover, invalidate, scale, rollback, DNS change, config change), label the step **`MUTATION — requires explicit approval`**, state the blast radius, state the elevated permission required, and instruct the operator to pause and confirm with the team before running. The blast radius comes from evidence, not recall: how the command behaves (restart, failover, eviction, reconcile) cites `docs: <URL>` fetched this session, and what limits it (replica count, PodDisruptionBudget, Multi-AZ, rolling-update settings) cites `code:` (or `live:` after Step 2V). If either is missing, write `blast radius UNVERIFIED — assume the whole service`, not a reassurance such as "small". Name the owner's route too: a hand change to a resource whose Owner is a GitOps controller can be reverted at the next sync (Argo CD self-heal re-syncs live state to Git — `docs: https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/`) and one owned by an IaC tool shows as drift at the next apply, so give the change through its owner (Git change, paused sync, IaC change) as the first route and the direct command only as a labelled emergency option. The runbook must never chain commands such that one command's output triggers the next without a human review pause.
 6. **What this is NOT.** A line per false-friend: the symptoms that *look* like this category but are actually a different one, with a pointer to the right runbook.
 
-**Step 4c: Validate.** For each runbook tree, ask the human:
+**Step 4c: Validate.** For each runbook tree, ask the human, all in the GATE 3 message:
 
 - "Does this match how your team would actually investigate this symptom? Is there a step you'd take first that's not here?"
 - "Has this service had an incident in this category? If yes, would this tree have led the on-caller to the cause?"
 
 If the team has postmortems for past incidents in this category, reference them in the tree.
 
-**Present all runbooks and STOP.** Wait for the human to validate the trees. Adjust ordering, add branches, remove dead-end branches as requested.
+**Present all runbooks and STOP (GATE 3)**, with the Step 2V drift and not-found rows when Step 2V ran, and the Step 4c questions in the same message. Wait for the human to validate the trees. Adjust ordering, add branches, remove dead-end branches as requested.
 
 ---
 
 ### Step 5: Write the Discovery Document
 
-Only after Steps 1-4 are all confirmed.
+Only after Steps 1-4 are all confirmed (GATE 3 passed).
 
 **Output path.** `.culiops/service-discovery/<service>[-<instance>].md`. All output documents produced by any `culiops` skill live under the `.culiops/` directory at the repo root — this keeps plugin-generated artifacts separate from hand-written docs and makes them easy to find, regenerate, or gitignore as a group. If a single instance is cataloged, suffix the filename with the instance name (e.g., `-prod-eu`). If the catalog covers all instances of the same template (rare and only if the human confirms it's safe to combine), no suffix.
 
@@ -692,13 +689,9 @@ Only after Steps 1-4 are all confirmed.
 
 Repo-specific placeholders (e.g., `{shard}`, `{tenant}`, `{region}`, `{role}`, `{version}`) are added based on what Step 2 detected. Do NOT pre-declare placeholders the repo doesn't use.
 
-**Present and STOP.**
+**Before writing**, scan the draft for anything Constraint 5 forbids (secret-shaped values, full object dumps, presigned URLs, env values) and fix it. The skill writes the catalog and does not commit it: the catalog names accounts, resources and dependencies, so committing is the operator's step. If the operator later asks for changes, revise the file in place and repeat the Constraint 5 scan.
 
-> "Discovery doc written to `.culiops/service-discovery/<filename>.md`. Please review the file. Should I commit it?"
-
-**Before writing**, scan the draft for anything Constraint 5 forbids (secret-shaped values, full object dumps, presigned URLs, env values) and fix it.
-
-**Committing.** Only on approval. Show the current branch; if it is the repository's default branch, ask before committing there. Run `git remote -v`; if the remote is or may be public, warn that the catalog names accounts, resources and dependencies. Commit message: `Add service discovery doc for <service> (<instance>)`, staging only the catalog file.
+**Final message.** Report the path written (absolute under `CULIOPS_HOME`), the inventory row count and, when Step 2V ran, the drift and not-found counts. Make no other offer. The last line is one `Next:` line, its parts joined by ` · ` in this order: `answer the Open Questions in <path>` when that section is not empty; `decide the drift rows in <path>` when Step 2V, Step 4R or Step 5R found drift, not-found or `documented-not-found` rows; `review the caveats in <path>` when live verification was not performed, a parameter was skipped with a placeholder, the Unattributed list is not empty, or a blast radius is `UNVERIFIED`; when the output root is the repo's `.culiops/`, run `git remote -v` and add `commit <path> on a non-default branch if the team keeps these`, or `keep <path> out of the repo — the remote is or may be public` when it is or may be. Without any of the first three parts, it starts with `nothing open in <path>`.
 
 ---
 
@@ -730,7 +723,7 @@ Each examples file has its own `## Prerequisites` section (CLI version, authenti
 | Step 2V: Live cross-check | sonnet | Inventory, enrichment commands from examples/, pinned identity | Live column, drift rows | Template-driven queries; the batch is approved at a gate and drift is surfaced, not resolved |
 | Step 3: Compute dependency graph | opus | Resource inventory, code references (depends_on, data lookups, remote state, cross-stack refs), detector cross-stack hints | Dependency graph with direct/transitive deps, critical-path classification, protocol/reliability per link | Missing a critical-path dependency → runbook won't tell on-caller to check the real upstream cause |
 | Step 4: Build runbooks | opus | Inventory, dependency graph, examples/ templates, user journeys (from operator) | Per-symptom investigation decision trees with upstream-first branches | Most judgment-intensive step. Wrong runbook structure wastes incident response time. Domain expertise required |
-| Step 5: Write discovery doc | sonnet | All outputs from Steps 1-4, output format from SKILL.md, commit SHA | `.culiops/service-discovery/` document + git commit | Template assembly from validated outputs. GATE 5 catches formatting issues before finalization |
+| Step 5: Write discovery doc | sonnet | All outputs from Steps 1-4, output format from SKILL.md, commit SHA | `.culiops/service-discovery/` document (not committed) | Template assembly from outputs confirmed at GATEs 1–3. The Constraint 5 scan runs before writing; the operator reviews the file after the run, and nothing is committed |
 
 ### Model Routing — Real-Discovery Path
 
@@ -741,7 +734,7 @@ Each examples file has its own `## Prerequisites` section (CLI version, authenti
 | Step 2R: Image diagram analysis | opus | Image file (vision) | Resources, relationships with confidence | Judgment-heavy |
 | Step 2R: Text keyword extraction | sonnet | Text docs, keyword lists | Resource mentions, ARNs, regions | Pattern matching |
 | Step 2R: Hint consolidation | opus | All hints | Deduplicated hint list | Cross-referencing judgment |
-| Step 3R: Cloud context resolution | orchestrator | Cred probes, doc hints | Resolved provider/account/region | Interactive |
+| Step 3R: Cloud context resolution | orchestrator | Cred probes, doc hints | Resolved provider/account/region | Feeds the GATE 4a target block |
 | Step 4R: Broad query construction | sonnet | Cloud-discovery templates, service name | Proposed CLI commands | Template assembly |
 | Step 4R: Merge + confidence | opus | Seeds A + B | Resource list with flags | Cross-referencing |
 | Step 5R: Enrichment queries | sonnet | examples/ templates, resource list | Per-resource data | Template-driven |

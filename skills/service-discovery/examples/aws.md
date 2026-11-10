@@ -224,7 +224,7 @@ CloudWatch S3 metrics are reported in the bucket's own region; use that region f
 
 ## Third-party services on AWS
 
-For third-party services integrated into the stack (bot defenders, CDN edge functions, managed APM/logging vendors, feature-flag services), ask the human:
+For third-party services integrated into the stack (bot defenders, CDN edge functions, managed APM/logging vendors, feature-flag services), ask the human as an open question at GATE 2 (real-discovery: GATE 4b):
 - Whether the service uses it and how it's integrated (Lambda@Edge, ALB header inspection, DNS routing, sidecar agent, etc.).
 - Where its logs and metrics live (vendor dashboard URL, CloudWatch log group, S3 bucket).
 
