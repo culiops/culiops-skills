@@ -84,7 +84,7 @@ Verbal "yes" without seeing the five fields is not approval.
 | "I'll just enable Resource Explorer for them, it'll only take a moment" | STOP — enabling a service is a write action and out-of-scope. Five-field approval required. |
 | "Gate 3 approved the plan, so I can skip the per-source results or the cost check" | STOP — Gate 4 has no stop between sources, but after every source the skill still prints the results and the running cost against the estimate, and it pauses on any trigger. |
 | "This Athena scan would only cost a few dollars" | STOP — Tier 2 sources are out-of-scope. Five-field approval required even if cheap. |
-| "I'll just retry the failed call, maybe it was transient" | STOP — failures stop the skill. No silent retries. Operator decides. |
+| "I'll just retry the failed call, maybe it was transient" | STOP — failures stop the skill (`lambda:GetPolicy` `ResourceNotFoundException` is recorded, not a failure; see Gate 4). No silent retries. Operator decides. |
 | "The operator says the service is in us-east-1, I'll only query that region" | STOP — Resource Explorer's cross-region pass exists precisely to catch this assumption. Run it. |
 | "This CloudTrail event has a password in `requestParameters`, I'll include it" | STOP — redact secret-shaped fields before writing to the audit trail. |
 | "The cost cap is $1.00, I'm at $0.95, the next call is only $0.05" | STOP — the cap is a hard tripwire. Abort and ask the operator to raise the cap with justification. |
