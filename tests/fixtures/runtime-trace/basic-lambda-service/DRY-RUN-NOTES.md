@@ -2,22 +2,22 @@
 
 ## Gate transitions
 
-1. **Gate 1 (Scoping)** — operator provides all required inputs from `input.md`. Skill accepts and proceeds.
-2. **GATE 1a (Scoping probe)** — skill shows the 10-call read-only batch (see `mock-api-responses/probe-responses.json`), the operator approves it, and it runs. Checks: `sts:GetCallerIdentity` account equals the typed account; `organizations:DescribeOrganization` says member account (payer check; a standalone account would return `AWSOrganizationsNotInUseException`, also fine); Resource Explorer aggregator index in `us-east-1`, view includes `tags`; Event history reachable (1-page `LookupEvents`); CE probe (tag-filtered, 1 day) returns a non-zero amount, which also proves the cost-allocation tag is active. Only the CE probe is billed ($0.01).
-3. **Gate 2 (Capability matrix)** — built from the GATE 1a results, not from fresh calls. Resource Explorer, CloudTrail, Cost Explorer ✓ probed; Wiring reads and `GetMetricData` `untested` (no probe; p7 tests `ListMetrics` only) until their first Gate 4 call. Operator confirms.
-4. **Step 2b (Resolve resource set)** — free `resource-explorer-2:Search` `tag:service=payments` returns 5 resources (`re-001`). The list is shown to the operator.
-5. **Gate 3 (Plan)** — 6 rows priced against the resolved set: CE x2 ($0.02), CloudTrail 5 series (free), Wiring 8 reads (~$0.00, within free tiers), CloudWatch 23 metrics ($0.00023), conditional `ListMetrics` (free tier). Plan estimate $0.0202; $0.01 already spent in GATE 1a; projected $0.0302. Below the soft warning ($0.25). Operator approves the plan.
-6. **Gate 4 (Execution)** — order is Cost Explorer -> CloudTrail -> Wiring -> CloudWatch. Four source blocks, each approved separately. Resource Explorer has no Gate 4 block (it ran at Step 2b).
-7. **Gate 5 (Synthesis)** — skill assembles the draft matching `expected-output.md`. Operator approves with no revisions.
-8. **Gate 6 (Write)** — writes `.culiops/runtime-trace/payments-runtime-profile.md` and projected-field sidecars to `.culiops/runtime-trace/payments-audit/`. The skill does not commit them. Sample: `sample-sidecar-ct-001.json`.
+1. **Gate 1 (Scoping), stop 1 of 3** — operator provides all required inputs from `input.md`. Skill echoes them with the output root and shows the GATE 1a batch in the same message; the operator's one answer approves it.
+2. **GATE 1a (Scoping probe)** — the 12-call read-only batch runs (see `mock-api-responses/probe-responses.json`, plus p8 = `re-001`). Checks: `sts:GetCallerIdentity` account equals the typed account; `organizations:DescribeOrganization` says member account (payer check; a standalone account would return `AWSOrganizationsNotInUseException`, also fine); Resource Explorer aggregator index in `us-east-1`, view includes `tags`; Event history reachable (1-page `LookupEvents`); CE probe (tag-filtered, 1 day) returns a non-zero amount, which also proves the cost-allocation tag is active. Only the CE probe is billed ($0.01).
+3. **Gate 2 (Capability matrix)** — built from the GATE 1a results, not from fresh calls. Resource Explorer, CloudTrail, Cost Explorer ✓ probed; Wiring reads and `GetMetricData` `untested` (no probe; p7 tests `ListMetrics` only) until their first Gate 4 call. Shown in the Gate 3 message.
+4. **Step 2b (Resolve resource set)** — probe p8, free `resource-explorer-2:Search` `tag:service=payments`, returns 5 resources (`re-001`). The list opens the Gate 3 message.
+5. **Gate 3 (Plan)** — 6 rows priced against the resolved set: CE x2 ($0.02), CloudTrail 5 series (free), Wiring 8 reads (~$0.00, within free tiers), CloudWatch 23 metrics ($0.00023), conditional `ListMetrics` (free tier). Plan estimate $0.0202; $0.01 already spent in GATE 1a; projected $0.0302. Below the soft warning ($0.25). Stop 2 of 3: one answer confirms the set and the matrix and approves the plan.
+6. **Gate 4 (Execution)** — order is Cost Explorer -> CloudTrail -> Wiring -> CloudWatch. Four source blocks, each shown with the running cost; no stop between them. Resource Explorer has no Gate 4 block (it ran at Step 2b).
+7. **Gate 5 (Synthesis), stop 3 of 3** — skill assembles the draft matching `expected-output.md` and lists the files Gate 6 will write. Operator approves with no revisions.
+8. **Gate 6 (Write)** — no stop of its own; writes `.culiops/runtime-trace/payments-runtime-profile.md` and projected-field sidecars to `.culiops/runtime-trace/payments-audit/`. The skill does not commit them. Sample: `sample-sidecar-ct-001.json`.
 
 ## What this fixture validates
 
-- Happy path with all sources available, in the new gate order.
+- Happy path with all sources available, in the new gate order, with three operator stops (Gate 1, Gate 3, Gate 5).
 - **C1:** every CE request carries the tag Filter; the spend table is the tagged service's, not the account's. Shared NAT / data transfer is NOT in the table and appears only as an account-context note and a Gap.
 - **M2:** CE is DAILY over a closed window (End exclusive), summed; `Estimated` days excluded; `AmortizedCost`; record types limited to Usage / DiscountedUsage / SavingsPlanCoveredUsage.
 - **M3:** no "services billing but absent from diagram" callout (no catalog primitive in this run).
-- **H4:** the resource set is resolved and shown before the plan is priced; CloudTrail names and the 23-metric count come from it.
+- **H4:** the resource set is resolved before the plan is priced and shown above the plan at Gate 3; CloudTrail names and the 23-metric count come from it.
 - **H3:** CloudTrail is 5 call series (one lookup attribute per call), page cap 20 per resource, <= 2 req/s.
 - **H2:** the principals table keeps its heading and columns, with a "management events only" note above it; the new Wiring block carries configured callers.
 - **H5:** sparse metric. `payments-cleanup` returns an EMPTY `Values` array, a `ListMetrics` existence check follows, and the verdict is `no-activity-14d`. The TL;DR may only say "no activity observed in 14d; window too short to judge periodic jobs — ask the service owner or previous owners what payments-cleanup does". No "idle", no "candidate for sunset", no action word anywhere.

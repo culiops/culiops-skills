@@ -41,6 +41,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - Measured in simulated dry-runs on `happy-path` (the skill played against canned API responses, not a real account): 4 → 3 stops. With the clock moved so the report is 23 days old, the new text stops 3 times; v0.18.0 would stop 5 times (counted from the text, not run).
 - **cost-optimize-plan fixtures:** `happy-path` gains the missing classic-ELB mock for the optional target-group sweep (`rightsize-ec2.md` Query 6). Without it, a run that plans the sweep halts on a failed read. The `happy-path` and `missing-catalog` notes describe the IaC repo question as part of GATE 1.
 
+- **runtime-trace: three operator stops instead of eleven.** All seven gates still run. Only the prompts that wait for you merged, and no check was removed.
+  - Gate 1 shows the GATE 1a probe batch, and one answer confirms the scope and approves the batch.
+  - Gate 3 opens with the verified target, the resolved resource set and the capability matrix, and one answer confirms them and approves the plan. The Step 2b read moved into the probe batch as p8, so it now has an explicit opt-in. Every conditional read (`ce:GetTags`, `RESOURCE_ID`, the CloudTrail name retry, the `us-east-1` role series, the `ListMetrics` existence check) is now a row in the plan and does not run unless the plan was approved with it.
+  - Gate 4 runs the sources back to back. Each source's results and the running cost are still printed, and the $0.25, $1.00, over-2×-estimate and API-failure pauses are unchanged.
+  - You review the results with the draft at Gate 5. That answer also approves the Gate 6 write; an answer that asks for changes is not an approval.
+  - Measured in a simulated dry-run on `basic-lambda-service` (the skill played against canned API responses, not a real account): 10 → 3 stops. v0.18.0 would have stopped 11 times; the fixture lacked the p7 mock, so CloudWatch was skipped.
+- **runtime-trace: `lambda:GetPolicy` `ResourceNotFoundException` is recorded, not treated as a failure.** For a function this run resolved, it reads "no resource policy returned". For a function from an ARN list or catalog it reads "no resource policy returned, or the function no longer exists", with a Gaps line. The AWS API reference says only "The resource specified in the request does not exist", so the "no policy" reading is marked `UNVERIFIED`.
+- **runtime-trace: the run ends with one `Next:` line.** For a takeover it starts with handing the profile back to `service-takeover`.
+- **runtime-trace fixtures:** `basic-lambda-service` gains the missing p7 `cloudwatch:ListMetrics` probe mock, and the fixture notes, inputs and expected audit trails describe the three stops.
+
 ## [0.18.0] — 2026-11-08
 
 ### Changed
