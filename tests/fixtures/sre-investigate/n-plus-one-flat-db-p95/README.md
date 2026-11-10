@@ -2,6 +2,8 @@
 
 Mode: **Deep**. Fixture "now": **2026-10-20T15:30:00Z**.
 
+> **`expected-output/` is stale for the stop rows.** It was recorded before the two Deep checkpoints merged into one (2026-11-09), so its `run-log.md` shows two checkpoints and the old ending. Grade stops and the closing message against this README, not against `expected-output/`. See DRY-RUN-NOTES, "Single checkpoint".
+
 ## Scenario
 
 `GET /orders` on `orders-api` (EKS cluster `prod`, namespace `orders`, `us-east-1`) got slow after the Helm upgrade to `v2.15.0` at 13:04:50 UTC: route p95 went from about 0.18 s to about 0.71 s. The database looks healthy on latency: DB client-span p95 and RDS ReadLatency are flat. What changed is the number of queries per request. The release replaced a single joined query with a per-order `list_items` call inside a loop, so client spans per `GET /orders` transaction went from a median of 3 to a median of 41, and DB operations per second rose about tenfold.
