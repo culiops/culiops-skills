@@ -2,7 +2,7 @@
 
 ## Gate transitions
 
-1. **GATE 1 (Scope)** — Operator provides the path to the upstream report. Skill loads `upstream-report.md`, extracts the 3-item Remediation list, reads `**Cloud:** aws` (single-cloud) and `**Scope:** 123456789012 / acme-prod`. Records the **target**: account 123456789012, region ap-southeast-1 (from the resource IDs). Report `Date:` 2026-05-28 is fresh. $5/mo floor: all 3 items pass ($280, $100, $48). No catalog at `.culiops/service-discovery/`. Skill asks for the IaC repo path; operator supplies `~/acme-infra` (simulated). Operator confirms scope. Approved.
+1. **GATE 1 (Scope)** — Operator provides the path to the upstream report. Skill loads `upstream-report.md`, extracts the 3-item Remediation list, reads `**Cloud:** aws` (single-cloud) and `**Scope:** 123456789012 / acme-prod`. Records the **target**: account 123456789012, region ap-southeast-1 (from the resource IDs). Report `Date:` 2026-05-28 is fresh. $5/mo floor: all 3 items pass ($280, $100, $48). No catalog at `.culiops/service-discovery/`. The GATE 1 message asks for the IaC repo path (the first message gives none); one answer supplies `~/acme-infra` (simulated) and confirms scope. Approved. No separate question before GATE 1.
 
 2. **GATE 2 (Verification batch)** — Batch starts with Query 0: `0a` target check, then `0b-1..3` ownership probes. Skill then looks up playbooks: Per Step 2, each item's playbook queries are listed as conditional on Query 0b; here no owner routes to ❔, so none is skipped.
    - Item #1 (rightsize EC2) → `rightsize-ec2.md` (queries 1-6) + the commitment-coverage check for `Realizable` (query 7). Aggregate coverage 0% proves the instance is not covered (Constraint 9).
@@ -19,7 +19,9 @@
    - **#3:** Rev 🔴 (snapshot not provably valid), Blast 🟢, Evidence 🟢, Dep 🟢. Rule 3 first clause (Reversibility 🔴) → **🔴**. (Evidence is 🟢, so the "delete AND Evidence not 🟢" clause is not the trigger.)
    - Ordering hint: fresh final snapshot before #3.
 
-5. **GATE 3 (Plan review)** — Operator reviews, no revisions, approves. Plan written to `.culiops/cost-optimize-plan/acme-prod-20260528-0921.md`; left uncommitted (the repo does not track `.culiops/`).
+5. **GATE 3 (Plan review)** — Operator reviews, no revisions, approves. Plan written to `.culiops/cost-optimize-plan/acme-prod-20260528-0921.md`; left uncommitted (the repo does not track `.culiops/`). The final message ends with one line: `Next: open iac-change-execution with <plan path> + item #` (no 🔵 items, so no dev-note part).
+
+Three operator stops in total: GATE 1, GATE 2, GATE 3.
 
 ## What this fixture validates
 
