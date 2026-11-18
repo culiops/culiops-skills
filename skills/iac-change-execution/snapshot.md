@@ -6,7 +6,7 @@ SKILL.md and `lanes.md` cite this file by section name, as `snapshot.md › <hea
 
 - Every snapshot read is read-only, projects only the fields it needs and never retrieves a secret value (SKILL.md Step 1, Live verification batch; pre-flight Constraint 9). Every value carries its command, window and time (`live:`), and every member its source (SKILL.md Constraint 9).
 - The normal path adds no stop: each read is approved in a batch the operator already approves. The only stop the snapshot adds is `[H10]`, on a regression.
-- The numbers below (the cap, 15 minutes, two periods, 30 minutes, 1.5×, 70%, the low-volume floor) are inferred defaults, not measurements. The team may set its own. Show the measured value next to every verdict.
+- The numbers below (the cap, 15 minutes, two periods, 30 minutes, 1.5×, 70%, the error floors, the low-volume floor) are inferred defaults, not measurements. The team may set its own. Show the measured value next to every verdict.
 
 ## Snapshot set
 
@@ -49,7 +49,7 @@ A snapshot reads a fixed, small set of signals per member: firing alarms or aler
 - Metrics-backend queries (PromQL, with `offset 1w` for last week) when a backend is reachable.
 - No backend reachable: the snapshot is point-in-time only. Say `no metrics backend — point-in-time only` against the members and in the coverage line. No metric signal is compared, and Q3 has no request-rate source.
 
-**Batch length.** The snapshot adds at most about five commands per environment, whatever the member count: one alarms read, one metrics call per region or backend, and one state read per resource type (one read covers every member of that type). No read runs twice: the snapshot's alarms, metrics and state reads are also the assessor's L3 reads for categories 5 (timing) and 10 (resource health) on the set (`skills/pre-flight/assessors/iac-change.md` › L3 — Live Query Hooks). Run each once, and pass it in the caller block's `Live results:`.
+**Batch length.** The snapshot adds at most about five commands per environment, whatever the member count: one alarms read, one metrics call per region or backend, and one state read per resource type. No read runs twice: the snapshot's alarms, metrics and state reads are also the assessor's L3 reads for categories 5 (timing) and 10 (resource health) on the set (`skills/pre-flight/assessors/iac-change.md` › L3 — Live Query Hooks). Run each once, and pass it in the caller block's `Live results:`.
 
 ## When snapshots run
 
@@ -59,7 +59,7 @@ A snapshot reads a fixed, small set of signals per member: firing alarms or aler
 
 **S1 — before each apply.**
 - The latest snapshot of that environment, read again if it is older than 15 minutes. Reused: record it as reused, with its age.
-- Take it just before the execution stop (`[D1]` / `[B]` / `[F4]`). It was approved with the batch, so it needs no stop. S1 is the "before" of that apply.
+- Take it after the 4a plan and before 4b's pre-flight, so pre-flight and the execution stop (`[B]` / `[F4]`) see the same S1. If S1 changes `Q1(alarms)` or Q3 from what pre-flight got, re-run pre-flight (`lanes.md` › Timing re-ask). Dev lane: no pre-flight, so S1 just precedes `[D1]`. It was approved with the batch, so it needs no stop. S1 is the "before" of that apply.
 - S1 replaces the alarm and peak parts of the Q1–Q3 re-ask (`lanes.md` › Timing re-ask). The operator line is still shown at that stop.
 
 **PR path where CI, GitOps or PR automation applies later.**
@@ -78,26 +78,26 @@ A snapshot reads a fixed, small set of signals per member: firing alarms or aler
 - **Maximum wait:** 30 minutes after the rollout completes. Signals still too early then stay `after: too early`, and the environment's result is `Applied: yes — not verified`, the existing value. That is not a fail. A `regressed` already read still fails.
 - **PR path:** if the operator says "landed" too early, say `S2 ready at HH:MM`, and run S2 then or when the operator next speaks. This is the existing "tell me when the apply lands" re-entry (SKILL.md Step 5b, Final message), with no new stop.
 - **Observation window** (`lanes.md` › Staging-first): at its end, S2 runs again with staging's success criteria, so a delayed regression still blocks prod.
-- **Not-app-facing change:** no two-period wait. S2 reads the alarms and the point-in-time state once, with the success criteria, which verify the change as today. No metrics call.
+- **Not-app-facing change:** no two-period wait. S2 reads the alarms and the point-in-time state once, with the success criteria, which verify the change as today. No metrics call: its metric signals have no after-read, so they are left out of the counts and the no-data list, not counted as `no data`.
 
 ## Comparison
 
-Each member and signal gets a before value (S1, or the S0 it reused), an after value (S2) and a verdict: `ok`, `regressed`, `improved` or `no data`.
+Each member and signal gets a before value (S1, or the S0 it reused, or the PR path's window ending at the apply time), an after value (S2) and a verdict: `ok`, `regressed`, `improved` or `no data`.
 
 **`regressed`** uses pre-flight's default thresholds (`skills/pre-flight/SKILL.md` › Scoring Rules: "Thresholds are defaults, not measurements"), shown next to the measured values:
 - an alarm on a member is firing after the apply and was not firing before;
-- error count or rate, or p95 latency, is above 1.5× its before value;
+- error count or rate, or p95 latency, is above 1.5× its before value (for errors, with the floor below);
 - saturation crosses 70% from below;
 - ready vs desired, healthy targets or running count is lower than before;
 - restarts increased, or new `Warning` events appear on a member.
 
-Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. A before value of 0 gives no ratio, so it uses an absolute floor (inferred defaults the team may set its own): `regressed` only when the after error rate is ≥ 1% of requests, or, with no request count, ≥ 5 errors in the after window. Below the floor the verdict is `ok`, with the values shown. 1% is one failed request at the 100-request low-volume threshold, which still applies first.
+Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. An error signal is `regressed` only when both hold: the after window holds at least 5 errors, whatever the before value; and the rate or count is above 1.5× its before value, or, from a before value of 0 (no ratio), the after rate is ≥ 1% of requests. Below either bar the verdict is `ok`, with the values shown. Both bars are inferred defaults the team may set its own: a single sporadic error must not raise `[H10]`, and 1% is one failed request at the 100-request low-volume threshold, which still applies first.
 
 **`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than before. **`ok`** is neither.
 
 **Low volume** (an inferred default). Fewer than 100 requests (or invocations, messages, jobs) in either window gives `no data (low volume)` for that member's error and latency signals, not `regressed`. Below 100, one failed request is 1% or more of the window, so a 1.5× ratio can be a single request.
 
-**`no data`**: the signal has no value in one of the windows (a declined or failed read, no datapoint, no metrics backend). `no data (low volume)`, `no data (replaced)` and `after: too early` count as `no data` too. `no data` for every signal of a member does not fail the phase: list the member under "not verified".
+**`no data`**: the signal has no value in one of the windows (a declined or failed read, no datapoint, no metrics backend). `no data (low volume)`, `no data (replaced)` and `after: too early` count as `no data` too. `no data` for every signal of a member does not fail the phase: list it with the no-data members beside `Applied:` (Record).
 
 **Changes made on purpose are not regressions.**
 - **Changed resources** are judged by their success criteria, which state the expected values: the new instance class, the new running count, the new alarm existing. The thresholds apply to them only for signals the success criteria do not cover.
@@ -107,7 +107,7 @@ Compare an error rate (errors ÷ requests) where the member has a request count,
 - **A new alarm** has no before state, so it is not "newly firing". Report its state: that is a success-criteria matter. An alarm that was already firing before is not `regressed` either.
 - **Dependents** get the thresholds in full. Nothing about them is expected to change.
 
-**Result.** Any `regressed` sets the phase verification to `fail (snapshot)` (After a regression). The next stop's line `Phase <N> success criteria: <check> — <pass/fail>` is followed by `Snapshot: <n ok · n regressed · n no data>`.
+**Result.** Any `regressed` sets the phase verification to `fail (snapshot)` (After a regression). The first stop of the next phase or environment shows `Phase <N> success criteria: <check> — <pass/fail>`, then `Snapshot: <n ok · n regressed · n no data>`.
 
 ## After a regression
 
@@ -119,10 +119,10 @@ Compare an error rate (errors ÷ requests) where the member has a request count,
 - the `no data` members, and the plan's rollback path for this phase (informational: the operator's call).
 
 **Answers.** There is no default answer.
-- **A typed reason continues the run.** A reason says why the regression is unrelated or accepted, for example "unrelated: staging load test started 10:40, see #ops".
+- **A typed reason continues the run,** but only when the phase's success criteria passed; a failed success criterion stops the run as today. A reason says why the regression is unrelated or accepted, for example "unrelated: staging load test started 10:40, see #ops".
   - Record it word for word on the phase entry, `- Snapshot override: <reason> — operator, <time>`, as pre-flight records a RED justification at `[H5]`. Never rewrite it as evidence.
   - The phase verification stays `fail (snapshot)`, with the override beside it, and the environment's `Applied:` clause stays `yes — not verified` (Record).
-- **Anything else ends the run:** no reply, "ok", "continue", "yes", "stop", or any reply without a reason.
+- **Anything else ends the run:** "ok", "continue", "yes", "stop", or any other reply that gives no reason.
   - `Outcome: partially completed`, as for a failed success criterion.
   - No later phase's or environment's plan or apply runs, and no later S1 or S2 is taken. An entry never reached says `Execution: not applied — <reason>`; an environment never reached (prod, under staging-first) gets `no — not applied (<reason>)`. Both name the regression and `[H10]`.
   - The final message says what was applied and what was not. It makes no rollback offer (SKILL.md Step 5b, Final message).
@@ -168,7 +168,7 @@ The snapshot and the other batch reads answer pre-flight's L2 questions. The ope
 
 `Anything I can't see — a declared incident, a change freeze, anything else? No reply means none.`
 
-- An answer to the stop that says nothing about it is no reply. Record `Q1(declared)=no, Q2=no — operator (no objection at [<stop>], <time>)` and `Q7=none`.
+- An answer to the stop that says nothing about it is no reply. Record only the parts no source answered, as `Q1(declared)=no, Q2=no — operator (no objection at [<stop>], <time>)`, and `Q7=none`. An answer from a freeze calendar (`code:`) or the incident command (`live:`) keeps its own tag.
 - A reply is recorded as given, tagged `operator`: `Q7=<text>`, and `Q1(declared)=yes` or `Q2=yes` when it names an incident or a freeze. Pre-flight handles those as today.
 - A `Q1=yes` that comes only from `Q1(alarms)` gets no Incident Context follow-up: category 5 stays Red, and `[H5]` carries the operator's reason (pre-flight's inline rule).
 - Drop the line only when both a freeze source and an incident source were read (Operator profile).
@@ -234,7 +234,5 @@ Anything I can't see — a declared incident, a change freeze, anything else? No
   - `- Snapshot override: <reason> — operator, <time>`, after an override at `[H10]`.
 - `**Applied:**` `yes — verified` also requires no `regressed` member in that environment. List the `no data` members beside it. An environment with a `regressed` member is `yes — not verified`, overridden or not (an override keeps its `- Snapshot override:` line); so is one whose S2 timed out with signals still `after: too early`.
 - `Outcome:` follows the existing rules: `completed` when every planned apply ran, an overridden regression included; `partially completed` when `[H10]` ended the run.
-
-**Next stop.** The first stop of the next phase or environment shows `Phase <N> success criteria: <check> — <pass/fail>`, then `Snapshot: <n ok · n regressed · n no data>`.
 
 **Other records.** Staging's health before and after the apply, which prod's pre-flight gets (`lanes.md` › Staging-first), is staging's S1 and S2. The pre-flight record's `## Context Provided (L2)` shows each answer's tag (`live` / `code` / `operator` / `profile`); pre-flight writes it.
