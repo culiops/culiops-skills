@@ -159,3 +159,10 @@ Observation: the reused record scores 10 categories and the skill now defines 11
 
 
 Fix applied after the first v0.18 run: the record wrote ``**Waived:** `[F3]` `` (brackets and backticks). Constraint 15 and the 5b template now say the value is the bare stop ID (`**Waived:** F3 — operator, <time>`). Re-run: the table above is from the re-run.
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/helm-config-update/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 3** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F4.
+- **L2 items in the v0.18 script: 12** (Q1–Q7, Q8 `if asked`, `iac-change.1`–`iac-change.4`). This is the v0.18 figure for typed L2. v0.20 target: 0.

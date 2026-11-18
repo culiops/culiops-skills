@@ -22,8 +22,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
-| `git remote get-url origin` | `git-remote.txt` | always |
-| `git rev-parse *` | `git-rev-parse.txt` | always. `--short` gives the first 7 characters, `a1b2c3d` |
+| `git remote get-url origin` | `git-remote.txt` | always, for the repo itself (a `git -C <dir>` read of a sibling checkout is in App-source search) |
+| `git rev-parse *` | `git-rev-parse.txt` | always, for the repo itself. `--short` gives the first 7 characters, `a1b2c3d` |
 | `git log * --since=*` | `empty.txt` | change velocity: no commit touched the changed paths in the window |
 | `git log * --grep=*` | `empty.txt` | duplicate check by ticket key: no hits |
 | `git log * -S*` | `empty.txt` | duplicate check by identifier: no hits |
@@ -77,7 +77,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-staging*` | `lb-describe-staging.json` | reads of staging |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-staging` | `sns-attributes-staging.json` | reads of staging |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-staging *` | `sns-subscriptions-staging.json` | reads of staging. The file carries endpoints; only `Protocol` is needed |
-| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-staging.json` | reads of staging (nothing is firing) |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-staging.json` | S0/S1 of staging, before the staging apply, for every script except `operator-script-alarm-firing.md`: nothing is firing |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-staging*` | `metric-cpu-staging.json` | reads of staging. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-staging*` | `metric-memory-staging.json` | reads of staging. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-staging*` | `metric-alb-5xx-staging.json` | reads of staging. Any time window or period gives this file |
@@ -101,7 +101,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | reads of prod |
 | `aws sns get-topic-attributes --topic-arn *paymentapi-alerts-prod` | `sns-attributes-prod.json` | reads of prod |
 | `aws sns list-subscriptions-by-topic --topic-arn *paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | reads of prod. The file carries endpoints; only `Protocol` is needed |
-| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | reads of prod (nothing is firing) |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | S0/S1 of prod, before the prod apply: nothing is firing |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-prod*` | `metric-cpu-prod.json` | reads of prod. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization *paymentapi-svc-prod*` | `metric-memory-prod.json` | reads of prod. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-prod*` | `metric-alb-5xx-prod.json` | reads of prod. Any time window or period gives this file |
@@ -111,6 +111,46 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-high-prod *` | `alarm-cpu-high-before-prod.json` | prod, before the alarm exists. after the prod apply: `alarm-cpu-high-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-prod*` | `alarms-for-metric-cpu-prod.json` | prod, before the alarm exists (no alarm on this metric). after the prod apply: `alarms-for-metric-cpu-after-prod.json` |
 | `aws cloudwatch describe-alarm-history --alarm-name paymentapi-cpu-high-prod *` | `alarm-history-prod.json` | prod, before the alarm exists. after the prod apply: `alarm-history-after-prod.json` |
+
+## Operator profile
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `operator profile read` (`$CULIOPS_HOME/operator.md`, else `~/.culiops/operator.md`) | `operator-profile.md` | always. Q5 for terraform and Q4 for `acme/paymentapi-infra/paymentapi`, each dated 2026-10-19; none is `first time`; no `incident check:` line |
+
+## App-source search (in the read batch)
+
+No app source is findable: no directory beside the repo matches `paymentapi` by name or by origin.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `ls <parent of the repo>` (`ls ..`, `ls ../`, or the parent's path) | `siblings-ls.txt` | always. `dotfiles` and `paymentapi-infra` (this repo) |
+| `git -C ../dotfiles remote get-url origin` | `sibling-origin-dotfiles.txt` | always. `git@github.com:acme/dotfiles.git`, not the app |
+
+## Snapshot reads, `operator-script-alarm-firing.md` only (staging)
+
+These two rows are keyed to the named script (protocol rule 1). The plain staging rows for the same reads say "every script except `operator-script-alarm-firing.md`", so only these two apply to that script. In staging, an alarm on the load balancer in front of the service, `paymentapi-alb-elb5xx-staging` (`HTTPCode_ELB_5XX_Count`, `ALARM` since 2026-11-09 09:56 +07:00), is already firing before the apply. Prod has nothing firing.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-staging-alarm.json` | `operator-script-alarm-firing.md`, S0/S1 of staging: `paymentapi-alb-elb5xx-staging` is in `ALARM` |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-staging-alarm.json` | `operator-script-alarm-firing.md`, S2 of staging: the same alarm is still in `ALARM`; it was firing before the apply. The new `paymentapi-cpu-high-staging` is not in `ALARM` |
+
+## Snapshot reads (staging and prod)
+
+S0/S1 = before the environment's apply (the Step 1 batch, and the re-read just before that apply). S2 = after that environment's apply. The change adds an alarm that nothing reads, so a run reads the service and its load balancer only. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-staging.json` | S2 of staging, for every script except `operator-script-alarm-firing.md`: nothing is firing; the new alarm exists and is not in `ALARM` |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of prod: nothing is firing; the new alarm exists and is not in `ALARM` |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-staging.json` | S0/S1 of staging. Load balancer `paymentapi-alb-staging`: `RequestCount` (about 160–270 per 5 minutes), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-staging`: CPU 10–14%, memory 26–30% |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging: the same signals for the 6 periods after the staging apply, unchanged. Only if the skill reads metrics after the apply |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of prod. Load balancer `paymentapi-alb-prod`: `RequestCount` (about 3,450 per 5 minutes), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-prod`: CPU 36–40%, memory 50–54% |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2 of prod: the same signals for the 6 periods after the prod apply, unchanged. Only if the skill reads metrics after the apply |
+| `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-staging.json` | the key names staging. `LastModified` 2026-11-04 15:21 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the key names prod. `LastModified` 2026-10-12 21:03 +07:00. Same remark |
 
 ## Documentation lookups
 

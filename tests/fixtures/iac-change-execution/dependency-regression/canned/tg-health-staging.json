@@ -1,0 +1,26 @@
+{
+  "TargetHealthDescriptions": [
+    {
+      "Target": {
+        "Id": "10.20.1.41",
+        "Port": 8080,
+        "AvailabilityZone": "ap-southeast-1a"
+      },
+      "HealthCheckPort": "8080",
+      "TargetHealth": {
+        "State": "healthy"
+      }
+    },
+    {
+      "Target": {
+        "Id": "10.20.2.87",
+        "Port": 8080,
+        "AvailabilityZone": "ap-southeast-1b"
+      },
+      "HealthCheckPort": "8080",
+      "TargetHealth": {
+        "State": "healthy"
+      }
+    }
+  ]
+}

@@ -149,3 +149,10 @@ Stops: 2 (target 2) — PASS. Unscripted: 0. RED pre-flight runs: 0 (`P:15` `## 
 
 
 No fixes needed for this fixture.
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/simple-alarm-addition/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 2** (`grep -c '^STOP ' expected-output/stops.md`): A, B.
+- **L2 items in the v0.18 script: 12** (Q1–Q7, Q8 `if asked`, `iac-change.1`–`iac-change.4`). This is the v0.18 figure for typed L2. v0.20 target: 0 with `operator-script.md`, 2 with `operator-script-no-profile.md`.

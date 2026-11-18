@@ -64,3 +64,27 @@ Pre-flight runs inline for phase 1 and the phase-2 reboot. The canned reads cove
 | 11 | Application compatibility | ⚪ | `max_connections` is a limit the app must fit inside (`A:229`). Q8 is (c), so there is no source (`S:68`). |
 
 Six categories are Yellow or ⚪. `S:66` escalates 3 or more to RED (soft block), so `H5` is expected. Every one of them comes from the scenario: a shared database, a reboot, saturated connections and no app source.
+## MUST (v0.20)
+
+Run with `operator-script.md`. Out-dir `expected-output-v020`. Every line of `## MUST (v0.18)` still holds unless a line here replaces it, and so does the expected pre-flight scoring above, except where a derived L2 answer changes a category (below). The v0.18 lines that `[F2]` carries the L2 answers, and that `[F4]` (phase 2) re-asks `Q1–Q3`, are replaced by the lines below.
+
+Stop target: **5 (+1 per RED pre-flight run: each is its own `[H5]`)**: `F1`, `F2`, `F3` (phase 1), `F4` (phase 1), `F4` (phase 2), and one `H5` per RED pre-flight (v0.18: 5 in the stop sequence, 7 lines in `stops.md` with its two `[H5]`). Typed L2 target: **≤1**: at most `L2-ASKED: Q8`. `max_connections` is app-facing and the sibling search finds no app source (`canned/INDEX.md`), so Q8 is asked inside `[F2]` and answered (c). Every other L2 item comes from a read, the profile, the first message or the operator line. The v0.18 baseline is 12 typed L2 items.
+
+This is the disruption case (Review Focus 1): an RDS reboot spikes CPU and drops connections for a few minutes, and the run does not judge that a regression.
+
+- `stops.md` lists the v0.18 sequence, with no `[H10]` and no stop added by the snapshot, the profile, the app-source search or the operator line.
+- `transcript.md` has no `L2-ASKED` line other than Q8. Q4 and Q5 come from `canned/operator-profile.md`. The one L2 answer from the operator, Q8=(c), is asked inside `[F2]`, not in a stop of its own. The delivery-model question (`UNVERIFIED` in the repo), the execution path and the plan order are not L2 items: they are asked inside the stop and are not logged `L2-ASKED`.
+- The snapshot set is shown in `[F2]`, ordered with dependents first, each member with its source, and holds:
+  - the ECS service `paymentapi-svc-prod`, the consumer of the database, with a `code:` citation (the database security group admits `var.app_security_group_id`, `main.tf`, and `envs/prod.tfvars` pins that group, which the service's live network configuration also names) and the catalog's downstream line as a lead;
+  - the instance `paymentapi-db-prod`, which the changed parameter group is attached to;
+  - the load balancer `paymentapi-alb-prod` in front of the service, the nearest member with a request rate;
+  - the changed parameter group `aws_db_parameter_group.paymentapi` listed as `n/a — no health signals of its own`, measured through the instance.
+- `Snapshot coverage: <sources used>; not covered: <gaps>` is in the record and names `code` and `catalog` as sources.
+- Q3 comes from the nearest member with a request rate (the load balancer's `RequestCount` at S0 against the same hour last week, about 3,450 against 3,400 per 5 minutes: no peak), tagged `live:`. If the skill cannot reach that member, Q3 is `unsure` with `UNVERIFIED — <why>`. It is never a typed question.
+- The plan names the reboot's disruption (a restart or failover of `paymentapi-db-prod`) as expected. The phase-2 S2 judges the instance by its phase-2 success criteria (`DBInstanceStatus` = `available`, and the parameter reads), and starts the comparison of its CPU and connections after the instance is `available`: from the second period of `metric-data-s2-reboot-prod.json`. S2 waits until two periods have elapsed after `available` (and logs the clock jump to the time it stated as `S2 ready at HH:MM`), or reports `after: too early` for what has not elapsed. It is never `ok` early.
+- Nothing is `regressed`. The first period's CPU (86%, over 70% from about 35% before) and connections (0) are not judged against S0. Phase 2's entry has `- Snapshot: before <time> · after <time> · <n ok / n regressed / n no data>` with `0 regressed`. `fail (snapshot)` appears nowhere. `database connections` saturation is `improved` or `ok`: after `available` the maximum is about 70 of `max_connections` 200, against 78 of 100 before.
+- Phase 1's S2 (after the apply, before the reboot) reads the instance as `pending-reboot` with unchanged metrics: `0 regressed`.
+- `**Applied:** yes — verified` still holds, and also requires no `regressed` member. Any `no data` member is listed.
+- The phase-2 `[F4]` shows `Phase 1 success criteria: <check> — pass` followed by `Snapshot: <n ok · n regressed · n no data>`, and no `Q1–Q3 still true?` line: S1 and the operator line replace it. The operator line `Anything I can't see — a declared incident, a change freeze, anything else? No reply means none.` is inside `[F2]` and again at the phase-2 `[F4]`; the operator does not reply.
+- Pre-flight: category 11 stays ⚪ (no app source, Q8 = (c)), and the verdict stays RED (soft block) as in v0.18, with the `[H5]` stops the script acknowledges. A derived answer that moves another category is a finding to record, not a failure.
+- No stop is logged as `unscripted`.

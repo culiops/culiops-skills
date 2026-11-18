@@ -1,0 +1,39 @@
+{
+  "MetricDataResults": [
+    {
+      "Label": "paymentapi-alb-prod RequestCount",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [3452, 3489, 3401, 3438, 3475, 3412]
+    },
+    {
+      "Label": "paymentapi-alb-prod HTTPCode_Target_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod TargetResponseTime p95",
+      "StatusCode": "Complete",
+      "Statistic": "p95",
+      "Period": 300,
+      "Values": [0.114, 0.12, 0.108, 0.114, 0.12, 0.108]
+    },
+    {
+      "Label": "paymentapi-svc-prod CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [36.4, 39.6, 34.8, 38.0, 41.2, 36.4]
+    },
+    {
+      "Label": "paymentapi-svc-prod MemoryUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [50.9, 53.1, 49.8, 52.0, 54.2, 50.9]
+    }
+  ]
+}

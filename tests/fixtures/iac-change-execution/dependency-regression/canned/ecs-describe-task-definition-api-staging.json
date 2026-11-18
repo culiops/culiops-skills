@@ -1,0 +1,26 @@
+{
+  "taskDefinition": {
+    "family": "orders-api-staging",
+    "revision": 14,
+    "status": "ACTIVE",
+    "cpu": "512",
+    "memory": "1024",
+    "containerDefinitions": [
+      {
+        "name": "orders-api",
+        "image": "222222222222.dkr.ecr.ap-southeast-1.amazonaws.com/orders/orders-api:v1.9.0-rc1",
+        "environment": [
+          {
+            "name": "APP_ENV"
+          },
+          {
+            "name": "DB_HOST"
+          },
+          {
+            "name": "PORT"
+          }
+        ]
+      }
+    ]
+  }
+}

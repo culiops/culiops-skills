@@ -1,0 +1,4 @@
+remote: Create a pull request for '<branch>' on GitHub by visiting:
+remote:   https://github.com/acme/orders-infra/pull/new/<branch>
+To github.com:acme/orders-infra.git
+ * [new branch]      <branch> -> <branch>

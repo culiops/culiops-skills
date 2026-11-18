@@ -23,8 +23,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
-| `git remote get-url origin` | `git-remote.txt` | always |
-| `git rev-parse *` | `git-rev-parse.txt` | always. `--short` gives the first 7 characters, `a1b2c3d` |
+| `git remote get-url origin` | `git-remote.txt` | always, for the repo itself (a `git -C <dir>` read of a sibling checkout is in App-source search) |
+| `git rev-parse *` | `git-rev-parse.txt` | always, for the repo itself. `--short` gives the first 7 characters, `a1b2c3d` |
 | `git log * --since=*` | `empty.txt` | change velocity: no commit touched the changed paths in the window |
 | `git log * --grep=*` | `empty.txt` | duplicate check by ticket key: no hits |
 | `git log * -S*` | `empty.txt` | duplicate check by identifier: no hits |
@@ -76,6 +76,37 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `kubectl rollout status deploy/notifyapi -n notifyapi-prod*` | `kubectl-rollout-status.txt` | before, and after the rollout |
 | `kubectl get applications.argoproj.io *` | `kubectl-no-resource-type.txt` | always. No Argo CD |
 | `kubectl get kustomizations.kustomize.toolkit.fluxcd.io *` | `kubectl-no-resource-type-flux.txt` | always. No Flux |
+
+## Operator profile
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `operator profile read` (`$CULIOPS_HOME/operator.md`, else `~/.culiops/operator.md`) | `operator-profile.md` | always. Q5 for helm and Q4 for `acme/notifyapi/notifyapi`, each dated 2026-04-10; none is `first time`; no `incident check:` line |
+
+## App-source search (in the read batch)
+
+The app source is a sibling checkout, `../notifyapi-app`, whose origin matches the service name. Its checkout is not at the deployed version: the deployed image is `registry.internal/notifyapi:v3.1.0` (`values-prod.yaml:5`, and `deploy-notifyapi-prod.json`), but `HEAD` is 4 commits past the tag `v3.2.0`, and `v3.1.0` is an older commit.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `ls <parent of the repo>` (`ls ..`, `ls ../`, or the parent's path) | `siblings-ls.txt` | always. `dotfiles`, `notifyapi` (this repo) and `notifyapi-app` |
+| `git -C ../dotfiles remote get-url origin` | `sibling-origin-dotfiles.txt` | always. `git@github.com:acme/dotfiles.git`, not the app |
+| `git -C ../notifyapi-app remote get-url origin` | `sibling-origin-notifyapi-app.txt` | always. `git@github.com:acme/notifyapi-app.git` |
+| `git -C ../notifyapi-app rev-parse HEAD` | `app-source-rev-parse.txt` | always. `9be7a31c0d52f48e6a1b7c3d2e5f80194a6b7c8d`, not the commit of `v3.1.0` |
+| `git -C ../notifyapi-app describe --tags*` | `app-source-describe.txt` | always. `v3.2.0-4-g9be7a31` |
+| `git -C ../notifyapi-app rev-parse v3.1.0*` | `app-source-rev-parse-tag.txt` | always. The commit of the deployed tag, `4e2a9c5b7d1f3a60b8c2e4d6f81a3b5c7d9e0f12` |
+
+## Snapshot reads (prod)
+
+S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the apply). S2 = after the CI job has run the upgrade and the rollout has completed. The snapshot set is the Deployment `notifyapi` and its pods; the catalog lists no consumers. **No metrics backend is reachable:** the cluster has a `PrometheusRule` and a `ServiceMonitor`, but no Prometheus API address is in the repo, the catalog or the pre-flight record, and the fixture has no row for one. A query to a backend gets `no canned output`. The only metric reads are `kubectl top`, which are point-in-time, so the snapshot says `no metrics backend — point-in-time only` and Q3 has no request-rate source.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-prod.json` | S0/S1. A `List`: the Deployment `notifyapi` 2 of 2 ready, 2 pods `Running` with 0 restarts, no event, no StatefulSet, no HPA. The runner applies any `-o jsonpath` or `-o custom-columns` |
+| `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-after-prod.json` | S2. The Deployment 4 of 4 ready, 4 pods `Running` with 0 restarts, three `Normal` events from the scale-up, no `Warning` event |
+| `helm history notifyapi -n notifyapi-prod*` | `helm-history.txt` | S0/S1, and the automation-lag read: revision 9 `deployed` on 2026-04-02, 22 days before the clock start |
+| `helm history notifyapi -n notifyapi-prod*` | `helm-history-after.txt` | S2: revision 10 `deployed` at 14:31 +07:00 |
+| `gh run list *` | `gh-run-list.json` | CI history. The operator-stated delivery model is a CI job that runs `helm upgrade` on merge: its last run succeeded 2026-04-02 16:40 +07:00 |
 
 ## Documentation lookups
 

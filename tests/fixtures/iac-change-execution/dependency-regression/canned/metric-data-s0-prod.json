@@ -1,0 +1,144 @@
+{
+  "MetricDataResults": [
+    {
+      "Label": "orders-alb-prod RequestCount",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [8980, 9010, 9040, 8995, 9025, 8990, 9015, 9050, 9000, 8985, 9030, 9010]
+    },
+    {
+      "Label": "orders-alb-prod RequestCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [8890, 8920, 8950, 8905, 8935, 8900, 8925, 8960, 8910, 8895, 8940, 8920]
+    },
+    {
+      "Label": "orders-alb-prod HTTPCode_Target_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [18, 18, 19, 18, 17, 18, 19, 18, 18, 17, 18, 19]
+    },
+    {
+      "Label": "orders-alb-prod HTTPCode_Target_5XX_Count (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [18, 17, 18, 19, 18, 18, 17, 18, 19, 18, 18, 17]
+    },
+    {
+      "Label": "orders-alb-prod TargetResponseTime p95",
+      "StatusCode": "Complete",
+      "Statistic": "p95",
+      "Period": 300,
+      "Values": [0.18, 0.19, 0.18, 0.18, 0.19, 0.18, 0.18, 0.19, 0.18, 0.18, 0.19, 0.18]
+    },
+    {
+      "Label": "orders-alb-prod TargetResponseTime p95 (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "p95",
+      "Period": 300,
+      "Values": [0.184, 0.194, 0.184, 0.184, 0.194, 0.184, 0.184, 0.194, 0.184, 0.184, 0.194, 0.184]
+    },
+    {
+      "Label": "orders-api-prod CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [41.0, 41.6, 42.2, 40.4, 41.3, 41.9, 40.7, 41.5, 42.1, 40.5, 41.2, 41.8]
+    },
+    {
+      "Label": "orders-api-prod MemoryUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [55.0, 55.3, 55.6, 54.7, 55.1, 55.5, 54.9, 55.2, 55.5, 54.8, 55.1, 55.4]
+    },
+    {
+      "Label": "orders-worker-prod CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [29.0, 29.6, 30.2, 28.4, 29.3, 29.9, 28.7, 29.5, 30.1, 28.5, 29.2, 29.8]
+    },
+    {
+      "Label": "orders-worker-prod MemoryUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [47.0, 47.4, 47.8, 46.6, 47.2, 47.6, 46.8, 47.4, 47.8, 46.6, 47.1, 47.6]
+    },
+    {
+      "Label": "orders-worker-prod JobsProcessed",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [3000, 3010, 2990, 3005, 2995, 3000, 3002, 2998, 3001, 2999, 3004, 2996]
+    },
+    {
+      "Label": "orders-worker-prod JobsProcessed (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [2970, 2980, 2960, 2975, 2965, 2970, 2972, 2968, 2971, 2969, 2974, 2966]
+    },
+    {
+      "Label": "orders-worker-prod JobErrors",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [15, 14, 16, 15, 15, 14, 16, 15, 15, 16, 14, 15]
+    },
+    {
+      "Label": "orders-worker-prod JobErrors (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [15, 15, 14, 15, 16, 15, 15, 14, 15, 16, 15, 15]
+    },
+    {
+      "Label": "orders-db-prod CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [24.0, 24.6, 25.2, 23.4, 24.3, 24.9, 23.7, 24.5, 25.1, 23.5, 24.2, 24.8]
+    },
+    {
+      "Label": "orders-db-prod CPUUtilization (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [24.5, 25.1, 25.7, 23.9, 24.8, 25.4, 24.2, 25.0, 25.6, 24.0, 24.7, 25.3]
+    },
+    {
+      "Label": "orders-db-prod DatabaseConnections",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [84, 86, 88, 85, 84, 87, 88, 85, 84, 86, 88, 85]
+    },
+    {
+      "Label": "orders-db-prod DatabaseConnections (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [82, 84, 86, 83, 82, 85, 86, 83, 82, 84, 86, 83]
+    },
+    {
+      "Label": "orders-db-prod DatabaseConnections Maximum",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [96, 98, 101, 97, 96, 99, 101, 98, 97, 99, 102, 98]
+    },
+    {
+      "Label": "orders-db-prod DatabaseConnections Maximum (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [94, 96, 99, 95, 94, 97, 99, 96, 95, 97, 100, 96]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "services": [
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:333333333333:service/orders-cluster-prod/orders-api-prod",
+      "serviceName": "orders-api-prod",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:333333333333:cluster/orders-cluster-prod",
+      "status": "ACTIVE",
+      "desiredCount": 4,
+      "runningCount": 4,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/orders-api-prod:14",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0c1a2b3c4d5e6f701",
+            "subnet-0c2b3c4d5e6f70812"
+          ],
+          "securityGroups": [
+            "sg-0c6b5c4d3e2f10987"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173702",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/orders-api-prod:14",
+          "desiredCount": 4,
+          "pendingCount": 0,
+          "runningCount": 4,
+          "failedTasks": 0,
+          "createdAt": "2026-11-05T07:10:12.331000+00:00",
+          "rolloutState": "COMPLETED"
+        }
+      ],
+      "events": [
+        {
+          "createdAt": "2026-11-05T07:10:12.331000+00:00",
+          "message": "(service orders-api-prod) has reached a steady state."
+        }
+      ],
+      "loadBalancers": [
+        {
+          "targetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:333333333333:targetgroup/orders-api-tg-prod/9c1ed4a2b7f06e83",
+          "containerName": "orders-api",
+          "containerPort": 8080
+        }
+      ]
+    },
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:333333333333:service/orders-cluster-prod/orders-worker-prod",
+      "serviceName": "orders-worker-prod",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:333333333333:cluster/orders-cluster-prod",
+      "status": "ACTIVE",
+      "desiredCount": 4,
+      "runningCount": 4,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/orders-worker-prod:14",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0c3c4d5e6f7081923",
+            "subnet-0c4d5e6f708192a34"
+          ],
+          "securityGroups": [
+            "sg-0c7c6d5e4f3a21098"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173712",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:333333333333:task-definition/orders-worker-prod:14",
+          "desiredCount": 4,
+          "pendingCount": 0,
+          "runningCount": 4,
+          "failedTasks": 0,
+          "createdAt": "2026-11-05T07:10:40.902000+00:00",
+          "rolloutState": "COMPLETED"
+        }
+      ],
+      "events": [
+        {
+          "createdAt": "2026-11-05T07:10:40.902000+00:00",
+          "message": "(service orders-worker-prod) has reached a steady state."
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

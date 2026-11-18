@@ -193,3 +193,10 @@ Fixes applied:
 - The Outcome MUST now reads the record's `## Outcome` section.
 
 **Still open (reported, not fixed in this branch):** row 13, phase-2 change velocity. The phase-2 Yellow, "stacking on an uncommitted prior change", is a true signal, not a scoring error. The direct-apply path never commits applied code, so phase 1's applied change lives only in the working tree, and a later apply from the default branch would revert it. That gap predates this branch. The follow-up is to commit applied code on the direct-apply path, not to change pre-flight's scoring. It changes neither the stop count nor the verdict.
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/multi-phase-rds-upgrade/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 7** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F3, H5, F4, H5, F4. That is the 5-stop sequence (F1, F2, F3, F4, F4) plus two `[H5]`, one per RED pre-flight run.
+- **L2 items in the v0.18 script: 12** (Q1–Q8, `iac-change.1`–`iac-change.4`), plus the phase-2 `[F4]` re-ask `Q1–Q3 still true (if asked)`. This is the v0.18 figure for typed L2. v0.20 target: at most 1 (Q8).

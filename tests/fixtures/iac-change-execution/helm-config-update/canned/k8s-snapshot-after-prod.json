@@ -1,0 +1,138 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "kind": "Deployment",
+      "metadata": {
+        "name": "notifyapi",
+        "namespace": "notifyapi-prod"
+      },
+      "spec": {
+        "replicas": 4
+      },
+      "status": {
+        "replicas": 4,
+        "readyReplicas": 4,
+        "updatedReplicas": 4,
+        "availableReplicas": 4
+      }
+    },
+    {
+      "kind": "Pod",
+      "metadata": {
+        "name": "notifyapi-6c9f7d58b4-x7k2p",
+        "namespace": "notifyapi-prod"
+      },
+      "spec": {
+        "nodeName": "ip-10-30-1-14.ap-southeast-1.compute.internal"
+      },
+      "status": {
+        "phase": "Running",
+        "containerStatuses": [
+          {
+            "name": "notifyapi",
+            "ready": true,
+            "restartCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "kind": "Pod",
+      "metadata": {
+        "name": "notifyapi-6c9f7d58b4-m4t9d",
+        "namespace": "notifyapi-prod"
+      },
+      "spec": {
+        "nodeName": "ip-10-30-2-71.ap-southeast-1.compute.internal"
+      },
+      "status": {
+        "phase": "Running",
+        "containerStatuses": [
+          {
+            "name": "notifyapi",
+            "ready": true,
+            "restartCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "kind": "Pod",
+      "metadata": {
+        "name": "notifyapi-6c9f7d58b4-q2w8z",
+        "namespace": "notifyapi-prod"
+      },
+      "spec": {
+        "nodeName": "ip-10-30-3-9.ap-southeast-1.compute.internal"
+      },
+      "status": {
+        "phase": "Running",
+        "containerStatuses": [
+          {
+            "name": "notifyapi",
+            "ready": true,
+            "restartCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "kind": "Pod",
+      "metadata": {
+        "name": "notifyapi-6c9f7d58b4-h5n3c",
+        "namespace": "notifyapi-prod"
+      },
+      "spec": {
+        "nodeName": "ip-10-30-1-14.ap-southeast-1.compute.internal"
+      },
+      "status": {
+        "phase": "Running",
+        "containerStatuses": [
+          {
+            "name": "notifyapi",
+            "ready": true,
+            "restartCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "kind": "Event",
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "message": "Scaled up replica set notifyapi-6c9f7d58b4 to 4 from 2",
+      "involvedObject": {
+        "kind": "Deployment",
+        "name": "notifyapi"
+      },
+      "lastTimestamp": "2026-04-24T07:31:50Z",
+      "count": 1
+    },
+    {
+      "kind": "Event",
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "message": "Created pod: notifyapi-6c9f7d58b4-q2w8z",
+      "involvedObject": {
+        "kind": "ReplicaSet",
+        "name": "notifyapi-6c9f7d58b4"
+      },
+      "lastTimestamp": "2026-04-24T07:31:50Z",
+      "count": 1
+    },
+    {
+      "kind": "Event",
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "message": "Created pod: notifyapi-6c9f7d58b4-h5n3c",
+      "involvedObject": {
+        "kind": "ReplicaSet",
+        "name": "notifyapi-6c9f7d58b4"
+      },
+      "lastTimestamp": "2026-04-24T07:31:50Z",
+      "count": 1
+    }
+  ]
+}

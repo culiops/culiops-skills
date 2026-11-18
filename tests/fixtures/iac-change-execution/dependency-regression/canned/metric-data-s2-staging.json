@@ -1,0 +1,88 @@
+{
+  "MetricDataResults": [
+    {
+      "Label": "orders-alb-staging RequestCount",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [2000, 2000, 2000, 2000, 2000, 2000]
+    },
+    {
+      "Label": "orders-alb-staging HTTPCode_Target_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [62, 62, 62, 62, 62, 62]
+    },
+    {
+      "Label": "orders-alb-staging TargetResponseTime p95",
+      "StatusCode": "Complete",
+      "Statistic": "p95",
+      "Period": 300,
+      "Values": [0.21, 0.22, 0.21, 0.22, 0.21, 0.22]
+    },
+    {
+      "Label": "orders-api-staging CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [38.4, 39.1, 38.0, 38.7, 39.3, 38.5]
+    },
+    {
+      "Label": "orders-api-staging MemoryUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [52.5, 52.8, 52.3, 52.6, 52.9, 52.4]
+    },
+    {
+      "Label": "orders-worker-staging CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [31.2, 31.8, 31.0, 31.5, 32.0, 31.3]
+    },
+    {
+      "Label": "orders-worker-staging MemoryUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [45.0, 45.3, 44.9, 45.2, 45.5, 45.1]
+    },
+    {
+      "Label": "orders-worker-staging JobsProcessed",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [600, 602, 598, 601, 599, 600]
+    },
+    {
+      "Label": "orders-worker-staging JobErrors",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [138, 141, 137, 140, 139, 138]
+    },
+    {
+      "Label": "orders-db-staging CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [14.2, 14.0, 14.5, 14.1, 14.3, 14.0]
+    },
+    {
+      "Label": "orders-db-staging DatabaseConnections",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [30, 30, 29, 30, 30, 29]
+    },
+    {
+      "Label": "orders-db-staging DatabaseConnections Maximum",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [35, 36, 35, 35, 36, 35]
+    }
+  ]
+}

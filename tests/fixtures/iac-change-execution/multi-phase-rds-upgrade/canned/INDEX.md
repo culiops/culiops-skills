@@ -21,8 +21,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
-| `git remote get-url origin` | `git-remote.txt` | always |
-| `git rev-parse *` | `git-rev-parse.txt` | always. `--short` gives the first 7 characters, `a1b2c3d` |
+| `git remote get-url origin` | `git-remote.txt` | always, for the repo itself (a `git -C <dir>` read of a sibling checkout is in App-source search) |
+| `git rev-parse *` | `git-rev-parse.txt` | always, for the repo itself. `--short` gives the first 7 characters, `a1b2c3d` |
 | `git log * --since=*` | `empty.txt` | change velocity: no commit touched the changed paths in the window |
 | `git log * --grep=*` | `empty.txt` | duplicate check by ticket key: no hits |
 | `git log * -S*` | `empty.txt` | duplicate check by identifier: no hits |
@@ -78,6 +78,9 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeStorageSpace *paymentapi-db-prod*` | `metric-rds-free-storage-prod.json` | reads of prod, any window |
 | `aws ecs describe-services --cluster paymentapi-cluster-prod --services paymentapi-svc-prod *` | `ecs-describe-services-prod.json` | the app tier that connects to the database |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-prod*` | `tg-health-prod.json` | the app tier |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-prod *` | `tg-describe-prod.json` | the app tier. Names the load balancer in front of it |
+| `aws elbv2 describe-target-groups --target-group-arns *paymentapi-tg-prod*` | `tg-describe-prod.json` | the app tier. The same file as the `--names` form |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | the load balancer `paymentapi-alb-prod` |
 
 ## CloudWatch alarms (prod)
 
@@ -87,9 +90,40 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-db-connections-high-prod *` | `alarm-connections-before-prod.json` | before the phase-1 apply. After it: `alarm-connections-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/RDS --metric-name DatabaseConnections *` | `alarms-for-metric-connections-prod.json` | before the phase-1 apply. After it: `alarms-for-metric-connections-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/RDS --metric-name CPUUtilization *` | `alarms-for-metric-cpu-prod.json` | always |
-| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | always (the connections alarm is `OK` now; its history shows it flips often) |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | S0/S1 of phase 1 (the connections alarm is `OK` now; its history shows it flips often) |
 | `aws cloudwatch describe-alarm-history --alarm-name paymentapi-db-connections-high-prod *` | `alarm-history-connections-prod.json` | always |
 | `aws sns list-subscriptions-by-topic --topic-arn arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | always. The file carries endpoints; only `Protocol` is needed |
+
+## Operator profile
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `operator profile read` (`$CULIOPS_HOME/operator.md`, else `~/.culiops/operator.md`) | `operator-profile.md` | always. Q5 for terraform and Q4 for `acme/paymentapi-infra/paymentapi`, each dated 2026-10-19; none is `first time`; no `incident check:` line |
+
+## App-source search (in the read batch)
+
+No app source is findable: no directory beside the repo matches `paymentapi` by name or by origin. The change touches an app-facing attribute (`max_connections`), so Q8 is still needed and is the one typed L2 item this fixture allows (README).
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `ls <parent of the repo>` (`ls ..`, `ls ../`, or the parent's path) | `siblings-ls.txt` | always. `dotfiles` and `paymentapi-infra` (this repo) |
+| `git -C ../dotfiles remote get-url origin` | `sibling-origin-dotfiles.txt` | always. `git@github.com:acme/dotfiles.git`, not the app |
+
+## Snapshot reads (prod)
+
+The snapshot set has three kinds of member: the database `paymentapi-db-prod` (the parameter group has no signals of its own and is measured through the instance that uses it), the ECS service `paymentapi-svc-prod` (the consumer: `main.tf` lets `var.app_security_group_id` into the database's security group, and the catalog lists the service as downstream) and the load balancer `paymentapi-alb-prod` in front of that service (the nearest member with a request rate). States:
+
+- S0/S1 of phase 1: before the phase-1 apply.
+- S2 of phase 1, and S1 of phase 2: after the phase-1 apply, before the reboot command. The instance is `pending-reboot`; no metric has changed.
+- S2 of phase 2: after the reboot command. The first period after the reboot is the reboot itself: the instance is `rebooting`, CPU is 86% and connections are 0. From the second period the instance is `available` and every series is back to normal. The app tier rides through the reboot, so only the database's own series shows it.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of phase 1, S1 of phase 2 and S2 of phase 2: nothing is firing (the reboot period is one period, shorter than either database alarm needs) |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of phase 1, and S2 of phase 1 / S1 of phase 2 (nothing changed in the metrics). Database: CPU 31–37%, connections average 50–53 and maximum 76–78 of `max_connections` 100. ECS service: CPU 35–41%, memory 50–54%. Load balancer: `RequestCount` about 3,450 per 5 minutes, 5XX 0, p95 about 0.11 s. Each with the same hour a week ago |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-reboot-prod.json` | S2 of phase 2: 6 periods from the reboot command, database series as described above, the others unchanged. The runner returns the periods inside the window the skill asked for |
+| `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-10-30 16:14 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
 
 ## Documentation lookups
 

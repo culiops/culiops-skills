@@ -1,0 +1,29 @@
+{
+  "MetricAlarms": [
+    {
+      "AlarmName": "orders-worker-errors-staging",
+      "AlarmArn": "arn:aws:cloudwatch:ap-southeast-1:222222222222:alarm:orders-worker-errors-staging",
+      "AlarmDescription": "orders-worker job errors above 20 per 5 minutes for staging",
+      "ActionsEnabled": true,
+      "OKActions": [
+        "arn:aws:sns:ap-southeast-1:222222222222:orders-alerts-staging"
+      ],
+      "AlarmActions": [
+        "arn:aws:sns:ap-southeast-1:222222222222:orders-alerts-staging"
+      ],
+      "InsufficientDataActions": [],
+      "StateValue": "OK",
+      "StateReason": "Threshold Crossed: 2 datapoints [3.0 (16/11/26 02:55:00), 3.0 (16/11/26 02:50:00)] were not greater than the threshold (20.0).",
+      "StateUpdatedTimestamp": "2026-11-14T03:05:44.318000+00:00",
+      "MetricName": "JobErrors",
+      "Namespace": "Orders/Worker",
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 20.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching"
+    }
+  ],
+  "CompositeAlarms": []
+}
