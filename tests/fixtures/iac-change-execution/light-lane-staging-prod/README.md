@@ -96,7 +96,7 @@ Run with `operator-script.md` and with `operator-script-alarm-firing.md`. Out-di
 
 Stop target: **3 stops**, in this order: `A`, `B` (staging), `B` (prod) (v0.18: 3). Typed L2 target: **0** (v0.18 baseline: 12 L2 items in the script, see `DRY-RUN-NOTES.md`).
 
-- `stops.md` lists exactly `A`, `B`, `B`. The snapshot, the app-source search, the profile read and the operator line add no stop. No `[H10]`, no `[H5]`.
+- `stops.md` lists exactly `A`, `B`, `B`. The snapshot, the profile read and the operator line add no stop. No `[H10]`, no `[H5]`.
 - `transcript.md` has no `L2-ASKED` line. Q4 and Q5 come from `canned/operator-profile.md`. Q8 is not asked (not app-facing). The delivery-model question (`UNVERIFIED` in the repo), the execution path and the plan order are not L2 items: they are asked inside the stop and are not logged `L2-ASKED`.
 - Not-app-facing change: the snapshot set holds the service and its load balancer, no dependency members, and no S2 datapoint wait (the success criteria verify the alarm).
 - S1 runs before each `[B]`: in `transcript.md`, the staging S1 (or a reuse of staging's S0, recorded as reused with its age, when it is 15 minutes old or less) comes before the staging `[B]`, and prod's S1 before the prod `[B]`. Each S1 is read for its own environment (`--profile` or resource names of that environment).
