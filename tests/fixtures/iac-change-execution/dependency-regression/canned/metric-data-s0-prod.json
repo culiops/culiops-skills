@@ -139,6 +139,48 @@
       "Statistic": "Maximum",
       "Period": 300,
       "Values": [94, 96, 99, 95, 94, 97, 99, 96, 95, 97, 100, 96]
+    },
+    {
+      "Label": "orders-alb-prod HTTPCode_ELB_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "orders-alb-prod HTTPCode_ELB_5XX_Count (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "orders-alb-prod HealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+    },
+    {
+      "Label": "orders-alb-prod HealthyHostCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+    },
+    {
+      "Label": "orders-alb-prod UnHealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "orders-alb-prod UnHealthyHostCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ]
 }

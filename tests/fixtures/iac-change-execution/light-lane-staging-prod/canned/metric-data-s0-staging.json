@@ -55,6 +55,48 @@
       "Statistic": "Average",
       "Period": 300,
       "Values": [26.0, 28.0, 30.0, 27.0, 29.0, 26.0, 28.0, 30.0, 27.0, 29.0, 26.0, 28.0]
+    },
+    {
+      "Label": "paymentapi-alb-staging HTTPCode_ELB_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-staging HTTPCode_ELB_5XX_Count (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-staging HealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    {
+      "Label": "paymentapi-alb-staging HealthyHostCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    {
+      "Label": "paymentapi-alb-staging UnHealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-staging UnHealthyHostCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ]
 }

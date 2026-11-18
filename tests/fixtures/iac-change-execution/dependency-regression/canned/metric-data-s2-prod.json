@@ -83,6 +83,27 @@
       "Statistic": "Maximum",
       "Period": 300,
       "Values": [97, 99, 98, 100, 97, 99]
+    },
+    {
+      "Label": "orders-alb-prod HTTPCode_ELB_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "orders-alb-prod HealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [4, 4, 4, 4, 4, 4]
+    },
+    {
+      "Label": "orders-alb-prod UnHealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0]
     }
   ]
 }

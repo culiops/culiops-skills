@@ -138,6 +138,8 @@ These rows are keyed to the named script (protocol rule 1). The plain staging ro
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-staging-alarm.json` | `operator-script-alarm-firing.md`, before the staging apply: the one alarm on the service, `paymentapi-alb-elb5xx-staging`, in `ALARM` (the state and reason of the `--state-value ALARM` file) |
 | `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-after-staging-alarm.json` | `operator-script-alarm-firing.md`, after the staging apply: `paymentapi-alb-elb5xx-staging` in `ALARM` and the new `paymentapi-cpu-high-staging` in `OK` |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-alb-elb5xx-staging *` | `alarms-firing-staging-alarm.json` | `operator-script-alarm-firing.md`, any state: the alarm in `ALARM` |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-staging-alarm.json` | `operator-script-alarm-firing.md`, S0/S1 of staging: as `metric-data-s0-staging.json`, except `HTTPCode_ELB_5XX_Count` 8–14 per 5 minutes (above the alarm's threshold of 5), 0 the same hour a week ago |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging-alarm.json` | `operator-script-alarm-firing.md`, S2 of staging: as `metric-data-s2-staging.json`, except `HTTPCode_ELB_5XX_Count` 8–13 per 5 minutes, as at S0 |
 
 ## Snapshot reads (staging and prod)
 
@@ -147,9 +149,9 @@ S0/S1 = before the environment's apply (the Step 1 batch, and the re-read just b
 |---|---|---|
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-staging.json` | S2 of staging, for every script except `operator-script-alarm-firing.md`: nothing is firing; the new alarm exists and is not in `ALARM` |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of prod: nothing is firing; the new alarm exists and is not in `ALARM` |
-| `aws cloudwatch get-metric-data *` | `metric-data-s0-staging.json` | S0/S1 of staging. Load balancer `paymentapi-alb-staging`: `RequestCount` (about 160–270 per 5 minutes), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-staging`: CPU 10–14%, memory 26–30% |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging: the same signals for the 6 periods after the staging apply, unchanged |
-| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of prod. Load balancer `paymentapi-alb-prod`: `RequestCount` (about 3,450 per 5 minutes), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-prod`: CPU 36–40%, memory 50–54% |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-staging.json` | S0/S1 of staging, for every script except `operator-script-alarm-firing.md`. Load balancer `paymentapi-alb-staging`: `RequestCount` (about 160–270 per 5 minutes), `HTTPCode_Target_5XX_Count` and `HTTPCode_ELB_5XX_Count` (0), `HealthyHostCount` 1, `UnHealthyHostCount` 0, `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-staging`: CPU 10–14%, memory 26–30% |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging, for every script except `operator-script-alarm-firing.md`: the same signals for the 6 periods after the staging apply, unchanged |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of prod. Load balancer `paymentapi-alb-prod`: `RequestCount` (about 3,450 per 5 minutes), `HTTPCode_Target_5XX_Count` and `HTTPCode_ELB_5XX_Count` (0), `HealthyHostCount` 3, `UnHealthyHostCount` 0, `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-prod`: CPU 36–40%, memory 50–54% |
 | `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2 of prod: the same signals for the 6 periods after the prod apply, unchanged |
 | `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
 | `aws s3api head-object --bucket * --key *` | `s3-head-object-state-staging.json` | the key names staging. `LastModified` 2026-11-04 15:21 +07:00. The code declares no backend block |
