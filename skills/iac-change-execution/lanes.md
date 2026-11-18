@@ -1,8 +1,8 @@
 # Lanes — rule data for iac-change-execution
 
-SKILL.md cites this file by section name. A lane sets the **stops**, the points where the operator must answer. It never removes a **check**. Self-checks, the duplicate check, the evidence rules, the plan cross-check, success criteria, the parity check and fresh eyes (its own skip rule) run in every lane. The dev lane skips fresh eyes only. The hard gates H1–H9 hold in every lane.
+SKILL.md cites this file by section name. A lane sets the **stops**, the points where the operator must answer. It never removes a **check**. Self-checks, the duplicate check, the evidence rules, the plan cross-check, success criteria, the parity check and fresh eyes (its own skip rule) run in every lane. The dev lane skips fresh eyes only. The hard gates H1–H10 hold in every lane.
 
-**IDs (exact):** lanes `dev`, `light`, `full` · stops `D1`, `A`, `B`, `F1`, `F2`, `F3`, `F4` · hard gates `H1`–`H9` · escalations `E1`–`E4`, `plan-confirm`.
+**IDs (exact):** lanes `dev`, `light`, `full` · stops `D1`, `A`, `B`, `F1`, `F2`, `F3`, `F4` · hard gates `H1`–`H10` · escalations `E1`–`E4`, `plan-confirm`.
 
 ## Lane rule
 
@@ -63,6 +63,7 @@ Every lane, never waived. A request to skip one is refused, citing its H-id and 
 | H7 | Staging before prod. The only ways around it are the staging-first exceptions (a)–(c) (see Staging-first). | Checked before each `[B]` / `[F4]` whose mutation reaches prod: an apply, or a PR or merge that applies prod. No staging evidence and no recorded exception → its own stop `[H7]`. Ordering detail: Staging-first; SKILL.md Step 2 plans it. |
 | H8 | Unsupported owner tool, or an import over an active CloudFormation / Serverless owner (existing rules). | Its own stop `[H8]` in Step 1. Rules: SKILL.md › Supported stack, and the Step 1 ownership check. |
 | H9 | Pre-flight runs before every staging or prod apply. Only a proven dev target skips it. | Before each staging or prod `[B]` / `[F4]`. A reusable record counts as a run only under the full SKILL.md Step 4b reuse contract. An unproven target counts as prod. |
+| H10 | A snapshot member regressed after an apply (`snapshot.md` › Comparison). | Its own stop `[H10]` after Step 5a, before the next phase's or environment's first stop. Dev lane included. Only a typed reason continues, and only if the phase's success criteria passed; record it as `- Snapshot override: <reason> — operator, <time>`. No reply, "ok" or "continue" alone ends the run `partially completed`. Behaviour: `snapshot.md` › After a regression. |
 
 ## Light-lane allowlist
 
@@ -133,10 +134,10 @@ A stop is a point where the operator must answer. Each stop prompt starts with i
 | Lane | Stop | Shows / asks | Operator answers | Soft |
 |---|---|---|---|---|
 | dev | `[D1]` | diff + plan output + target | apply, or open the PR | no |
-| light | `[A]` | change plan + diff + target + read batch + L2 answers + any delivery-model question + any staging-first exception justification | approve | no |
-| light | `[B]` | PR or apply, one per environment, showing the verdict line | proceed | no |
+| light | `[A]` | change plan + diff + target + read batch + the operator line + Q4/Q5 only if the profile lacks them + Q8 only if the app source was not found (`snapshot.md` › L2 from evidence) + any delivery-model question + any staging-first exception justification | approve | no |
+| light | `[B]` | PR or apply, one per environment, showing the verdict line + `**Checked for you:**` | proceed | no |
 | full | `[F1]` | Step 1 read batch, with the targets and their tiers shown | approve the batch | yes |
-| full | `[F2]` | GATE 1 plan + L2 answers + drift acknowledgements + exception justification | approve | no |
+| full | `[F2]` | GATE 1 plan + `**Checked for you:**` + the operator line + Q4/Q5 only if the profile lacks them + Q8 only if the app source was not found (`snapshot.md` › L2 from evidence) + drift acknowledgements + exception justification | approve | no |
 | full | `[F3]` | GATE 2 code + target + plan command | approve | yes |
 | full | `[F4]` | PR or apply, per environment, showing the verdict | proceed | no |
 
@@ -144,8 +145,10 @@ Rules for all lanes:
 - **Read batch.** One batch, each command shown. The identity read is exempt: it runs first, without opt-in, and the batch shows its result.
   - At `[A]` the batch holds the Step 1 live reads (live verification and the drift check), the plan command (`terraform plan` or the tool's diff), the matched assessor's L3 reads (`skills/pre-flight/assessors/iac-change.md` › L3 — Live Query Hooks, every category) for the resources the change is expected to touch, and the post-apply success-criteria reads.
   - At `[F1]` it holds the Step 1 live reads and the assessor's L3 reads. The full lane approves the success-criteria reads at `[F2]` and the plan command at `[F3]`.
+  - `[A]` / `[F1]` also hold S0 (`snapshot.md` › When snapshots run), the assessor's automation-lag reads, the app-source search (only when Step 1 predicts an app-facing change) and the incident command when the operator profile holds one (`snapshot.md` › L2 from evidence). S1 runs on the same approval.
+  - Approving the success-criteria reads (`[A]` / `[F2]`) also approves S2.
   - A read approved at a stop needs no further stop. Inline pre-flight then normally proposes no batch of its own. A read it still finds missing is its one extra batch, and that batch is a stop. A declined read leaves its category ⚪.
-- **L2 answers** (`[A]`, `[F2]`): pre-flight's Q1–Q5 and Q7; Q8 when the change plan touches an app-facing attribute; and the matched assessor's questions that the caller block cannot answer with evidence, as `<assessor>.<n>=…` (for the iac-change assessor: only question 4; 1–3 are answered by `Plan hash:`, `Delivery model:` and `Target:` + plan command). They go to pre-flight in the caller block (pre-flight Constraint 14). Anything missing makes pre-flight ask, which is an extra stop. So is a pre-flight L3 batch for reads the caller did not run.
+- **L2 answers** come from the batch reads, not from typed answers (`snapshot.md` › L2 from evidence). `[A]` / `[F2]` ask only the operator line, Q4/Q5 when the profile lacks them and Q8 when the app source was not found. The derived answers show in `**Checked for you:**`: at `[F2]` in the full lane, at `[B]` in the light lane. The matched assessor's questions are answered by evidence too, as `<assessor>.<n>=…` (for the iac-change assessor: 4 by the automation-lag reads; 1–3 by `Plan hash:`, `Delivery model:` and `Target:` + plan command). All of them go to pre-flight in the caller block's `L2 answers:` (pre-flight Constraint 14). Anything missing makes pre-flight ask, which is an extra stop. So is a pre-flight L3 batch for reads the caller did not run.
 - **Delivery model** `UNVERIFIED`: ask inside `[A]` / `[F2]` / `[D1]`, not as a stop of its own.
 - **Verdict.** `[B]` / `[F4]` show the pre-flight verdict line. A YELLOW is shown with each Yellow and ⚪ finding and its mitigation; approving there is the acknowledgement, and it is recorded. **RED** adds the `[H5]` stop.
 - **Dev lane.** Reads and the plan run without a stop. No pre-flight (H9); record `- Pre-flight verdict: skipped — dev lane (<evidence>)`. No fresh eyes; record `- Fresh eyes: skipped — dev lane`. Self-checks and the duplicate check still run.
@@ -165,10 +168,11 @@ Rules for all lanes:
 
 ## Timing re-ask
 
-Pre-flight's Q1–Q3 (active incident, deploy freeze, peak traffic) describe the moment they were answered. As in pre-flight's reuse contract, they are re-asked before each later apply in the same run: each phase after the first, and each later environment. The dev lane runs no pre-flight and re-asks nothing.
-- The first stop of that phase or environment carries one line: `Q1–Q3 still true? (incident / freeze / peak)`. The line adds no stop.
-- That stop comes before pre-flight (`[F3]`): pass the fresh answers in the caller block's `L2 answers:`.
-- That stop comes after pre-flight (`[F4]`, or `[B]`): an unchanged answer → proceed. A changed answer → re-run pre-flight with the new answers before the apply, then show a new `[F4]` / `[B]` with the new verdict. Only a changed answer adds a stop.
+Pre-flight's Q1–Q3 (active incident, deploy freeze, peak traffic) describe the moment they were answered. As in pre-flight's reuse contract, they are re-asked before each later apply in the same run: each phase after the first, and each later environment. The dev lane runs no pre-flight and re-asks nothing; its S1 still runs before `[D1]`.
+- S1 re-reads the alarm and peak parts: `Q1(alarms)` and Q3 come from that environment's S1 (`snapshot.md` › When snapshots run). S1 adds no stop.
+- The first stop of that phase or environment carries the operator line for the rest (`snapshot.md` › L2 from evidence). The line adds no stop.
+- That stop comes before pre-flight (`[F3]`): pass S1's answers and the operator-line answers in the caller block's `L2 answers:`.
+- That stop comes after pre-flight (`[F4]`, or `[B]`): an unchanged answer → proceed. A changed answer (a reply to the operator line, a correction, or an S1 answer that differs from what pre-flight got) → re-run pre-flight with the new answers before the apply, then show a new `[F4]` / `[B]` with the new verdict. Only a changed answer adds a stop.
 
 ## Staging-first
 
@@ -201,9 +205,9 @@ A change with no prod target, in a repo that has a staging environment, gives H7
 
 **Observation window.** No stop of its own.
 - Light lane: prod's turn starts once staging's success criteria pass.
-- Full lane: the plan proposes a window with its reason (for example "24 h, so the nightly batch runs against the new value"), approved at `[F2]`. Prod's turn starts when it ends. The run waits until then, or for the operator to say it has ended; that wait is not an approval stop. At its end, re-run staging's success criteria.
+- Full lane: the plan proposes a window with its reason (for example "24 h, so the nightly batch runs against the new value"), approved at `[F2]`. Prod's turn starts when it ends. The run waits until then, or for the operator to say it has ended; that wait is not an approval stop. At its end, re-run staging's success criteria and S2 (`snapshot.md` › When snapshots run). A regression there, an overridden signal included, follows `snapshot.md` › After a regression.
 - After a light→full escalation, propose the window at the first full-lane stop the escalation adds, and get it approved there. Before `[A]`, that is `[F2]`. At staging's 4a, it is staging's `[F4]`, and the window starts once staging verifies. At prod's 4a, it is prod's `[F4]`: show how long staging has run since its success criteria passed; approving `[F4]` accepts that as the window. If the operator wants a longer one, that `[F4]` ends without an apply, and prod's `[F4]` comes again when the window ends.
-- Reads during the window are pre-approved at `[A]` / `[F1]`–`[F2]`. Prod's first stop shows staging's latest success-criteria result and re-asks Q1–Q3 (Timing re-ask).
+- Reads during the window are pre-approved at `[A]` / `[F1]`–`[F2]`. Prod's first stop shows staging's latest success-criteria result and `Snapshot:` line (`snapshot.md` › Comparison), and carries the Timing re-ask.
 
 **Parity check** (Step 4a, every prod phase, after the plan and the cross-check, before pre-flight).
 - It runs only when a staging phase ran for this change. Under exceptions (a)–(c) the record says `Parity check: n/a`, and parity raises no `[H3]`. Satisfied by evidence: compare against the staging plan or apply output that the evidence cites; if none exists, `n/a — <reason>`.
@@ -218,7 +222,7 @@ A change with no prod target, in a repo that has a staging environment, gives H7
   - accept with a written reason: the parity line records it, then prod's pre-flight runs.
 
 **Staging evidence for prod's pre-flight** (Step 4b, when a staging phase ran). Put it in the caller block's `Evidence table:`, under the line `Staging evidence (evidence, not proof):`.
-- Measured disruption during staging's apply (duration, restarts, failovers, events), staging's success-criteria outputs, and staging's health before and after the apply. Cite each as `live: <cmd> (staging, <time>)`.
+- Measured disruption during staging's apply (duration, restarts, failovers, events), staging's success-criteria outputs, and staging's S1 and S2 (`snapshot.md` › Record), regressed values and any override included (`snapshot.md` › After a regression). Cite each as `live: <cmd> (staging, <time>)`.
 - Each size difference between the env var-files (instance class, count, storage, capacity, version), cited `code: <staging var-file>:<line>` against `code: <prod var-file>:<line>`.
 
 It is evidence, not proof: it never by itself makes a category Green. It stays out of `Live results:`, which lists reads of the target pre-flight is assessing.
