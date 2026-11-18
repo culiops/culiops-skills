@@ -166,3 +166,15 @@ Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git sho
 
 - **Stops: 3** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F4.
 - **L2 items in the v0.18 script: 12** (Q1–Q7, Q8 `if asked`, `iac-change.1`–`iac-change.4`). This is the v0.18 figure for typed L2. v0.20 target: 0.
+
+## v0.20 run
+
+Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+
+### operator-script.md
+- Out-dir: `expected-output-v020/`
+- Stops: 3 → 4 (F1, F2, H5, F4).
+- Typed L2: 12 → 0.
+- Snapshot commands added: 1 (S0 combined `kubectl get deploy,sts,pods,events,hpa` read) plus 2 automation-lag reads (`helm history`, `gh run list`). S1 re-read the 1.
+- MUST: 17 PASS / 0 FAIL.
+- Stop target 4 is provisional — pending founder decision on G4 / §9.2 (see README).

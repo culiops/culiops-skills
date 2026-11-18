@@ -206,3 +206,16 @@ Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git sho
 Deviations from skill text that the MUST checker judged clear. The skill text is not changed for them; a re-run should show whether they recur.
 
 - (c1) `[F2]` showed the snapshot set without a source for each member (MUST M7). The sources appeared only in the research narration before `[F1]` and in the record. `snapshot.md:7` ("every member its source") and the SKILL.md research summary (`Snapshot set: <members, each with its source and any label>`) ask for them in the stop.
+- (round 4) Phase 1 category 2 (reversibility) scored Green; v0.18 expects Yellow. The runner did not apply pre-flight's "manual rollback possible but untested" Yellow: its own plan calls the rollback untested. The round 3 `canned/docs.md` entry for reverting a static RDS parameter gave the docs evidence for Green, while the README still expects Yellow. Fixture owner decides which is right. Phase 2 category 2 scored Yellow.
+- (round 4) `[F2]` showed the snapshot set without a source per member again (c1 above recurred; MUST FAIL).
+
+## v0.20 run
+
+Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+
+### operator-script.md
+- Out-dir: `expected-output-v020/`
+- Stops: 7 → 7 (F1, F2, F3, H5, F4, H5, F4; 5 plus one `[H5]` per RED pre-flight).
+- Typed L2: 13 → 1 (Q8, asked inside `[F2]`).
+- Snapshot commands added to the prod batch: 2 S0 reads (alarms, get-metric-data) plus 1 automation-lag read (`gh run list`); 8 if the 5 app-source and image reads are counted. S1 re-ran 5 reads per apply on the same approval.
+- MUST: 24 PASS / 2 FAIL (category 2, and the `[F2]` snapshot-set sources).
