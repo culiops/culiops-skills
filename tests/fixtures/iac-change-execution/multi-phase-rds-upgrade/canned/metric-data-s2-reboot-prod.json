@@ -55,6 +55,55 @@
       "Statistic": "p95",
       "Period": 300,
       "Values": [0.114, 0.12, 0.108, 0.114, 0.12, 0.108]
+    },
+    {
+      "Label": "paymentapi-db-prod ReadLatency",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [0.0048, 0.0012, 0.0011, 0.0013, 0.0012, 0.0012]
+    },
+    {
+      "Label": "paymentapi-db-prod WriteLatency",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [0.0071, 0.0022, 0.0021, 0.0023, 0.0022, 0.0022]
+    },
+    {
+      "Label": "paymentapi-db-prod FreeableMemory",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [6900000000.0, 6600000000.0, 6450000000.0, 6300000000.0, 6200000000.0, 6150000000.0]
+    },
+    {
+      "Label": "paymentapi-db-prod FreeStorageSpace",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0]
+    },
+    {
+      "Label": "paymentapi-alb-prod HTTPCode_ELB_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod HealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [3, 3, 3, 3, 3, 3]
+    },
+    {
+      "Label": "paymentapi-alb-prod UnHealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0]
     }
   ]
 }

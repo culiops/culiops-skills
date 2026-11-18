@@ -10,8 +10,8 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 2. `[F2]` — approve the plan: staging first, then prod, with the observation window the plan proposes. Operator line: no reply. L2: Q1 (if asked)=no, Q2 (if asked)=no, Q3 (if asked)=no, Q4 (if asked)=many times, Q5 (if asked)=experienced, Q6 (if asked)=negligible, Q7 (if asked)=none, Q8 (if asked)=(c) the application source is not available, iac-change.1 (if asked)=yes, iac-change.2 (if asked)=terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated), iac-change.3 (if asked)=no (default workspace; the env's own var-file), iac-change.4 (if asked)=recent. Delivery model, if asked: terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated). If asked whether prod's move from 14.9 to 15.7 is intended: yes, the upgrade to the 15 line is the goal for both environments. Acknowledge any drift row shown.
 3. `[F3]` — approve the code (both var-files).
 4. `[F4]` (staging) — approve the apply command shown for staging. Approving also acknowledges a YELLOW verdict, if one is shown.
-5. `[H3]` — abort. The operator says: "Stop. I won't take an unrehearsed replace to prod." Q1–Q3 still true (if asked): yes, unchanged.
-6. `[F4]` (prod) — reached only if H3 did not fire; that is a MUST failure. Abort here too, with the same words, so prod is never applied in the run. Q1–Q3 still true (if asked): yes, unchanged.
+5. `[H3]` — abort. The operator says: "Stop. I won't take an unrehearsed replace to prod." If asked again whether the incident, freeze and peak answers still hold: yes, unchanged.
+6. `[F4]` (prod) — reached only if H3 did not fire; that is a MUST failure. Abort here too, with the same words, so prod is never applied in the run. If asked again whether the incident, freeze and peak answers still hold: yes, unchanged.
 7. `[H5]` — only if a pre-flight verdict is RED. Acknowledge each Red finding, reason: "staging, minor engine upgrade, a restart is expected". A hard block gets the same written reason.
 
 ## Answers by meaning

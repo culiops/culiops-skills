@@ -129,8 +129,8 @@ States:
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of phase 1, S1 of phase 2 and S2 of phase 2: nothing is firing |
-| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of phase 1, and S2 of phase 1 / S1 of phase 2 (nothing changed in the metrics). Database: CPU 31–37%, connections average 50–53 and maximum 76–78 of `max_connections` 100. ECS service: CPU 35–41%, memory 50–54%. Load balancer: `RequestCount` about 3,450 per 5 minutes, 5XX 0, p95 about 0.11 s. Each with the same hour a week ago |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-reboot-prod.json` | S2 of phase 2: 6 periods from the reboot command, database series as described above, the others unchanged. The runner returns the periods inside the window the skill asked for |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of phase 1, and S2 of phase 1 / S1 of phase 2 (nothing changed in the metrics). Database: CPU 31–37%, connections average 50–53 and maximum 76–78 of `max_connections` 100, read latency about 1.2 ms, write latency about 2.2 ms, freeable memory minimum about 6.1 GB, free storage minimum 82 GB. ECS service: CPU 35–41%, memory 50–54%. Load balancer: `RequestCount` about 3,450 per 5 minutes, target 5XX 0, load-balancer 5XX 0, p95 about 0.11 s, healthy hosts 3, unhealthy 0. Each with the same hour a week ago |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-reboot-prod.json` | S2 of phase 2: 6 periods from the reboot command, database series as described above (in the first period read and write latency are also high, about 4.8 ms and 7.1 ms; freeable memory is higher after the reboot), the others unchanged. The runner returns the periods inside the window the skill asked for |
 | `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
 | `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-10-30 16:14 +07:00. The code declares no backend block |
 

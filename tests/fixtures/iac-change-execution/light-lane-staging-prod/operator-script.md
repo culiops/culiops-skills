@@ -8,7 +8,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 
 1. `[A]` — approve. Operator line: no reply. L2: Q1 (if asked)=no, Q2 (if asked)=no, Q3 (if asked)=no, Q4 (if asked)=many times, Q5 (if asked)=experienced, Q6 (if asked)=negligible, Q7 (if asked)=none, Q8 (if asked)=(c) the application source is not available, iac-change.1 (if asked)=yes, iac-change.2 (if asked)=terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated), iac-change.3 (if asked)=no (default workspace; the env's own var-file), iac-change.4 (if asked)=recent. Delivery model, if asked: terraform is applied by hand from my workstation, and a direct apply is fine (operator-stated). Plan order, if asked: staging first, then prod, with prod starting once staging's success criteria pass. Read batch: approve every command shown, for both environments.
 2. `[B]` (staging) — approve the apply command shown for staging. Approving also acknowledges a YELLOW verdict, if one is shown.
-3. `[B]` (prod) — approve the apply command shown for prod. Approving also acknowledges a YELLOW verdict, if one is shown. Q1–Q3 still true (if asked): yes, unchanged.
+3. `[B]` (prod) — approve the apply command shown for prod. Approving also acknowledges a YELLOW verdict, if one is shown. If asked again whether the incident, freeze and peak answers still hold: yes, unchanged.
 
 Both environments' credentials are available. When the skill moves from staging to prod, the operator switches the shell profile without a stop.
 

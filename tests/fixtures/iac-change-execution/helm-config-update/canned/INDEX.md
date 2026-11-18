@@ -50,7 +50,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `helm diff upgrade notifyapi * -n notifyapi-prod*` | `helm-diff.txt` | the plan: `replicaCount` 2 → 4 for the expected code. Any values-file arguments |
+| `helm diff upgrade notifyapi * -n notifyapi-prod*` | `empty.txt` | the Step 1 drift check, run in the `[F1]` batch before the code is changed: no differences between the release and the chart as it is (no drift). Any values-file arguments |
+| `helm diff upgrade notifyapi * -n notifyapi-prod*` | `helm-diff.txt` | the plan, after the code change: `replicaCount` 2 → 4 for the expected code. Any values-file arguments |
 | `helm list -n notifyapi-prod*` | `helm-list.txt` | always |
 | `helm get values notifyapi -n notifyapi-prod` | `helm-get-values.yaml` | always (`--all` is not canned) |
 | `helm lint *` | `helm-lint.txt` | always |

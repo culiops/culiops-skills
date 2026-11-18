@@ -10,7 +10,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 2. `[F2]` — approve both phases. Operator line: no reply. L2: Q1 (if asked)=no, Q2 (if asked)=no (the maintenance window is approved and there is no freeze), Q3 (if asked)=no (off-peak window), Q4 (if asked)=many times, Q5 (if asked)=experienced, Q6 (if asked)=negligible, Q7 (if asked)=DBA on the maintenance window and #payments-oncall told about the reboot, Q8 (if asked)=yes, iac-change.1 (if asked)=yes, iac-change.2 (if asked)=direct apply from my workstation, no PR (operator choice), iac-change.3 (if asked)=no (default workspace; the env's own var-file), iac-change.4 (if asked)=recent. Execution path: direct apply from my workstation (operator choice). Acknowledge any drift row shown.
 3. `[F3]` (phase 1) — approve the code.
 4. `[F4]` (phase 1) — approve the apply command shown. Approving also acknowledges a YELLOW verdict, if one is shown.
-5. `[F4]` (phase 2) — approve the reboot command shown. Q1–Q3 still true (if asked): yes, unchanged.
+5. `[F4]` (phase 2) — approve the reboot command shown. If asked again whether the incident, freeze and peak answers still hold: yes, unchanged.
 6. `[H5]` — applies to every `[H5]` in the run (each phase's pre-flight can be RED), only if that pre-flight verdict is RED. Acknowledge each Red finding, reason: "maintenance window approved, DBA on call, the failover is expected". A hard block gets the same written reason.
 
 ## Answers by meaning
