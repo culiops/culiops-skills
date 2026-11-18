@@ -200,3 +200,9 @@ Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git sho
 
 - **Stops: 7** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F3, H5, F4, H5, F4. That is the 5-stop sequence (F1, F2, F3, F4, F4) plus two `[H5]`, one per RED pre-flight run.
 - **L2 items in the v0.18 script: 12** (Q1–Q8, `iac-change.1`–`iac-change.4`), plus the phase-2 `[F4]` re-ask `Q1–Q3 still true (if asked)`. This is the v0.18 figure for typed L2. v0.20 target: at most 1 (Q8, the operator's confirmation of the `App source:` line).
+
+### Known runner deviations (v0.20 round 3)
+
+Deviations from skill text that the MUST checker judged clear. The skill text is not changed for them; a re-run should show whether they recur.
+
+- (c1) `[F2]` showed the snapshot set without a source for each member (MUST M7). The sources appeared only in the research narration before `[F1]` and in the record. `snapshot.md:7` ("every member its source") and the SKILL.md research summary (`Snapshot set: <members, each with its source and any label>`) ask for them in the stop.

@@ -457,7 +457,7 @@ Write to `.culiops/iac-change-execution/<service>-<action>-<YYYYMMDD-HHmm>.md`:
 **Commit:** `<short SHA>`
 **IaC tool(s):** `<list>`
 **Execution path:** PR / Direct apply
-**Pre-flight record:** `<path to pre-flight record, 'invoked inline — verdict: <verdict>', or 'skipped — dev lane'>`
+**Pre-flight record:** `<path to pre-flight record, 'invoked inline — verdict: <verdict>' (when a matching record was not reused: '; <record path> not reused: <why>', Step 4b), or 'skipped — dev lane'>`
 **Lane:** <dev|light|full> — <basis>
 **Escalations:** <E1|E2|E3|E4|plan-confirm> — <evidence>
 **Environment tier:** <env>=<tier> (<evidence>)

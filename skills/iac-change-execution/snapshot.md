@@ -180,7 +180,7 @@ The snapshot and the other batch reads answer pre-flight's L2 questions. The ope
    - A correction at `[B]` that changes an answer: re-run pre-flight and show a new `[B]`. This is the Timing re-ask rule: only a changed answer adds a stop.
    - An incident command whose result was not readable: the operator line also appears at `[B]`.
 
-**Full lane:** S0 ran after `[F1]`, so the `**Checked for you:**` block, any `App source:` line and the operator line are in `[F2]`. Dev lane: no pre-flight, so no L2 answers, block or operator line. The block lists what the skill read and derived, one line each with its tag and time, so the operator can correct any of it. For example:
+**Full lane:** S0 ran after `[F1]`, so the `**Checked for you:**` block, any `App source:` line and the operator line are in `[F2]`. Dev lane: no pre-flight, so no L2 answers, block or operator line. The block lists what the skill read and derived, one line each with its tag and time, so the operator can correct any of it. For example, for an app-facing change (a not-app-facing change has no `App source:` row, L2 from evidence › Q8):
 
 ```
 **Checked for you:** (correct anything that's wrong)
