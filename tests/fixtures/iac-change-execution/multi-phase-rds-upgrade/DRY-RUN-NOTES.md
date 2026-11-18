@@ -199,4 +199,4 @@ Fixes applied:
 Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/multi-phase-rds-upgrade/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
 
 - **Stops: 7** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F3, H5, F4, H5, F4. That is the 5-stop sequence (F1, F2, F3, F4, F4) plus two `[H5]`, one per RED pre-flight run.
-- **L2 items in the v0.18 script: 12** (Q1–Q8, `iac-change.1`–`iac-change.4`), plus the phase-2 `[F4]` re-ask `Q1–Q3 still true (if asked)`. This is the v0.18 figure for typed L2. v0.20 target: at most 1 (Q8).
+- **L2 items in the v0.18 script: 12** (Q1–Q8, `iac-change.1`–`iac-change.4`), plus the phase-2 `[F4]` re-ask `Q1–Q3 still true (if asked)`. This is the v0.18 figure for typed L2. v0.20 target: at most 1 (Q8, the operator's confirmation of the `App source:` line).

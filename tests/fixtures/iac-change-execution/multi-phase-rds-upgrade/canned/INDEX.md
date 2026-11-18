@@ -102,12 +102,23 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 ## App-source search (in the read batch)
 
-No app source is findable: no directory beside the repo matches `paymentapi` by name or by origin. The change touches an app-facing attribute (`max_connections`), so Q8 is still needed and is the one typed L2 item this fixture allows (README).
+The change touches an app-facing attribute (`max_connections`), so Step 1 predicts an app-facing change and the skill looks for the app source. It is a sibling checkout, `../paymentapi`, whose directory name and origin match the service. The checkout is not at the deployed version. The deployed image is `paymentapi:v2.4.1` (`ecs-describe-task-definition-prod.json`, the task definition `paymentapi-prod:12` that `ecs-describe-services-prod.json` names). `HEAD` is 3 commits past the tag `v2.5.0`, and `v2.4.1` is an older commit that exists in the checkout. The tree is clean, so pre-flight's local mode reads the deployed ref without checking it out (`skills/pre-flight/examples/app-source.md` › Mode A). A read of the working tree at `HEAD`, or of any other file, gets `no canned output`.
+
+At the deployed ref `v2.4.1` the app builds its connection pool from `DB_POOL_SIZE` (default 20) and `DB_MAX_OVERFLOW` (default 5), and the task definition sets neither. That is at most 25 connections per task. The service runs 3 tasks, so about 75 connections, which fits under the current 100 and the new 200 (the live maximum was 78). The pool uses `pool_pre_ping`, so a connection closed by a restart is replaced on checkout.
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `ls <parent of the repo>` (`ls ..`, `ls ../`, or the parent's path) | `siblings-ls.txt` | always. `dotfiles` and `paymentapi-infra` (this repo) |
+| `aws ecs describe-task-definition --task-definition paymentapi-prod*` | `ecs-describe-task-definition-prod.json` | reads of prod. The deployed image tag is `v2.4.1` |
+| `ls <parent of the repo>` (`ls ..`, `ls ../`, or the parent's path) | `siblings-ls.txt` | always. `dotfiles`, `paymentapi` (the app) and `paymentapi-infra` (this repo) |
 | `git -C ../dotfiles remote get-url origin` | `sibling-origin-dotfiles.txt` | always. `git@github.com:acme/dotfiles.git`, not the app |
+| `git -C ../paymentapi remote get-url origin` | `sibling-origin-paymentapi.txt` | always. `git@github.com:acme/paymentapi.git` |
+| `git -C ../paymentapi rev-parse HEAD` | `app-source-rev-parse.txt` | always. `5d1c8e4a7b2f90361a4c6e8d0b3f5a7c9e1d2b4f`, not the commit of `v2.4.1` |
+| `git -C ../paymentapi status --porcelain` | `empty.txt` | always. The tree is clean |
+| `git -C ../paymentapi describe --tags*` | `app-source-describe.txt` | always. `v2.5.0-3-g5d1c8e4` |
+| `git -C ../paymentapi rev-parse v2.4.1*` | `app-source-rev-parse-tag.txt` | always. The commit of the deployed tag, `c0a7e93f1b6d4285a9e0c3b7d5f2a18e46b9d07c`; the ref exists in the checkout |
+| `git -C ../paymentapi grep -n * v2.4.1 -- .` | `app-source-grep-deployed.txt` | any search at the deployed ref for the pool, the connection limit or the database engine. The lines that set the pool size and the overflow |
+| `git -C ../paymentapi show v2.4.1:app/db.py` | `app-source-show-db.py.txt` | the file that builds the engine |
+| `git -C ../paymentapi show v2.4.1:app/config.py` | `app-source-show-config.py.txt` | the config loader. It holds no password |
 
 ## Snapshot reads (prod)
 

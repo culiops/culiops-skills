@@ -1,3 +1,0 @@
-dotfiles
-notifyapi
-notifyapi-app

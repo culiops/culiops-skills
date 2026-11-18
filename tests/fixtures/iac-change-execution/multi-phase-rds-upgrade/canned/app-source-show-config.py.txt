@@ -1,0 +1,7 @@
+import os
+
+# Connection settings. The password comes from the secret store at runtime, not from here.
+DATABASE_HOST = os.environ["DB_HOST"]
+DATABASE_URL = f"postgresql://paymentapi_app@{DATABASE_HOST}:5432/paymentapi"
+DB_POOL_SIZE = int(os.environ.get("DB_POOL_SIZE", "20"))
+DB_MAX_OVERFLOW = int(os.environ.get("DB_MAX_OVERFLOW", "5"))
