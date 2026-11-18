@@ -37,7 +37,7 @@ SKILL.md and `lanes.md` cite this file by section name, as `snapshot.md › <hea
 
 ## Signals
 
-A snapshot reads a fixed, small set of signals per member: firing alarms or alerts; readiness, or desired vs running state; and the golden signals the resource type has (traffic, errors, latency, saturation). Record each value with its command, window and time. The commands, the metric names (cited `docs:`) and the query-file format are in `examples/aws.md` / `examples/kubernetes.md` › Health Snapshot.
+A snapshot reads a fixed, small set of signals per member: firing alarms or alerts; readiness, or desired vs running state; and the golden signals the resource type has (traffic, errors, latency, saturation). A member whose type has no built-in traffic or error series (a worker, a queue consumer) uses the custom metrics the repo defines for it, such as a log metric filter's job and error counts, cited `code:`. Record each value with its command, window and time. The commands, the metric names (cited `docs:`) and the query-file format are in `examples/aws.md` / `examples/kubernetes.md` › Health Snapshot.
 
 **AWS.**
 - Alarms: one `aws cloudwatch describe-alarms --state-value ALARM` per region, filtered locally to the set. List other firing alarms as context only: they enter no verdict and no L2 answer.
@@ -113,7 +113,7 @@ Compare an error rate (errors ÷ requests) where the member has a request count,
 
 `[H10]` is a hard gate (`lanes.md` › Hard gates): every lane, dev included, never waived. This section is its behaviour.
 
-**The stop.** Any `regressed` in a phase's S2 raises `[H10]`, its own stop, before anything further runs. It stops and reports, as a failed success criterion does (SKILL.md Step 4, Multi-phase handling). There is no automatic rollback (SKILL.md Constraint 8), and no rollback command runs. The prompt starts `**[H10]`, for example `**[H10] Health regressed after the apply of phase <N> in <env>. Type a reason to continue, or the run stops here.**`, and shows:
+**The stop.** Any `regressed` in a phase's S2 raises `[H10]`, its own stop, before anything further runs. It stops and reports, as a failed success criterion does (SKILL.md Step 4, Multi-phase handling). There is no automatic rollback (SKILL.md Constraint 8), and no rollback command runs. The stop's message starts `**[H10]`: its first line, with nothing above it, is `**[H10] Health regressed after the apply of phase <N> in <env>. Type a reason to continue, or the run stops here.**`. Below that line it shows:
 - each regressed signal: member, signal, before and after values, the threshold, and each read's command and time;
 - the words "observed after the apply; the change is a suspect, not a proven cause";
 - the `no data` members, and the plan's rollback path for this phase (informational: the operator's call).
@@ -154,13 +154,13 @@ The snapshot and the other batch reads answer pre-flight's L2 questions. The ope
 - Q3 uses the request rate of the nearest member that has one: the load balancer, or the service in front of an RDS instance. With none, Q3 is `unsure`.
 - `Q1(alarms)` unreadable: the operator line then covers incidents in general, not only declared ones.
 
-**Q8: locate before asking.** Only when Step 1 predicts an app-facing change, so that Q8 would apply (`skills/pre-flight/SKILL.md` › Layer 2). Otherwise nothing is searched, and there is no `App source:` line and no Q8.
+**Q8: locate before asking.** Only when Step 1 predicts an app-facing change, so that Q8 would apply (`skills/pre-flight/SKILL.md` › Layer 2). Otherwise nothing is searched, and there is no `App source:` line and no Q8. Predict from the code before the batch runs: an alarm whose actions are all SNS topics (`lanes.md` › E1) is predicted not-app-facing, and the batch's subscriber-protocol read then settles it for pre-flight. The assessor's "unsure means triggered" applies to pre-flight's scoring after that read, not to this prediction. When the batch or the 4a plan shows that a change predicted app-facing is not, drop what the search found: no `App source:` line, no Q8.
 1. Look in the target repo first.
 2. Then look at local checkouts beside it whose directory name or `origin` remote matches the service or the deployed image: `ls` of the parent directory, then `git -C <dir> remote get-url origin`. This search is a read in the batch, shown like any other. It is new scope: pre-flight's local mode covers only a checkout the operator names (`skills/pre-flight/examples/app-source.md`).
 3. Check the checkout's version (`git -C <dir> rev-parse HEAD`, or its tag) against the deployed image tag or SHA (`live:`). A wrong match is caught here. Never fetch, pull, check out or stash in that checkout.
 
 - **Found, version matches:** use it, shown as one line in the block below.
-- **Found, version unknown or different:** one line inside the existing stop: `App source: <path> @ <sha>; deployed <tag> — correct?`.
+- **Found, version unknown or different:** one line inside the existing stop: `App source: <path> @ <sha>; deployed <tag> (live: <cmd>, <time>) — correct?`.
 - **Not found:** ask Q8 as today, inside the existing stop.
 - Pass `Q8=<path> @ <deployed ref>`, so pre-flight reads the source at the deployed ref.
 
@@ -227,7 +227,7 @@ Anything I can't see — a declared incident, a change freeze, anything else? No
 - A `## Health Snapshot` section, after `## Execution Log`:
   - the coverage line;
   - the members, each with its source, labelled `n/a — no health signals of its own`, `not snapshotted — over cap` or `no metrics backend — point-in-time only` where that applies;
-  - per environment, the S0, S1 and S2 tables: member, signal, before, after, verdict, command, time. A reused S1 says so, with its age. No S2 yet (PR open, apply pending): S0 and S1 only, and no after value is claimed.
+  - per environment, the S0, S1 and S2 tables: member, signal, before, after, verdict, command, time. Each read snapshot is its own table, even when its values equal another's; never prose or a merged table. Only a reused S1 is one line that says so, with its age. No S2 yet (PR open, apply pending): S0 and S1 only, and no after value is claimed.
 - Each phase entry, per environment:
   - `- Snapshot: before <time> · after <time> · <n ok / n regressed / n no data>`. `improved` counts as ok; every `no data` form and `after: too early` count as no data;
   - `- Verification:` carries `fail (snapshot)` when a signal regressed;

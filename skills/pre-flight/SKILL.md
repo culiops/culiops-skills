@@ -133,7 +133,7 @@ If yes, consult `examples/aws.md` and/or `examples/kubernetes.md` for:
 
 If any query fails (no credentials, permission denied, timeout), the skill records "L3 unavailable for [category] — scoring based on L1+L2 only" and proceeds. No hard failure.
 
-Inline mode: don't ask the opt-in question above. Cite each of the caller's `Live results:` as `live: <cmd> (caller, <time>)`. Propose only the reads they don't cover, as one batch with one approval; that batch is an extra stop. Nothing missing → no L3 stop. If the batch is declined, the categories it would have filled stay ⚪.
+Inline mode: don't ask the opt-in question above. Cite each of the caller's `Live results:` as `live: <cmd> (caller, <time>)`. A caller read that ran covers the signals it asked for, even when some returned no data or the read failed: score those signals from it (no data → ⚪, with the finding naming the read), and do not propose them again. Propose only the reads they don't cover, as one batch with one approval; that batch is an extra stop. Nothing missing → no L3 stop. If the batch is declined, the categories it would have filled stay ⚪.
 
 ## Rationalization Prevention
 

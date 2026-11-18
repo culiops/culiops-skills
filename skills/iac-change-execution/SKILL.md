@@ -289,7 +289,7 @@ If Step 1 found GitOps, CI-applies-on-merge or PR-driven plan / apply, offer the
 > **Self-check:** `<8/8 pass, or the failing items and why>`
 > **Drift (H4):** `<each drift row and the value this plan assumes — acknowledge each, or 'none'>`
 > **Checked for you:** (`[F2]` only; light lane: at `[B]`, after S0 has run) `<what S0 and the batch answered, one line each with its tag and time — snapshot.md › L2 from evidence>`
-> `<only when needed: App source: <path> @ <sha>; deployed <tag> — correct? · Q4 / Q5 (the profile lacks them) · Q8 (app-facing, source not found)>` · **Delivery model:** `<only if UNVERIFIED: how does this change reach the environment?>`
+> `<only when needed: App source: <path> @ <sha>; deployed <tag> (live: <cmd>, <time>) — correct? · Q4 / Q5 (the profile lacks them) · Q8 (app-facing, source not found)>` · **Delivery model:** `<only if UNVERIFIED: how does this change reach the environment?>`
 > Anything I can't see — a declared incident, a change freeze, anything else? No reply means none.
 >
 > **[F2] Approve this plan?**
@@ -485,13 +485,13 @@ Write to `.culiops/iac-change-execution/<service>-<action>-<YYYYMMDD-HHmm>.md`:
 - Execution: <PR URL or apply command + output summary>
 - Verification: <each success-criteria command + its actual output; re-plan result; `fail (snapshot)` when a signal regressed>
 - Snapshot: before <time> · after <time> · <n ok / n regressed / n no data>
-- Snapshot override: <reason> — operator, <time>
+- Snapshot override: <reason> — operator, <time> (only after an override at `[H10]`; otherwise no such line)
 
 ### Phase 2: <title> (if multi-phase)
 - ...
 
 ## Health Snapshot
-<the coverage line; the members, each with its source and label; per environment, the S0, S1 and S2 tables (member, signal, before, after, verdict, command, time) — `snapshot.md` › Record>
+<the coverage line; the members, each with its source and label; per environment, the S0, S1 and S2 tables (member, signal, before, after, verdict, command, time), one table per snapshot read, even when values repeat — `snapshot.md` › Record>
 
 ## Outcome
 <completed / partially completed (phase N of M) / aborted>
