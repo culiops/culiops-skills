@@ -58,7 +58,7 @@ A snapshot reads a fixed, small set of signals per member: firing alarms or aler
 - S0 feeds L2 from evidence, and pre-flight's categories 3 (through `iac-change.4`), 5 (timing) and 10 (health).
 
 **S1 — before each apply.**
-- The latest snapshot of that environment, read again if it is older than 15 minutes. Reused: record it as reused, with its age.
+- The latest snapshot of that environment, read again if it is older than 15 minutes. Reused: record it as reused, with its age. If the reply to `[B]` / `[F4]` comes more than 15 minutes after S1, take S1 again just before the apply, with no stop: it is that apply's "before" (a changed `Q1(alarms)` or Q3 follows the Timing re-ask).
 - Take it after the 4a plan and before 4b's pre-flight, so pre-flight and the execution stop (`[B]` / `[F4]`) see the same S1. If S1 changes `Q1(alarms)` or Q3 from what pre-flight got, re-run pre-flight (`lanes.md` › Timing re-ask). Dev lane: no pre-flight, so S1 just precedes `[D1]`. It was approved with the batch, so it needs no stop. S1 is the "before" of that apply.
 - S1 replaces the alarm and peak parts of the Q1–Q3 re-ask (`lanes.md` › Timing re-ask). The operator line is still shown at that stop.
 
@@ -88,24 +88,25 @@ Each member and signal gets a before value (S1, or the S0 it reused, or the PR p
 - an alarm on a member is firing after the apply and was not firing before;
 - error count or rate, or p95 latency, is above 1.5× its before value (for errors, with the floor below);
 - saturation crosses 70% from below;
-- ready vs desired, healthy targets or running count is lower than before;
+- ready vs desired, healthy targets or running count is lower than before, or than its expected value (Changes made on purpose);
 - restarts increased, or new `Warning` events appear on a member.
 
-Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. An error signal is `regressed` only when both hold: the after window holds at least 5 errors, whatever the before value; and the rate or count is above 1.5× its before value, or, from a before value of 0 (no ratio), the after rate is ≥ 1% of requests. Below either bar the verdict is `ok`, with the values shown. Both bars are inferred defaults the team may set its own: a single sporadic error must not raise `[H10]`, and 1% is one failed request at the 100-request low-volume threshold, which still applies first.
+Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. An error signal is `regressed` only when the after window holds at least 5 errors, whatever the before value, and the second bar holds. Before > 0: the rate or count is above 1.5× its before value. Before = 0: skip the ratio test; a rate needs ≥ 1% of requests, a count with no request denominator needs only the 5-error floor. Below either bar the verdict is `ok`, with the values shown. Both bars are inferred defaults the team may set its own: a single sporadic error must not raise `[H10]`, and 1% is one failed request at the 100-request low-volume threshold, which still applies first.
 
 **`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than before. **`ok`** is neither.
 
-**Low volume** (an inferred default). Fewer than 100 requests (or invocations, messages, jobs) in either window gives `no data (low volume)` for that member's error and latency signals, not `regressed`. Below 100, one failed request is 1% or more of the window, so a 1.5× ratio can be a single request.
+**Low volume** (an inferred default). Fewer than 100 requests (or invocations, messages, jobs) in either window gives `no data (low volume)` for that member's error and latency signals, not `regressed`; for S2, first widen its window toward the 30-minute maximum and read again. Below 100, one failed request is 1% or more of the window, so a 1.5× ratio can be a single request.
 
 **`no data`**: the signal has no value in one of the windows (a declined or failed read, no datapoint, no metrics backend). `no data (low volume)`, `no data (replaced)` and `after: too early` count as `no data` too. `no data` for every signal of a member does not fail the phase: list it with the no-data members beside `Applied:` (Record).
 
 **Changes made on purpose are not regressions.**
 - **Changed resources** are judged by their success criteria, which state the expected values: the new instance class, the new running count, the new alarm existing. The thresholds apply to them only for signals the success criteria do not cover.
+- **A signal that follows directly from a changed resource's expected new value** is judged against that value, not the before value, on any member (inferred). After a desired count cut from 4 to 2, the front door's healthy targets are expected to be 2: 2 is `ok`, fewer is `regressed`. Show the expected value with its `plan:` citation.
 - **The plan's Disruption field** (`restart` / `failover` / `replace` / `brief unavailability`) names expected transient effects. For every member, S2's window starts after the disruption ends: the rollout complete (the waits above), or the database's status `available` again (`live:`). Dependents get the same window, because the named disruption is what they feel during it. The two periods count from there.
   - RDS: `docs: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RebootInstance.html (read 2026-11-18)`: "The reboot process leads to a brief outage. During this outage, the DB instance status is rebooting."
 - **A replaced resource** has no before series under its new identity: `no data (replaced)`, judged by its success criteria.
 - **A new alarm** has no before state, so it is not "newly firing". Report its state: that is a success-criteria matter. An alarm that was already firing before is not `regressed` either.
-- **Dependents** get the thresholds in full. Nothing about them is expected to change.
+- **Dependents** get the thresholds in full, except a signal that follows from an expected new value (above). Nothing else about them is expected to change.
 
 **Result.** Any `regressed` sets the phase verification to `fail (snapshot)` (After a regression). The first stop of the next phase or environment shows `Phase <N> success criteria: <check> — <pass/fail>`, then `Snapshot: <n ok · n regressed · n no data>`.
 
@@ -113,13 +114,13 @@ Compare an error rate (errors ÷ requests) where the member has a request count,
 
 `[H10]` is a hard gate (`lanes.md` › Hard gates): every lane, dev included, never waived. This section is its behaviour.
 
-**The stop.** Any `regressed` in a phase's S2 raises `[H10]`, its own stop, before anything further runs. It stops and reports, as a failed success criterion does (SKILL.md Step 4, Multi-phase handling). There is no automatic rollback (SKILL.md Constraint 8), and no rollback command runs. The stop's message starts `**[H10]`: its first line, with nothing above it, is `**[H10] Health regressed after the apply of phase <N> in <env>. Type a reason to continue, or the run stops here.**`. Below that line it shows:
+**The stop.** Any `regressed` in a phase's S2 raises `[H10]`, its own stop, before anything further runs. It stops and reports, as a failed success criterion does (SKILL.md Step 4, Multi-phase handling). There is no automatic rollback (SKILL.md Constraint 8), and no rollback command runs. The stop's message starts `**[H10]`: its first line, with nothing above it, is `**[H10] Health regressed after the apply of phase <N> in <env>. Type a reason to continue, or the run stops here.**` when the phase's success criteria passed. When they failed, it ends `Its success criteria failed too, so the run stops here.**` and offers no reason. Below that line it shows:
 - each regressed signal: member, signal, before and after values, the threshold, and each read's command and time;
 - the words "observed after the apply; the change is a suspect, not a proven cause";
 - the `no data` members, and the plan's rollback path for this phase (informational: the operator's call).
 
 **Answers.** There is no default answer.
-- **A typed reason continues the run,** but only when the phase's success criteria passed; a failed success criterion stops the run as today. A reason says why the regression is unrelated or accepted, for example "unrelated: staging load test started 10:40, see #ops".
+- **A typed reason continues the run,** only when the phase's success criteria passed; a failed success criterion stops the run as today, whatever the reply. A reason says why the regression is unrelated or accepted, for example "unrelated: staging load test started 10:40, see #ops".
   - Record it word for word on the phase entry, `- Snapshot override: <reason> — operator, <time>`, as pre-flight records a RED justification at `[H5]`. Never rewrite it as evidence.
   - The phase verification stays `fail (snapshot)`, with the override beside it, and the environment's `Applied:` clause stays `yes — not verified` (Record).
 - **Anything else ends the run:** "ok", "continue", "yes", "stop", or any other reply that gives no reason.
@@ -171,14 +172,14 @@ The snapshot and the other batch reads answer pre-flight's L2 questions. The ope
 - An answer to the stop that says nothing about it is no reply. Record only the parts no source answered, as `Q1(declared)=no, Q2=no — operator (no objection at [<stop>], <time>)`, and `Q7=none`. An answer from a freeze calendar (`code:`) or the incident command (`live:`) keeps its own tag.
 - A reply is recorded as given, tagged `operator`: `Q7=<text>`, and `Q1(declared)=yes` or `Q2=yes` when it names an incident or a freeze. Pre-flight handles those as today.
 - A `Q1=yes` that comes only from `Q1(alarms)` gets no Incident Context follow-up: category 5 stays Red, and `[H5]` carries the operator's reason (pre-flight's inline rule).
-- Drop the line only when both a freeze source and an incident source were read (Operator profile).
+- Drop the line only when a freeze source and an incident source were both read and each answered: the calendar is clear about the apply time, and the incident command matched its "none" shape (Operator profile). An unreadable command or an ambiguous calendar keeps it.
 
 **Light lane, step by step.**
-1. At `[A]`, before any read: the operator line, unless both a freeze source (a Step 1 repo read) and an incident command (from the profile) exist, both known before `[A]`; any app-source candidate found so far; Q4 / Q5, only if the profile lacks them.
+1. At `[A]`, before any read: the operator line, unless the freeze calendar (a Step 1 repo read) answered and the profile holds an incident command (it runs after `[A]`; step 3 covers one that does not answer); any app-source candidate found so far; Q4 / Q5, only if the profile lacks them.
 2. After `[A]`, the batch runs: S0, the app-source search, the automation-lag read, the incident command. Assemble the derived answers into the caller block, then run pre-flight.
 3. At `[B]`, the `**Checked for you:**` block sits next to the verdict.
    - A correction at `[B]` that changes an answer: re-run pre-flight and show a new `[B]`. This is the Timing re-ask rule: only a changed answer adds a stop.
-   - An incident command whose result was not readable: the operator line also appears at `[B]`.
+   - An incident command that did not answer (Operator profile › Incident source): the operator line appears at `[B]`.
 
 **Full lane:** S0 ran after `[F1]`, so the `**Checked for you:**` block, any `App source:` line and the operator line are in `[F2]`. Dev lane: no pre-flight, so no L2 answers, block or operator line. The block lists what the skill read and derived, one line each with its tag and time, so the operator can correct any of it. For example, for an app-facing change (a not-app-facing change has no `App source:` row, L2 from evidence › Q8):
 
@@ -204,7 +205,7 @@ Anything I can't see — a declared incident, a change freeze, anything else? No
 
 ## Operator profile
 
-**Path.** `$CULIOPS_HOME/operator.md` when `CULIOPS_HOME` is set and not empty, otherwise `~/.culiops/operator.md`. Never in the repo. The directory is `chmod 700` and the file `600`, as SKILL.md Constraint 13 does for `CULIOPS_HOME`. The first stop that saves to it says so: `I'll remember these in <path>`.
+**Path.** `$CULIOPS_HOME/operator.md` when `CULIOPS_HOME` is set and not empty, otherwise `~/.culiops/operator.md`. Never in the repo. A directory the skill creates gets `chmod 700`, as SKILL.md Constraint 13 does for `CULIOPS_HOME`; the file is always `600`. The first stop that saves to it says so: `I'll remember these in <path>`.
 
 **Contents.** Q5 per IaC tool; Q4 per `<workspace>/<service>` (`<workspace>` as in Constraint 13); the date of each answer; optionally, an `incident check:` read-only command, with what "no incident" looks like. Nothing else: no secret, token or account data.
 

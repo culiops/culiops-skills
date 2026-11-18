@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - **iac-change-execution: a health snapshot of the changed resources and what they touch.** It reads the health of the changed resources and of their one-hop dependents and dependencies: S0 with the read batch, S1 before each apply, S2 after it. It adds no stop on the normal path. The reads go into batches you already approve, at most about five extra commands per environment. A snapshot never reads a secret value. The rules are in the new `skills/iac-change-execution/snapshot.md`.
-  - **What it covers.** The set shows its sources and a coverage line. A change that is not app-facing (an alarm, a dashboard, tags) snapshots only its own service and its front door. Members with no health signals of their own, such as a security group or a ConfigMap, are measured through the workloads that use them.
+  - **What it covers.** The set shows its sources and a coverage line. A change that is not app-facing snapshots only its own service and its front door, and its after-apply read makes no metrics call. That is every attribute on pre-flight's not-app-facing list: an alarm, a dashboard or tags, and also a scaling count, a backup schedule, human or CI IAM, or a spot / on-demand split (see Known issues). Members with no health signals of their own, such as a security group or a ConfigMap, are measured through the workloads that use them.
   - **`[H10]` is a new hard gate.** If S2 shows a regression against S1, the run stops. Only a typed reason continues past it. Otherwise the phase fails and the run ends `partially completed`.
   - **The thresholds are inferred defaults, not measurements.** The cap, windows, factors and floors in `snapshot.md` are starting values. The team may set its own. Every verdict is shown with its measured value.
 - **iac-change-execution: pre-flight's L2 questions are answered from those reads.** A `**Checked for you:**` block shows each answer with its source. One operator line is left: `Anything I can't see — a declared incident, a change freeze, anything else? No reply means none.` Q4 and Q5 (your experience with the target and the tool) are asked once and remembered in an operator profile outside the repo, so they are not asked again.
@@ -17,19 +17,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - tagged L2 answers;
   - Q1 is split into alarms, which the reads answer, and a declared incident, which the operator line covers;
   - an alarm-only Q1 gets no Incident Context follow-up;
-  - a read the caller ran that returned no data counts as covered. It scores ⚪ and adds no extra batch.
+  - a read the caller ran that returned no data, or that failed, counts as covered. It scores ⚪ and adds no extra batch.
 - **iac-change-execution fixtures:** new `dependency-regression` (a regression at S2, with a stop at `[H10]` and an override run) and a new `alarm-firing` operator script for `light-lane-staging-prod`. The other fixtures' scripts and notes follow the new text.
-- **Measured** in simulated dry-runs (canned command output, not real infrastructure), on the v0.18.0 text and the v0.20.0 text. Stops, then L2 questions you typed. The ones noted as new have no v0.18.0 baseline:
-  - `simple-alarm-addition`, operator script: stops 2 → 2, typed L2 12 → 0. With no profile yet, Q4 and Q5 are still typed: 12 → 2.
-  - `light-lane-staging-prod`, operator script: stops 3 → 3, typed L2 13 → 0. The new `alarm-firing` script has 4 stops (`[A]`, `[H5]`, `[B]`, `[B]`) and 0 typed L2.
-  - `multi-phase-rds-upgrade`: stops 7 → 7, typed L2 13 → 1 (the app-source confirmation).
-  - `helm-config-update`: stops 3 → 4 (provisional), typed L2 12 → 0. See Known issues.
-  - `dependency-regression`: 6 stops with the stop at `[H10]`, 8 with the override. 1 typed L2 (Q8, no app source).
-  - The MUST lists in the fixtures passed 14 to 30 items per run. The remaining fails (0 to 3 per run) are runner deviations recorded in each fixture's `DRY-RUN-NOTES.md`: format details such as per-member sources at `[F2]`, per-value commands at `[H10]`, and one category-2 score.
+- **Measured** in simulated dry-runs (canned command output, not real infrastructure), on the v0.18.0 text and the v0.20.0 text. Stops, then the L2 questions the skill asked you (v0.18.0: Q1–Q5, Q7, `iac-change.4`, Q8 where asked, and each `Q1–Q3 still true?` re-ask; the v0.18.0 scripts also volunteered Q6 and `iac-change.1`–`3`, which are not counted). The operator line is not counted: no reply answers it. The ones noted as new have no v0.18.0 baseline:
+  - `simple-alarm-addition`, operator script: stops 2 → 2, L2 asked 8 → 0. With no profile yet, Q4 and Q5 are still asked: 8 → 2.
+  - `light-lane-staging-prod`, operator script: stops 3 → 3, L2 asked 9 → 0 (8 at `[A]`, plus the prod `[B]` re-ask). The new `alarm-firing` script has 4 stops (`[A]`, `[H5]`, `[B]`, `[B]`) and 0 L2 asked.
+  - `multi-phase-rds-upgrade`: stops 7 → 7, L2 asked 9 → 1 (8 at `[F2]`, plus the phase-2 re-ask; v0.20.0 asks only the app-source confirmation).
+  - `helm-config-update`: stops 3 → 4 (provisional), L2 asked 7 → 0. See Known issues.
+  - `dependency-regression`: 6 stops with the stop at `[H10]`, 8 with the override. 1 L2 asked (Q8, no app source).
+  - The MUST lists in the fixtures passed 14 to 30 items per run. The remaining fails (0 to 3 per run) are recorded in each fixture's `DRY-RUN-NOTES.md`. Most are runner deviations on format details, such as per-member sources at `[F2]` and one category-2 score. The per-value commands missing at `[H10]` came from the skill text: the Step 5a report template left them out. The template now asks for them; that run was not repeated.
 
 ### Known issues
 
-- **`helm-config-update` gains one stop (an `[H5]` acknowledgement).** This applies on a PR, CI or GitOps path, where the apply happens at merge. Peak traffic (Q3) cannot be read for the merge time, so it is `unsure`. With no metrics backend, health is also unknown. Pre-flight's existing rule for several Yellow categories then gives RED. v0.18.0 avoided the stop only because the operator typed "no incident, not peak". The stop target is provisional, pending the founder's decision.
+- **A change applied at merge can no longer be GREEN.** On a CI, GitOps or PR-automation path the apply happens at merge, so peak traffic (Q3) is always `unsure` and timing (category 5) is ⚪ on every such change. ⚪ counts like Yellow, so the verdict is at best YELLOW, and a change with two other Yellow or ⚪ categories now gets RED and an `[H5]` stop. Measured: `simple-alarm-addition` was GREEN on v0.18.0 and is YELLOW on v0.20.0, with category 5 ⚪, although its metrics were read. `helm-config-update` gains an `[H5]` this way (stops 3 → 4, provisional): with no metrics backend, health is unknown too. v0.18.0 avoided both only because the operator typed "no incident, not peak". Pending the founder's decision.
+- **A scaling count, and the rest of pre-flight's not-app-facing list, gets no dependents and no after-apply metrics.** Not only alarms, dashboards and tags: a desired count or replica change, a backup schedule, human or CI IAM, and a spot / on-demand split skip the dependents and dependencies. Their S2 reads alarms and point-in-time state once and makes no metrics call, so a scale-down's own CPU, latency and 5xx are never compared after the apply. Pending the founder's decision.
 
 ## [0.19.0] — 2026-11-10
 

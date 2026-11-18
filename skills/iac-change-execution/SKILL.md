@@ -294,7 +294,7 @@ If Step 1 found GitOps, CI-applies-on-merge or PR-driven plan / apply, offer the
 >
 > **[F2] Approve this plan?**
 
-Full lane: no code is written before `[F2]` is approved. Corrections loop back to re-planning. The operator line is dropped only when both a freeze source (a Step 1 repo read) and an incident command (from the profile) exist, both known before the stop; no reply to it is recorded as `operator (no objection at [<stop>], <time>)`, and Q4 / Q5 answered here are saved to the profile (`snapshot.md` › L2 from evidence, Operator profile).
+Full lane: no code is written before `[F2]` is approved. Corrections loop back to re-planning. The operator line is dropped only when a freeze source (a Step 1 repo read) and an incident source (the profile's command) were both read and each answered; an unreadable incident command or an ambiguous freeze calendar keeps it; no reply to it is recorded as `operator (no objection at [<stop>], <time>)`, and Q4 / Q5 answered here are saved to the profile (`snapshot.md` › L2 from evidence, Operator profile).
 
 ---
 
@@ -392,7 +392,7 @@ Then run the tool's plan/diff command, using the environment selection found in 
 
 #### 4c: Execute
 
-The execution stop (`<ID>` below) is `[D1]` (dev), `[B]` (light) or `[F4]` (full): one per environment and per mutation, each approving only the mutation it shows (H2). It re-shows the target from 4a and the plan output summary, and carries the verdict (4b; dev: `skipped — dev lane`) and S1's result; `[B]` also carries the `**Checked for you:**` block (Step 2). `[D1]` also carries the plan (Step 2) and the code summary (Step 3), and asks: apply, showing the exact apply command (only where Step 2 allows direct apply), or open the PR, showing the PR action below (with an `UNVERIFIED` delivery model, choosing the PR ends the dev lane first: `lanes.md` › Environment tier). The answer approves that one mutation; do not ask again. A waived `[F3]` puts the code summary and the plan command into `[F4]`. `[B]` / `[F4]` may carry one optional line: *Heads-up: say so and I draft one for `<owners / reviewers / on-call>` with `change-comms` (draft-only; you send it).*
+The execution stop (`<ID>` below) is `[D1]` (dev), `[B]` (light) or `[F4]` (full): one per environment and per mutation, each approving only the mutation it shows (H2). It re-shows the target from 4a and the plan output summary, and carries the verdict (4b; dev: `skipped — dev lane`) and S1's result; `[B]`, and an `[F4]` that replaces it after a light→full escalation past `[A]`, also carry the `**Checked for you:**` block (Step 2). `[D1]` also carries the plan (Step 2) and the code summary (Step 3), and asks: apply, showing the exact apply command (only where Step 2 allows direct apply), or open the PR, showing the PR action below (with an `UNVERIFIED` delivery model, choosing the PR ends the dev lane first: `lanes.md` › Environment tier). The answer approves that one mutation; do not ask again. A waived `[F3]` puts the code summary and the plan command into `[F4]`. `[B]` / `[F4]` may carry one optional line: *Heads-up: say so and I draft one for `<owners / reviewers / on-call>` with `change-comms` (draft-only; you send it).*
 
 **H7 before each `[B]` / `[F4]` whose mutation reaches prod** (an apply, or a PR or merge that applies prod): staging applied with its success criteria passed (and no regression, or its `[H10]` overridden), `satisfied by evidence`, or a recorded exception (`lanes.md` › Staging-first). None → `**[H7] Staging has not run for this change: run it first, give exception (b) with its evidence or (c), or abort?**`. After a staging phase, prod's first stop carries prod's S1 answers and the operator line (`lanes.md` › Timing re-ask).
 
@@ -439,12 +439,12 @@ Post-apply reads, S2 included, were approved with the plan (`[A]` / `[F2]`; the 
 **Direct apply path:**
 1. **Re-plan:** Run the tool's plan command again. Expected result: no changes. If changes remain, report them — something didn't apply cleanly.
 2. **Success criteria:** run the phase's success-criteria reads (from the plan, with any health check it lists; commands from `examples/<cloud>.md`). Report each as: command, time window, value before the change vs after. "Looks healthy" is not a result.
-3. **S2 and the comparison** (`snapshot.md` › When snapshots run, Comparison): once the rollout is complete and two metric periods have elapsed (from the end of the plan's Disruption, if it names one; a not-app-facing change has no such wait), read S2 and give each member and signal a verdict against S1. Too early is `after: too early`, never `ok`: say `S2 ready at HH:MM` and read it then (no stop; at most 30 minutes). Changed resources are judged by their success criteria; the thresholds still apply to their signals the success criteria don't cover. Any `regressed` → `fail (snapshot)` and `**[H10] Health regressed after the apply of phase <N> in <env>. Type a reason to continue, or the run stops here.**`, showing what `snapshot.md` › After a regression says.
+3. **S2 and the comparison** (`snapshot.md` › When snapshots run, Comparison): once the rollout is complete and two metric periods have elapsed (from the end of the plan's Disruption, if it names one; a not-app-facing change has no such wait), read S2 and give each member and signal a verdict against S1. Too early is `after: too early`, never `ok`: say `S2 ready at HH:MM` and read it then (no stop; at most 30 minutes). Changed resources are judged by their success criteria; the thresholds still apply to their signals the success criteria don't cover. Any `regressed` → `fail (snapshot)` and `**[H10] Health regressed after the apply of phase <N> in <env>. Type a reason to continue, or the run stops here.**` (success criteria failed: it ends `Its success criteria failed too, so the run stops here.**`), showing what `snapshot.md` › After a regression says.
 4. Report:
    > "**Verification for Phase `<N>`:**
    > Re-plan: `<clean / N changes remaining>`
    > Success criteria: `<each command → output — pass / fail>`
-   > Snapshot: `<n ok · n regressed · n no data>` — `<each regressed signal: member, before → after, threshold; or none>`"
+   > Snapshot: `<n ok · n regressed · n no data>` — `<each regressed signal: member, signal, before → after, threshold, each read's command and time; or none>`"
 
 #### 5b: Write execution record
 
