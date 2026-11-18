@@ -4,6 +4,33 @@ All notable changes to the `culiops` plugin will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] — 2026-11-18
+
+### Changed
+
+- **iac-change-execution: a health snapshot of the changed resources and what they touch.** It reads the health of the changed resources and of their one-hop dependents and dependencies: S0 with the read batch, S1 before each apply, S2 after it. It adds no stop on the normal path. The reads go into batches you already approve, at most about five extra commands per environment. A snapshot never reads a secret value. The rules are in the new `skills/iac-change-execution/snapshot.md`.
+  - **What it covers.** The set shows its sources and a coverage line. A change that is not app-facing (an alarm, a dashboard, tags) snapshots only its own service and its front door. Members with no health signals of their own, such as a security group or a ConfigMap, are measured through the workloads that use them.
+  - **`[H10]` is a new hard gate.** If S2 shows a regression against S1, the run stops. Only a typed reason continues past it. Otherwise the phase fails and the run ends `partially completed`.
+  - **The thresholds are inferred defaults, not measurements.** The cap, windows, factors and floors in `snapshot.md` are starting values. The team may set its own. Every verdict is shown with its measured value.
+- **iac-change-execution: pre-flight's L2 questions are answered from those reads.** A `**Checked for you:**` block shows each answer with its source. One operator line is left: `Anything I can't see — a declared incident, a change freeze, anything else? No reply means none.` Q4 and Q5 (your experience with the target and the tool) are asked once and remembered in an operator profile outside the repo, so they are not asked again.
+- **pre-flight: standalone pre-flight unchanged.** Only the inline-mode paragraphs changed (inline mode is the call from iac-change-execution):
+  - tagged L2 answers;
+  - Q1 is split into alarms, which the reads answer, and a declared incident, which the operator line covers;
+  - an alarm-only Q1 gets no Incident Context follow-up;
+  - a read the caller ran that returned no data counts as covered. It scores ⚪ and adds no extra batch.
+- **iac-change-execution fixtures:** new `dependency-regression` (a regression at S2, with a stop at `[H10]` and an override run) and a new `alarm-firing` operator script for `light-lane-staging-prod`. The other fixtures' scripts and notes follow the new text.
+- **Measured** in simulated dry-runs (canned command output, not real infrastructure), on the v0.18.0 text and the v0.20.0 text. Stops, then L2 questions you typed. The ones noted as new have no v0.18.0 baseline:
+  - `simple-alarm-addition`, operator script: stops 2 → 2, typed L2 12 → 0. With no profile yet, Q4 and Q5 are still typed: 12 → 2.
+  - `light-lane-staging-prod`, operator script: stops 3 → 3, typed L2 13 → 0. The new `alarm-firing` script has 4 stops (`[A]`, `[H5]`, `[B]`, `[B]`) and 0 typed L2.
+  - `multi-phase-rds-upgrade`: stops 7 → 7, typed L2 13 → 1 (the app-source confirmation).
+  - `helm-config-update`: stops 3 → 4 (provisional), typed L2 12 → 0. See Known issues.
+  - `dependency-regression`: 6 stops with the stop at `[H10]`, 8 with the override. 1 typed L2 (Q8, no app source).
+  - The MUST lists in the fixtures passed 14 to 30 items per run. The remaining fails (0 to 3 per run) are runner deviations recorded in each fixture's `DRY-RUN-NOTES.md`: format details such as per-member sources at `[F2]`, per-value commands at `[H10]`, and one category-2 score.
+
+### Known issues
+
+- **`helm-config-update` gains one stop (an `[H5]` acknowledgement).** This applies on a PR, CI or GitOps path, where the apply happens at merge. Peak traffic (Q3) cannot be read for the merge time, so it is `unsure`. With no metrics backend, health is also unknown. Pre-flight's existing rule for several Yellow categories then gives RED. v0.18.0 avoided the stop only because the operator typed "no incident, not peak". The stop target is provisional, pending the founder's decision.
+
 ## [0.19.0] — 2026-11-10
 
 ### Changed
