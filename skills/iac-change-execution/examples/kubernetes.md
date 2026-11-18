@@ -124,24 +124,35 @@ Read templates for the health snapshot. The rules (the snapshot set, windows, wa
 Metric and label names below are examples (the `http_requests_total` family, as in `skills/pre-flight/examples/kubernetes.md`). Adapt them to the names the stack uses; the service-discovery catalog may list them. With no backend, run none of this: the members say `no metrics backend — point-in-time only` (`snapshot.md › Signals`).
 
 - Firing alerts, labels only; filter locally to the snapshot set by namespace and workload labels: `curl -s "$PROM_URL/api/v1/alerts" | jq -c '[.data.alerts[] | select(.state=="firing") | .labels]'`. `docs: https://prometheus.io/docs/prometheus/latest/querying/api/ (read 2026-11-18)`: "The `/alerts` endpoint returns a list of all active alerts."
-- Request rate, error ratio and p95 latency, over the hour ending now and over the same hour last week, in one command (one expression per line; the `offset 1w` lines are last week):
+- **S0 / S1 form** (and the "before" read): request rate, error ratio and p95 latency over the hour ending now and over the same hour last week, in one command (one expression per line; the `offset 1w` lines are last week). The `[1h]` range is for S0, S1 and "before" only, never S2:
 
   ```bash
   printf '%s\n' \
     'sum(rate(http_requests_total{service="{service}"}[1h]))' \
     'sum(rate(http_requests_total{service="{service}"}[1h] offset 1w))' \
-    'sum(rate(http_requests_total{service="{service}",code=~"5.."}[1h])) / sum(rate(http_requests_total{service="{service}"}[1h]))' \
-    'sum(rate(http_requests_total{service="{service}",code=~"5.."}[1h] offset 1w)) / sum(rate(http_requests_total{service="{service}"}[1h] offset 1w))' \
+    '(sum(rate(http_requests_total{service="{service}",code=~"5.."}[1h])) or vector(0)) / sum(rate(http_requests_total{service="{service}"}[1h]))' \
+    '(sum(rate(http_requests_total{service="{service}",code=~"5.."}[1h] offset 1w)) or vector(0)) / sum(rate(http_requests_total{service="{service}"}[1h] offset 1w))' \
     'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="{service}"}[1h])))' \
     'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="{service}"}[1h] offset 1w)))' \
   | while IFS= read -r q; do echo "# $q"; curl -sG "$PROM_URL/api/v1/query" --data-urlencode "query=$q" | jq -c '.data.result'; done
   ```
 
-  - `docs: https://prometheus.io/docs/prometheus/latest/querying/basics/ (read 2026-11-18)`: "The `offset` modifier allows changing the time offset for individual instant and range vectors in a query."; "the `offset` modifier always needs to follow the selector immediately". `docs: https://prometheus.io/docs/prometheus/latest/querying/functions/ (read 2026-11-18)`: `rate()` "calculates the per-second average rate of increase of the time series in the range vector."; `histogram_quantile()` "calculates the φ-quantile (0 ≤ φ ≤ 1) from a classic histogram or from a native histogram."
-  - An empty `[]` result is no value for that expression. Show the expression beside each value.
-  - These values are already per-second rates, ratios and a quantile over the same 1-hour range in both windows, so they compare as they are. If an error count is taken with `increase()` instead, normalise it to a per-minute rate (sum ÷ window minutes) first. The floor of at least 5 errors stays an absolute count of the after window.
+- **S2 form**: the range is the minutes since `{rollout-complete}`, so the window holds only post-apply data. A `[1h]` range at S2 is mostly pre-apply data and would dilute a regression into `ok`. `{n}` is those minutes (at least 10, at most 30 after the rollout), evaluated at now. The last expression is the absolute 5xx count of the after window, for the floor of at least 5 errors:
+
+  ```bash
+  printf '%s\n' \
+    'sum(rate(http_requests_total{service="{service}"}[{n}m]))' \
+    '(sum(rate(http_requests_total{service="{service}",code=~"5.."}[{n}m])) or vector(0)) / sum(rate(http_requests_total{service="{service}"}[{n}m]))' \
+    'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="{service}"}[{n}m])))' \
+    'sum(increase(http_requests_total{service="{service}",code=~"5.."}[{n}m])) or vector(0)' \
+  | while IFS= read -r q; do echo "# $q"; curl -sG "$PROM_URL/api/v1/query" --data-urlencode "query=$q" | jq -c '.data.result'; done
+  ```
+
+  - `docs: https://prometheus.io/docs/prometheus/latest/querying/basics/ (read 2026-11-18)`: "The `offset` modifier allows changing the time offset for individual instant and range vectors in a query."; "the `offset` modifier always needs to follow the selector immediately". `docs: https://prometheus.io/docs/prometheus/latest/querying/functions/ (read 2026-11-18)`: `rate()` "calculates the per-second average rate of increase of the time series in the range vector."; `histogram_quantile()` "calculates the φ-quantile (0 ≤ φ ≤ 1) from a classic histogram or from a native histogram."; `vector()` "converts the scalar `s` to a float sample and returns it as a single-element instant vector with no labels." `docs: https://prometheus.io/docs/prometheus/latest/querying/operators/ (read 2026-11-18)`: "vector1 or vector2 results in a vector that contains all original elements (label sets + values) of vector1" and "additionally all elements of vector2 which do not have matching label sets in vector1."
+  - `or vector(0)` is the counterpart of `FILL(…, 0)`: with no 5xx series the sum is empty, and the ratio would be empty too, hiding a healthy zero. The request-rate expression has no such fill. An empty `[]` is `no data` only when the denominator (or the request rate) is empty. Show the expression beside each value.
+  - Per-second rates, ratios and the quantile compare as they are, in S0 / S1 and S2 alike (a per-second rate differs from a per-minute one by a constant factor of 60, so the comparison and the 1.5× ratio are unchanged). The absolute `increase()` count is the only count: it feeds the floor, not a comparison.
 - **Peak hours** (PR / CI path, when Q3 needs `peak hours: HH–HH`): the hourly request counts of the last 7 days, from whole-hour `{H-7d}` to `{H}` (now, rounded down to the hour). Each point is the count for the hour ending at its timestamp (UTC; label the result UTC, or convert it): `curl -sG "$PROM_URL/api/v1/query_range" --data-urlencode 'query=sum(increase(http_requests_total{service="{service}"}[1h]))' --data-urlencode "start={H-7d}" --data-urlencode "end={H}" --data-urlencode "step=3600" | jq -c '.data.result'`. `docs: https://prometheus.io/docs/prometheus/latest/querying/api/ (read 2026-11-18)`: `start=<rfc3339 | unix_timestamp>`: "Start timestamp, inclusive."; `end`: "End timestamp, inclusive."; `step=<duration | float>`: "Query resolution step width in `duration` format or float number of seconds."
-- **"Before" on the PR / CI path** (read after the fact, ending at the apply time): run the six-expression command above with `--data-urlencode "time={apply-time}"` added to the `curl`; the `offset 1w` lines are then the week before the apply. `docs: https://prometheus.io/docs/prometheus/latest/querying/api/ (read 2026-11-18)`: `time=<rfc3339 | unix_timestamp>`: "Evaluation timestamp. Optional." Point-in-time state cannot be read back (`snapshot.md › When snapshots run`).
+- **"Before" on the PR / CI path** (read after the fact, ending at the apply time): run the S0 / S1 form above with `--data-urlencode "time={apply-time}"` added to the `curl`; the `offset 1w` lines are then the week before the apply. `docs: https://prometheus.io/docs/prometheus/latest/querying/api/ (read 2026-11-18)`: `time=<rfc3339 | unix_timestamp>`: "Evaluation timestamp. Optional." Point-in-time state cannot be read back (`snapshot.md › When snapshots run`).
 - **Retention bounds the read-back.** `docs: https://prometheus.io/docs/prometheus/latest/storage/ (read 2026-11-18)`: for `--storage.tsdb.retention.time`, "If neither this flag nor `storage.tsdb.retention.size` is set, the retention time defaults to `15d`." A backend with shorter retention than the window gives shorter evidence: say how far it reaches.
 
 ### Wait before S2
@@ -214,6 +225,7 @@ Each command below changes cluster state. The skill presents each command to the
 | `{image-tag}` | Container image tag | `sha256:abc123` or `v1.4.2` |
 | `{sts}` | StatefulSet name | `widgetapi-db` |
 | `{H}`, `{H-7d}` | Now rounded down to the whole hour (UTC), and 7 days before that (Health Snapshot) | `2026-04-24T10:00:00Z`, `2026-04-17T10:00:00Z` |
+| `{n}`, `{rollout-complete}` | Whole minutes since the rollout completed, and when it completed (Health Snapshot S2) | `12`, `2026-04-24T10:00:00Z` |
 | `{apply-time}` | When the apply landed (Health Snapshot) | `2026-04-24T10:00:00Z` |
 | `{prev-revision}` | Previous Helm revision number | `3` |
 | `{new-revision}` | New Helm revision number | `4` |
