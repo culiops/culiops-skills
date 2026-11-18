@@ -91,7 +91,7 @@ Each member and signal gets a before value (S1, or the S0 it reused), an after v
 - ready vs desired, healthy targets or running count is lower than before;
 - restarts increased, or new `Warning` events appear on a member.
 
-Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. A before value of 0 gives no ratio: any error after it is above 1.5× and is `regressed`, unless the window is low volume.
+Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. A before value of 0 gives no ratio, so it uses an absolute floor (inferred defaults the team may set its own): `regressed` only when the after error rate is ≥ 1% of requests, or, with no request count, ≥ 5 errors in the after window. Below the floor the verdict is `ok`, with the values shown. 1% is one failed request at the 100-request low-volume threshold, which still applies first.
 
 **`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than before. **`ok`** is neither.
 
