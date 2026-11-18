@@ -5,9 +5,9 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 - **Dry-run clock:** starts 2026-11-16 10:00 +07:00 (03:00Z).
 - **Environments:** `staging` (account `222222222222`) and `prod` (account `333333333333`), each pinned in its var-file through `aws_account_id` and the provider's `allowed_account_ids`. Both live in the region `ap-southeast-1`.
 - **Identity.** `aws sts get-caller-identity` returns the account of the environment the skill is working on: staging while it plans, reads or applies for staging, prod once it moves on to prod. Both credentials are available to the operator; switching is not a stop.
-- **State.** *Before* means the environment has not been applied in this run. *After* means the simulated `terraform apply` for that environment has run. `S0/S1` = before the environment's apply (the Step 1 batch, and the re-read just before that apply). `S2` = after it. The apply is a security-group rule, so nothing rolls out: S2 waits for the metric periods (protocol, Notes › Waiting for S2).
-- **Staging S2 is the regression.** After the staging apply the new `orders-worker-errors-staging` error rate, the ALB 5XX rate and the alarm all turn bad (below). Nothing else about the run changes.
-- **Prod is healthy at every state.** The prod rows are reached only by `operator-script-override.md`. In a run of `operator-script.md` the skill stops at `[H10]` before prod's plan, so a `terraform plan` with `-var-file=envs/prod.tfvars` (a `-refresh-only` plan in the first read batch does not count) in that run is a MUST failure. The runner answers it from the prod rows anyway, so the failure shows in the transcript.
+- **State.** *Before* means the environment has not been applied in this run. *After* means the simulated `terraform apply` for that environment has run. `S0/S1` = before the environment's apply (the Step 1 batch, and the re-read just before that apply). `S2` = after it. The apply changes a security-group rule; no service is redeployed.
+- **Staging S2.** After the staging apply the ALB 5XX rate, the worker's job-error rate and the state of `orders-worker-errors-staging` differ from S0 (below).
+- **Prod** has the same values at S0 and S2 (5XX 0.2% of requests, job errors 0.5% of jobs, the alarm `OK`).
 - **S2 timestamps.** The values in an `S2` file start at the apply. The runner dates them from the apply time. The `<apply time + N min>` placeholders in the alarm files are filled in the same way.
 - **Metrics backend:** CloudWatch only.
 
@@ -49,7 +49,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 ## App-source search (in the read batch)
 
-No app source is findable: no directory beside the repo matches `orders` by name or by origin. The change touches a network rule that the api and the worker run behind, so Q8 is asked and answered (c): it is the one typed L2 item this fixture allows.
+No app source is findable: no directory beside the repo matches `orders` by name or by origin.
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
@@ -71,7 +71,7 @@ No app source is findable: no directory beside the repo matches `orders` by name
 | `terraform show -no-color tfplan` | `plan-staging.txt` | the last plan the skill ran was for staging |
 | `terraform apply *tfplan*` | `apply-staging.txt` | the apply is for staging |
 | `terraform plan -refresh-only *-var-file=envs/prod.tfvars*` | `plan-refresh-only-prod.txt` | the drift check for prod. No drift |
-| `terraform plan *-var-file=envs/prod.tfvars*` | `plan-prod.txt` | prod, before the prod apply. Reached only by `operator-script-override.md` |
+| `terraform plan *-var-file=envs/prod.tfvars*` | `plan-prod.txt` | prod, before the prod apply |
 | `terraform plan *-var-file=envs/prod.tfvars*` | `plan-after-prod.txt` | prod re-plan, after the prod apply |
 | `terraform show -no-color tfplan` | `plan-prod.txt` | the last plan the skill ran was for prod |
 | `terraform apply *tfplan*` | `apply-prod.txt` | the apply is for prod |
@@ -104,9 +104,9 @@ No app source is findable: no directory beside the repo matches `orders` by name
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-staging.json` | S0/S1 of staging: nothing is firing |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-staging.json` | S2 of staging: `orders-worker-errors-staging` is in `ALARM` (it was `OK` at S0) |
 | `aws cloudwatch get-metric-data *` | `metric-data-s0-staging.json` | S0/S1 of staging, the hour ending now and the same hour a week ago. ALB 5XX 0.2% of requests (about 2,000 per 5 minutes), TargetResponseTime p95 about 0.18 s, worker job errors 0.5% of jobs (about 600 per 5 minutes), CPU and memory under 53%, database CPU about 21% and connections about 38. |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging: 6 periods from the apply. **Regressed:** ALB 5XX 3.1% of requests (62 of 2,000 per 5 minutes, was 0.2%), `orders-worker-staging` job errors 23% of jobs (was 0.5%); p95 about 0.21 s (1.2 times before), CPU and memory unchanged, database connections lower (about 30, was 38). The runner returns the periods inside the window the skill asked for |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging: 6 periods from the apply. ALB 5XX 3.1% of requests (62 of 2,000 per 5 minutes; 0.2% at S0), `orders-worker-staging` job errors 23% of jobs (0.5% at S0), `TargetResponseTime` p95 about 0.21 s (about 0.18 s at S0), CPU and memory as at S0, database CPU about 14% and connections about 30 (about 21% and 38 at S0). The runner returns the periods inside the window the skill asked for |
 | `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
-| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-staging.json` | the key names staging. `LastModified` 2026-11-12 15:22 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-staging.json` | the key names staging. `LastModified` 2026-11-12 15:22 +07:00. The code declares no backend block |
 
 ## AWS reads (prod)
 
@@ -128,9 +128,9 @@ No app source is findable: no directory beside the repo matches `orders` by name
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | S0/S1 of prod: nothing is firing |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of prod: nothing is firing |
 | `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of prod, the hour ending now and the same hour a week ago. ALB 5XX 0.2% of requests (about 9,000 per 5 minutes), TargetResponseTime p95 about 0.18 s, worker job errors 0.5% of jobs (about 3,000 per 5 minutes), CPU and memory under 56%, database CPU about 24% and connections about 86. |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2 of prod: 6 periods from the apply. Healthy: every series within noise of S0. The runner returns the periods inside the window the skill asked for |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2 of prod: 6 periods from the apply. Every series is at its S0 level (5XX 0.2% of requests, job errors 0.5% of jobs). The runner returns the periods inside the window the skill asked for |
 | `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
-| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the key names prod. `LastModified` 2026-11-05 14:12 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the key names prod. `LastModified` 2026-11-05 14:12 +07:00. The code declares no backend block |
 
 ## Documentation lookups
 

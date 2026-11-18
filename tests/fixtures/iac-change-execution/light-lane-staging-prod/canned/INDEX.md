@@ -83,7 +83,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count *paymentapi-alb-staging*` | `metric-alb-5xx-staging.json` | reads of staging. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name TargetResponseTime *paymentapi-alb-staging*` | `metric-alb-latency-staging.json` | reads of staging. Any time window or period gives this file |
 | `aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB --metric-name RequestCount *paymentapi-alb-staging*` | `metric-alb-requests-staging.json` | reads of staging. The same file for the last hour and for the same hour a week ago |
-| `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-staging.json` | staging, before the alarm exists (no alarm on the service). after the staging apply: `alarms-prefix-after-staging.json` |
+| `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-staging.json` | staging, before the alarm exists (no alarm on the service), for every script except `operator-script-alarm-firing.md`. after the staging apply: `alarms-prefix-after-staging.json` |
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-cpu-high-staging *` | `alarm-cpu-high-before-staging.json` | staging, before the alarm exists. after the staging apply: `alarm-cpu-high-after-staging.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/ECS --metric-name CPUUtilization *paymentapi-svc-staging*` | `alarms-for-metric-cpu-staging.json` | staging, before the alarm exists (no alarm on this metric). after the staging apply: `alarms-for-metric-cpu-after-staging.json` |
 | `aws cloudwatch describe-alarm-history --alarm-name paymentapi-cpu-high-staging *` | `alarm-history-staging.json` | staging, before the alarm exists. after the staging apply: `alarm-history-after-staging.json` |
@@ -129,28 +129,31 @@ No app source is findable: no directory beside the repo matches `paymentapi` by 
 
 ## Snapshot reads, `operator-script-alarm-firing.md` only (staging)
 
-These two rows are keyed to the named script (protocol rule 1). The plain staging rows for the same reads say "every script except `operator-script-alarm-firing.md`", so only these two apply to that script. In staging, an alarm on the load balancer in front of the service, `paymentapi-alb-elb5xx-staging` (`HTTPCode_ELB_5XX_Count`, `ALARM` since 2026-11-09 09:56 +07:00), is already firing before the apply. Prod has nothing firing.
+These rows are keyed to the named script (protocol rule 1). The plain staging rows for the same reads say "every script except `operator-script-alarm-firing.md`". In staging, an alarm on the load balancer in front of the service, `paymentapi-alb-elb5xx-staging` (`HTTPCode_ELB_5XX_Count`, `ALARM` since 2026-11-09 09:56 +07:00), is already firing before the apply. Prod has nothing firing.
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-staging-alarm.json` | `operator-script-alarm-firing.md`, S0/S1 of staging: `paymentapi-alb-elb5xx-staging` is in `ALARM` |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-staging-alarm.json` | `operator-script-alarm-firing.md`, S2 of staging: the same alarm is still in `ALARM`; it was firing before the apply. The new `paymentapi-cpu-high-staging` is not in `ALARM` |
+| `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-staging-alarm.json` | `operator-script-alarm-firing.md`, before the staging apply: the one alarm on the service, `paymentapi-alb-elb5xx-staging`, in `ALARM` (the state and reason of the `--state-value ALARM` file) |
+| `aws cloudwatch describe-alarms --alarm-name-prefix paymentapi*` | `alarms-prefix-after-staging-alarm.json` | `operator-script-alarm-firing.md`, after the staging apply: `paymentapi-alb-elb5xx-staging` in `ALARM` and the new `paymentapi-cpu-high-staging` in `OK` |
+| `aws cloudwatch describe-alarms --alarm-names paymentapi-alb-elb5xx-staging *` | `alarms-firing-staging-alarm.json` | `operator-script-alarm-firing.md`, any state: the alarm in `ALARM` |
 
 ## Snapshot reads (staging and prod)
 
-S0/S1 = before the environment's apply (the Step 1 batch, and the re-read just before that apply). S2 = after that environment's apply. The change adds an alarm that nothing reads, so a run reads the service and its load balancer only. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
+S0/S1 = before the environment's apply (the Step 1 batch, and the re-read just before that apply). S2 = after that environment's apply. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-staging.json` | S2 of staging, for every script except `operator-script-alarm-firing.md`: nothing is firing; the new alarm exists and is not in `ALARM` |
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of prod: nothing is firing; the new alarm exists and is not in `ALARM` |
 | `aws cloudwatch get-metric-data *` | `metric-data-s0-staging.json` | S0/S1 of staging. Load balancer `paymentapi-alb-staging`: `RequestCount` (about 160–270 per 5 minutes), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-staging`: CPU 10–14%, memory 26–30% |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging: the same signals for the 6 periods after the staging apply, unchanged. Only if the skill reads metrics after the apply |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-staging.json` | S2 of staging: the same signals for the 6 periods after the staging apply, unchanged |
 | `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of prod. Load balancer `paymentapi-alb-prod`: `RequestCount` (about 3,450 per 5 minutes), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). `paymentapi-svc-prod`: CPU 36–40%, memory 50–54% |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2 of prod: the same signals for the 6 periods after the prod apply, unchanged. Only if the skill reads metrics after the apply |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2 of prod: the same signals for the 6 periods after the prod apply, unchanged |
 | `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
-| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-staging.json` | the key names staging. `LastModified` 2026-11-04 15:21 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
-| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the key names prod. `LastModified` 2026-10-12 21:03 +07:00. Same remark |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-staging.json` | the key names staging. `LastModified` 2026-11-04 15:21 +07:00. The code declares no backend block |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the key names prod. `LastModified` 2026-10-12 21:03 +07:00. The code declares no backend block |
 
 ## Documentation lookups
 

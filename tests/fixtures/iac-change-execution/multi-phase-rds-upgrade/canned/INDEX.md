@@ -102,9 +102,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 ## App-source search (in the read batch)
 
-The change touches an app-facing attribute (`max_connections`), so Step 1 predicts an app-facing change and the skill looks for the app source. It is a sibling checkout, `../paymentapi`, whose directory name and origin match the service. The checkout is not at the deployed version. The deployed image is `paymentapi:v2.4.1` (`ecs-describe-task-definition-prod.json`, the task definition `paymentapi-prod:12` that `ecs-describe-services-prod.json` names). `HEAD` is 3 commits past the tag `v2.5.0`, and `v2.4.1` is an older commit that exists in the checkout. The tree is clean, so pre-flight's local mode reads the deployed ref without checking it out (`skills/pre-flight/examples/app-source.md` › Mode A). A read of the working tree at `HEAD`, or of any other file, gets `no canned output`.
-
-At the deployed ref `v2.4.1` the app builds its connection pool from `DB_POOL_SIZE` (default 20) and `DB_MAX_OVERFLOW` (default 5), and the task definition sets neither. That is at most 25 connections per task. The service runs 3 tasks, so about 75 connections, which fits under the current 100 and the new 200 (the live maximum was 78). The pool uses `pool_pre_ping`, so a connection closed by a restart is replaced on checkout.
+The app source is a sibling checkout, `../paymentapi`: its directory name and its origin match `paymentapi`. Its `HEAD` is 3 commits past the tag `v2.5.0`, and its working tree is clean. The deployed image tag is `v2.4.1` (`ecs-describe-task-definition-prod.json`, the task definition `paymentapi-prod:12` that `ecs-describe-services-prod.json` names). The tag `v2.4.1` exists in the checkout as an older commit. The rows below are the only reads of the checkout that have canned output.
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
@@ -122,19 +120,19 @@ At the deployed ref `v2.4.1` the app builds its connection pool from `DB_POOL_SI
 
 ## Snapshot reads (prod)
 
-The snapshot set has three kinds of member: the database `paymentapi-db-prod` (the parameter group has no signals of its own and is measured through the instance that uses it), the ECS service `paymentapi-svc-prod` (the consumer: `main.tf` lets `var.app_security_group_id` into the database's security group, and the catalog lists the service as downstream) and the load balancer `paymentapi-alb-prod` in front of that service (the nearest member with a request rate). States:
+States:
 
 - S0/S1 of phase 1: before the phase-1 apply.
 - S2 of phase 1, and S1 of phase 2: after the phase-1 apply, before the reboot command. The instance is `pending-reboot`; no metric has changed.
-- S2 of phase 2: after the reboot command. The first period after the reboot is the reboot itself: the instance is `rebooting`, CPU is 86% and connections are 0. From the second period the instance is `available` and every series is back to normal. The app tier rides through the reboot, so only the database's own series shows it.
+- S2 of phase 2: after the reboot command. The first period after the reboot is the reboot itself: the instance is `rebooting`, CPU is 86% and connections are 0. From the second period the instance is `available` and every series is at its S0 level. The ECS service and the load balancer series do not change during the reboot.
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of phase 1, S1 of phase 2 and S2 of phase 2: nothing is firing (the reboot period is one period, shorter than either database alarm needs) |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of phase 1, S1 of phase 2 and S2 of phase 2: nothing is firing |
 | `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of phase 1, and S2 of phase 1 / S1 of phase 2 (nothing changed in the metrics). Database: CPU 31–37%, connections average 50–53 and maximum 76–78 of `max_connections` 100. ECS service: CPU 35–41%, memory 50–54%. Load balancer: `RequestCount` about 3,450 per 5 minutes, 5XX 0, p95 about 0.11 s. Each with the same hour a week ago |
 | `aws cloudwatch get-metric-data *` | `metric-data-s2-reboot-prod.json` | S2 of phase 2: 6 periods from the reboot command, database series as described above, the others unchanged. The runner returns the periods inside the window the skill asked for |
 | `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
-| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-10-30 16:14 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-10-30 16:14 +07:00. The code declares no backend block |
 
 ## Documentation lookups
 

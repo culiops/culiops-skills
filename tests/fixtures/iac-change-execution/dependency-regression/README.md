@@ -29,7 +29,7 @@ The expected snapshot set, dependents first: `orders-worker` (the worker gets th
 
 ## How the regression is modelled
 
-This is fixture design, not a claim about how AWS handles a removed rule. The api holds a pool of long-lived connections, so only the requests that need a new connection fail after the apply (3.1% of requests, not all). The worker opens a connection per job, so most jobs fail (23%). The new error rate raises `orders-worker-errors-staging` to `ALARM` two periods after the apply. The tasks stay up: ECS running and desired counts do not change, so the regression shows only in the metrics and the alarm. Prod gets the same change and stays healthy in the canned data, which only matters if the operator overrides the stop.
+This is fixture design, not a claim about how AWS handles a removed rule. The api holds a pool of long-lived connections, so only the requests that need a new connection fail after the apply (3.1% of requests, not all). The worker opens a connection per job, so most jobs fail (23%). The new error rate raises `orders-worker-errors-staging` to `ALARM` two periods after the apply. The tasks stay up: ECS running and desired counts do not change, so the regression shows only in the metrics and the alarm. Prod gets the same change and stays healthy in the canned data, which only matters if the operator overrides the stop. `canned/INDEX.md` still has prod plan, apply and S0/S1/S2 rows for both scripts, so a prod plan that a run of `operator-script.md` makes (a MUST failure) is answered and shows in the transcript, instead of ending in `no canned output`.
 
 Canned values (full detail in `canned/INDEX.md`):
 

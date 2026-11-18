@@ -99,16 +99,16 @@ No app source is findable: no directory beside the repo matches `paymentapi` by 
 
 ## Snapshot reads (prod)
 
-S0/S1 = before the apply or the merge (the Step 1 batch, and the re-read just before the apply). S2 = after an apply or an applied merge. The change adds an alarm that nothing reads, so a run reads the service and its load balancer only. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
+S0/S1 = before the apply or the merge (the Step 1 batch, and the re-read just before the apply). S2 = after an apply or an applied merge. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2: nothing is firing; the new alarm exists and is not in `ALARM` |
-| `aws cloudwatch get-metric-data *` | `metric-data-7d-prod.json` | a window longer than one day (the 7-day peak-hours read for Q3 on the PR / CI path). `RequestCount` for `paymentapi-alb-prod`, one value per hour, 169 hours oldest first, the last the hour ending at the clock start (41,442) and the first the same hour a week earlier. Weekdays peak between 13:00 and 16:00 +07:00 (about 57,000–61,000 per hour); the weekend is about 60% of a weekday |
+| `aws cloudwatch get-metric-data *` | `metric-data-7d-prod.json` | a window longer than one day. `RequestCount` for `paymentapi-alb-prod`, one value per hour, 169 hours oldest first, the last the hour ending at the clock start (41,442) and the first the same hour a week earlier. Weekdays peak between 13:00 and 16:00 +07:00 (about 57,000–61,000 per hour); the weekend is about 60% of a weekday |
 | `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1, a window of one hour or less (the hour ending now, and the same hour a week ago). For the load balancer `paymentapi-alb-prod`: `RequestCount` (about 3,450 per 5 minutes, the same hour a week ago about 3,400), `HTTPCode_Target_5XX_Count` (0), `TargetResponseTime` p95 (about 0.11 s). For `paymentapi-svc-prod`: CPU 35–41%, memory 50–54% |
-| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2: the same signals for the 6 periods after the apply, unchanged. Only if the skill reads metrics after the apply |
-| `gh run list *` | `gh-run-list.json` | CI history. The operator-stated delivery model is a CI pipeline that applies on merge: its last run succeeded 2026-11-06 11:31 +07:00, 3 days before the clock start |
-| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-11-06 11:32 +07:00. The code declares no backend block, so a skill that cannot name the bucket and key does not run this |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2: the same signals for the 6 periods after the apply, unchanged |
+| `gh run list *` | `gh-run-list.json` | CI history: the last run of the `terraform-apply` workflow succeeded 2026-11-06 11:31 +07:00, 3 days before the clock start |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-11-06 11:32 +07:00. The code declares no backend block |
 
 ## Documentation lookups
 

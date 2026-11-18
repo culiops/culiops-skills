@@ -83,21 +83,21 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 |---|---|---|
 | `operator profile read` (`$CULIOPS_HOME/operator.md`, else `~/.culiops/operator.md`) | `operator-profile.md` | always. Q5 for helm and Q4 for `acme/notifyapi/notifyapi`, each dated 2026-04-10; none is `first time`; no `incident check:` line |
 
-## App-source search: none
+## App-source search
 
-This change has no app-source search rows on purpose. `replicaCount` is a scaling count, which `skills/pre-flight/assessors/iac-change.md:217` puts on the not-app-facing list, so no app-facing change is predicted, Q8 does not apply, and the skill does not look for the app source. There is no row for `ls <parent of the repo>`, for any `git -C <dir>` read of a sibling checkout, or for an app-source read. A run that searches anyway gets `no canned output`, and the search shows in `transcript.md` as a MUST failure.
+There are no rows for `ls <parent of the repo>`, for any `git -C <dir>` read of a sibling checkout, or for an app-source read. A read of that kind has no canned output.
 
 ## Snapshot reads (prod)
 
-S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the apply). S2 = after the CI job has run the upgrade and the rollout has completed. The snapshot set is the Deployment `notifyapi` and its pods; the catalog lists no consumers. **No metrics backend is reachable:** the cluster has a `PrometheusRule` and a `ServiceMonitor`, but no Prometheus API address is in the repo, the catalog or the pre-flight record, and the fixture has no row for one. A query to a backend gets `no canned output`. The only metric reads are `kubectl top`, which are point-in-time, so the snapshot says `no metrics backend — point-in-time only` and Q3 has no request-rate source.
+S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the apply). S2 = after the CI job has run the upgrade and the rollout has completed. No metrics backend is reachable: the cluster has a `PrometheusRule` and a `ServiceMonitor`, but no Prometheus API address is in the repo, the catalog or the pre-flight record, and the fixture has no row for one. A query to a backend has no canned output. The only metric reads are `kubectl top`, which are point-in-time.
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-prod.json` | S0/S1. A `List`: the Deployment `notifyapi` 2 of 2 ready, 2 pods `Running` with 0 restarts, no event, no StatefulSet, no HPA. The runner applies any `-o jsonpath` or `-o custom-columns` |
 | `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-after-prod.json` | S2. The Deployment 4 of 4 ready, 4 pods `Running` with 0 restarts, three `Normal` events from the scale-up, no `Warning` event |
-| `helm history notifyapi -n notifyapi-prod*` | `helm-history.txt` | S0/S1, and the automation-lag read: revision 9 `deployed` on 2026-04-02, 22 days before the clock start |
+| `helm history notifyapi -n notifyapi-prod*` | `helm-history.txt` | S0/S1: revision 9 `deployed` on 2026-04-02, 22 days before the clock start |
 | `helm history notifyapi -n notifyapi-prod*` | `helm-history-after.txt` | S2: revision 10 `deployed` at 14:31 +07:00 |
-| `gh run list *` | `gh-run-list.json` | CI history. The operator-stated delivery model is a CI job that runs `helm upgrade` on merge: its last run succeeded 2026-04-02 16:40 +07:00 |
+| `gh run list *` | `gh-run-list.json` | CI history: the last run of the `helm-upgrade` workflow succeeded 2026-04-02 16:40 +07:00 |
 
 ## Documentation lookups
 
