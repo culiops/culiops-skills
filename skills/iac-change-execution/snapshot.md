@@ -93,7 +93,7 @@ Each member and signal gets a before value (S1, or the S0 it reused, or the PR p
 
 Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. An error signal is `regressed` only when the after window holds at least 5 errors, whatever the before value, and the second bar holds. Before > 0: the rate or count is above 1.5× its before value. Before = 0: skip the ratio test; a rate needs ≥ 1% of requests, a count with no request denominator needs only the 5-error floor. Below either bar the verdict is `ok`, with the values shown. Both bars are inferred defaults the team may set its own: a single sporadic error must not raise `[H10]`, and 1% is one failed request at the 100-request low-volume threshold, which still applies first.
 
-**`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than its expected value. **`ok`** is neither.
+**`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than its expected value (as above). **`ok`** is neither.
 
 **Low volume** (an inferred default). Fewer than 100 requests (or invocations, messages, jobs) in either window gives `no data (low volume)` for that member's error and latency signals, not `regressed`; for S2, first widen its window toward the 30-minute maximum and read again. Below 100, one failed request is 1% or more of the window, so a 1.5× ratio can be a single request.
 
@@ -142,7 +142,7 @@ The snapshot and the other batch reads answer pre-flight's L2 questions. The ope
 |---|---|---|
 | Q1 active incident | `Q1(alarms)`: alarms or alerts firing on the snapshot set at S0 / S1. `Q1(declared)`: the incident command (Operator profile), otherwise the operator line | `live:` · `live:` or `operator (no objection at [<stop>], <time>)` |
 | Q2 deploy freeze | A freeze calendar read in Step 1 (Operator profile › Freeze source), otherwise the operator line | `code:` or `operator (no objection at [<stop>], <time>)` |
-| Q3 peak traffic | Request rate at S0 against the same hour last week; `yes` above 1.5× (assessor L3, Timing context). PR path where CI, GitOps or PR automation applies at merge: `unsure (apply at merge; peak hours HH–HH, live)`, the busiest hours of the last 7 days, shown as `peak hours: HH–HH` | `live:` |
+| Q3 peak traffic | Request rate at S0 against the same hour last week; `yes` above 1.5× (assessor L3, Timing context). PR path where CI, GitOps or PR automation applies at merge: `unsure (apply at merge; peak hours HH–HH, live)`, the busiest hours of the last 7 days, shown as `peak hours: HH–HH`; the finding's mitigation is to merge outside those hours | `live:` |
 | Q4 / Q5 experience | Operator profile; asked only when missing | `operator (profile, <date>)`, or `operator` when asked this run |
 | Q6 cost | Unchanged (L1 from the plan) | — |
 | Q7 other context | The reply to the operator line, or `none` | `operator` |

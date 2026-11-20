@@ -1,0 +1,46 @@
+{
+  "MetricDataResults": [
+    {
+      "Label": "notifyapi-prod-inbound NumberOfMessagesSent",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [238, 246, 241, 251, 236, 244, 249, 240, 247, 239, 243, 236]
+    },
+    {
+      "Label": "notifyapi-prod-inbound NumberOfMessagesSent (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [234, 241, 236, 245, 231, 239, 244, 235, 242, 234, 238, 241]
+    },
+    {
+      "Label": "notifyapi-prod-inbound ApproximateNumberOfMessagesVisible",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [7, 8, 6, 9, 7, 8, 10, 7, 8, 6, 8, 7]
+    },
+    {
+      "Label": "notifyapi-prod-inbound ApproximateNumberOfMessagesVisible (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [6, 7, 8, 6, 7, 8, 6, 7, 8, 7, 6, 7]
+    },
+    {
+      "Label": "notifyapi-prod-inbound ApproximateAgeOfOldestMessage",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [5, 6, 5, 6, 5, 5, 6, 5, 6, 5, 5, 6]
+    },
+    {
+      "Label": "notifyapi-prod-inbound ApproximateAgeOfOldestMessage (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [6, 5, 6, 7, 6, 5, 6, 6, 7, 6, 5, 6]
+    }
+  ]
+}
