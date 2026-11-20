@@ -28,7 +28,7 @@ SKILL.md and `lanes.md` cite this file by section name, as `snapshot.md › <hea
 - Measure them through their one-hop dependents, the workloads that use them: the services or instances attached to a security group, the workload that assumes a role, the load balancer a record points at, the Deployment that mounts a ConfigMap.
 - The resource itself gets no rows. List it as `n/a — no health signals of its own`. It does not count against the cap.
 
-**Not-app-facing changes** skip the dependents and dependencies. These are changes where every changed attribute is on pre-flight's not-app-facing list (`skills/pre-flight/assessors/iac-change.md` › Application compatibility) and no output or export changes, such as adding alarms, dashboards or tags. Pre-flight scores category 4 Green for exactly this case ("nothing can depend on it"). For such a change:
+**Not-app-facing changes** skip the dependents and dependencies. These are changes where every changed attribute is on pre-flight's not-app-facing list (`skills/pre-flight/assessors/iac-change.md` › Application compatibility) and no output or export changes, such as adding alarms, dashboards or tags. Pre-flight scores category 4 Green for exactly this case ("nothing can depend on it"). **A scaling count is never skipped:** a change whose changed attributes include a desired count, replicas or a min / max size gets the full snapshot, its dependents first, then its dependencies (Order and cap), and S2's two-period wait and metrics call. Its dependents feel the capacity it changes (inferred; the assessor scores scaling counts under category 1, `skills/pre-flight/assessors/iac-change.md` › Application compatibility). This changes only the snapshot set, not pre-flight's scoring. For a change that is skipped:
 - the set is the service the change belongs to: its workload, plus its load balancer or other front door when it has one. S0 reads them because the L2 answers need them: `Q1(alarms)` reads their alarms, and Q3 reads the front door's request rate;
 - there are no dependents or dependencies in the set;
 - S2 has no two-period wait (When snapshots run).
@@ -78,7 +78,7 @@ A snapshot reads a fixed, small set of signals per member: firing alarms or aler
 - **Maximum wait:** 30 minutes after the rollout completes. Signals still too early then stay `after: too early`, and the environment's result is `Applied: yes — not verified`, the existing value. That is not a fail. A `regressed` already read still fails.
 - **PR path:** if the operator says "landed" too early, say `S2 ready at HH:MM`, and run S2 then or when the operator next speaks. This is the existing "tell me when the apply lands" re-entry (SKILL.md Step 5b, Final message), with no new stop.
 - **Observation window** (`lanes.md` › Staging-first): at its end, S2 runs again with staging's success criteria, so a delayed regression still blocks prod.
-- **Not-app-facing change:** no two-period wait. S2 reads the alarms and the point-in-time state once, with the success criteria, which verify the change as today. No metrics call: its metric signals have no after-read, so they are left out of the counts and the no-data list, not counted as `no data`.
+- **A skipped not-app-facing change** (Snapshot set; never a scaling count): no two-period wait. S2 reads the alarms and the point-in-time state once, with the success criteria, which verify the change as today. No metrics call: its metric signals have no after-read, so they are left out of the counts and the no-data list, not counted as `no data`.
 
 ## Comparison
 
@@ -88,12 +88,12 @@ Each member and signal gets a before value (S1, or the S0 it reused, or the PR p
 - an alarm on a member is firing after the apply and was not firing before;
 - error count or rate, or p95 latency, is above 1.5× its before value (for errors, with the floor below);
 - saturation crosses 70% from below;
-- ready vs desired, healthy targets or running count is lower than before, or than its expected value (Changes made on purpose);
+- ready vs desired, healthy targets or running count is lower than its expected value (the before value when none is stated, Changes made on purpose);
 - restarts increased, or new `Warning` events appear on a member.
 
 Compare an error rate (errors ÷ requests) where the member has a request count, and a count per period where it has none. An error signal is `regressed` only when the after window holds at least 5 errors, whatever the before value, and the second bar holds. Before > 0: the rate or count is above 1.5× its before value. Before = 0: skip the ratio test; a rate needs ≥ 1% of requests, a count with no request denominator needs only the 5-error floor. Below either bar the verdict is `ok`, with the values shown. Both bars are inferred defaults the team may set its own: a single sporadic error must not raise `[H10]`, and 1% is one failed request at the 100-request low-volume threshold, which still applies first.
 
-**`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than before. **`ok`** is neither.
+**`improved`** is the same test the other way: below the before value ÷ 1.5, saturation crossing 70% from above, more ready or healthy than its expected value. **`ok`** is neither.
 
 **Low volume** (an inferred default). Fewer than 100 requests (or invocations, messages, jobs) in either window gives `no data (low volume)` for that member's error and latency signals, not `regressed`; for S2, first widen its window toward the 30-minute maximum and read again. Below 100, one failed request is 1% or more of the window, so a 1.5× ratio can be a single request.
 

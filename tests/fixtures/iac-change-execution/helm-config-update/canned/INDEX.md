@@ -90,7 +90,7 @@ There are no rows for `ls <parent of the repo>`, for any `git -C <dir>` read of 
 
 ## Snapshot reads (prod)
 
-S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the apply). S2 = after the CI job has run the upgrade and the rollout has completed. No metrics backend is reachable: the cluster has a `PrometheusRule` and a `ServiceMonitor`, but no Prometheus API address is in the repo, the catalog or the pre-flight record, and the fixture has no row for one. A query to a backend has no canned output. The only metric reads are `kubectl top`, which are point-in-time.
+S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the apply). S2 = after the CI job has run the upgrade and the rollout has completed. No Kubernetes metrics backend is reachable: the cluster has a `PrometheusRule` and a `ServiceMonitor`, but no Prometheus API address is in the repo, the catalog or the pre-flight record, and the fixture has no row for one. A query to a Prometheus backend has no canned output. The cluster's only metric reads are `kubectl top`, which are point-in-time. CloudWatch in `ap-southeast-1` answers with the prod identity: the SQS queue `notifyapi-prod-inbound` publishes its metrics there. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
@@ -98,6 +98,9 @@ S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the ap
 | `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-after-prod.json` | S2. The Deployment 4 of 4 ready, 4 pods `Running` with 0 restarts, three `Normal` events from the scale-up, no `Warning` event |
 | `helm history notifyapi -n notifyapi-prod*` | `helm-history.txt` | S0/S1: revision 9 `deployed` on 2026-04-02, 22 days before the clock start |
 | `helm history notifyapi -n notifyapi-prod*` | `helm-history-after.txt` | S2: revision 10 `deployed` at 14:31 +07:00 |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | always, `ap-southeast-1`: nothing is firing |
+| `aws cloudwatch get-metric-data *` | `metric-data-7d-prod.json` | a window longer than one day: the S0/S1 call of `examples/aws.md` › Health Snapshot (7 days and 1 hour, `Period` 3600). The queue `notifyapi-prod-inbound`, one value per hour, 169 hours oldest first, the last the hour ending at the clock start and the first the same hour a week earlier. `NumberOfMessagesSent` (last 2,910, first 2,860): weekdays peak between 09:00 and 12:00 +07:00 (02:00–05:00 UTC), about 4,000–4,500 per hour; weekend hours are about half the weekday ones; 00:00–05:00 +07:00 68–184 per hour. `ApproximateNumberOfMessagesVisible` maximum 0–15 (last 10, first 8). `ApproximateAgeOfOldestMessage` maximum 1–11 s (last 6, first 7) |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2: the queue's signals for the 6 periods of 300 s after the rollout completed. `NumberOfMessagesSent` 247–261 per period, `ApproximateNumberOfMessagesVisible` maximum 3–5, `ApproximateAgeOfOldestMessage` maximum 3–4 s. The runner returns the periods inside the window the skill asked for |
 | `gh run list *` | `gh-run-list.json` | CI history: the last run of the `helm-upgrade` workflow succeeded 2026-04-02 16:40 +07:00 |
 
 ## Documentation lookups

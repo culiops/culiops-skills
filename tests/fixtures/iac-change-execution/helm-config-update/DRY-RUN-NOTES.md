@@ -177,4 +177,5 @@ Simulated dry-run (canned command output), 2026-11-18, sonnet runner following S
 - Typed L2: 12 → 0.
 - Snapshot commands added: 1 (S0 combined `kubectl get deploy,sts,pods,events,hpa` read) plus 2 automation-lag reads (`helm history`, `gh run list`). S1 re-read the 1.
 - MUST: 17 PASS / 0 FAIL.
-- Stop target 4 is provisional — pending founder decision on G4 / §9.2 (see README).
+- Stop target 4 is decided (founder, 2026-11-20): a change applied at merge keeps `Q3=unsure`, see README.
+- This run used the text before the 2026-11-20 scaling-count decision, so its snapshot set had no dependents or dependencies. The README MUST now expects the queue `notifyapi-prod-inbound` as a member and its CloudWatch reads. Not re-run yet.
