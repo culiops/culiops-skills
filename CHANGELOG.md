@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - `simple-alarm-addition`, operator script: stops 2 → 2, L2 asked 8 → 0. With no profile yet, Q4 and Q5 are still asked: 8 → 2.
   - `light-lane-staging-prod`, operator script: stops 3 → 3, L2 asked 9 → 0 (8 at `[A]`, plus the prod `[B]` re-ask). The new `alarm-firing` script has 4 stops (`[A]`, `[H5]`, `[B]`, `[B]`) and 0 L2 asked.
   - `multi-phase-rds-upgrade`: stops 7 → 7, L2 asked 9 → 1 (8 at `[F2]`, plus the phase-2 re-ask; v0.20.0 asks only the app-source confirmation).
-  - `helm-config-update`: stops 3 → 4, L2 asked 7 → 0, measured before the 2026-11-20 scaling-count decision; re-run pending. See Behaviour to know.
+  - `helm-config-update`: stops 3 → 4, L2 asked 7 → 0, re-measured after the 2026-11-20 scaling-count decision. Its snapshot uses 6 commands per environment, one over the "about five" target, because Kubernetes state is read per type (Deployment, pods, events, HPA) beside the two CloudWatch reads for its SQS dependency. See Behaviour to know.
   - `dependency-regression`: 6 stops with the stop at `[H10]`, 8 with the override. 1 L2 asked (Q8, no app source).
   - The MUST lists in the fixtures passed 14 to 30 items per run. The remaining fails (0 to 3 per run) are recorded in each fixture's `DRY-RUN-NOTES.md`. Most are runner deviations on format details, such as per-member sources at `[F2]` and one category-2 score. The per-value commands missing at `[H10]` came from the skill text: the Step 5a report template left them out. The template now asks for them; that run was not repeated.
 

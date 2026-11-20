@@ -169,13 +169,22 @@ Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git sho
 
 ## v0.20 run
 
-Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+Simulated dry-runs (canned command output), sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2. The 2026-11-20 re-run replaced the 2026-11-18 out-dir.
 
-### operator-script.md
+### operator-script.md, 2026-11-18 (before the founder decisions)
 - Out-dir: `expected-output-v020/`
 - Stops: 3 → 4 (F1, F2, H5, F4).
 - Typed L2: 12 → 0.
 - Snapshot commands added: 1 (S0 combined `kubectl get deploy,sts,pods,events,hpa` read) plus 2 automation-lag reads (`helm history`, `gh run list`). S1 re-read the 1.
 - MUST: 17 PASS / 0 FAIL.
 - Stop target 4 is decided (founder, 2026-11-20): a change applied at merge keeps `Q3=unsure`, see README.
-- This run used the text before the 2026-11-20 scaling-count decision, so its snapshot set had no dependents or dependencies. The README MUST now expects the queue `notifyapi-prod-inbound` as a member and its CloudWatch reads. Not re-run yet.
+- This run's snapshot set had no dependents or dependencies: the text then skipped scaling counts.
+
+### operator-script.md, 2026-11-20 (after the founder decisions)
+- Out-dir: `expected-output-v020/`, replacing the 2026-11-18 output.
+- Stops: 3 → 4 (F1, F2, H5, F4). Unscripted: 0. `[F3]` waived at `[F2]`; the pre-flight skip refused (H9); pre-flight ran inline, `RED — soft block`, shown as `[H5]`.
+- Typed L2: 12 → 0 (L2-ASKED 0).
+- Snapshot set as shown: Deployment `notifyapi` (changed) · Service `notifyapi` (`n/a — no health signals of its own`) · SQS `notifyapi-prod-inbound` (dependency) · SMTP relay and SES (catalog leads, not snapshotted). Coverage: code + catalog + live kubectl and CloudWatch; not covered: callers outside the repo, SMTP, SES, and notifyapi's error rate, latency and alerts (no metrics backend).
+- Snapshot commands per environment: 6 (`kubectl get deploy`, `kubectl get pods`, `kubectl get events`, `kubectl get hpa`, `aws cloudwatch describe-alarms`, `aws cloudwatch get-metric-data`), one over the "about five" target, because Kubernetes state is read per type. Run at S0 and again at S1 (S0 was 17 minutes old). No S2: the PR is open.
+- Q3 took its peak hours (09:00–12:00 +07:00) from the queue's `NumberOfMessagesSent`. The README MUST, as relaxed after review, allows peak hours only from a member `snapshot.md` › L2 from evidence names (a load balancer, or the service in front of an RDS instance), so this is a deviation for the verifier to score.
+- Fixture gaps, `no canned output` (5 occurrences, 4 commands): `kubectl get events` with `type=Warning` (S0 14:18, S1 14:48); `kubectl get ingress -A` (14:24); `kubectl config view --minify` for the API server (pre-flight target check, 14:54); a pricing docs lookup (14:58). Rows and a `docs.md` entry for all four were added after the run; it was not re-run.

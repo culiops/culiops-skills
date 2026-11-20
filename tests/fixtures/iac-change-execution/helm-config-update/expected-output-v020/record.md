@@ -1,111 +1,130 @@
-(Would be written to `.culiops/iac-change-execution/notifyapi-scale-replicas-20260424-1509.md`; not committed.)
+<!-- Would be written to .culiops/iac-change-execution/notifyapi-scale-replicas-20260424-1514.md at Step 5b. Not committed (the commit is offered in the final message). -->
 
 **IaC change execution for:** `notifyapi` / `prod`
-**Change:** Increase replica count from 2 to 4 for notifyapi in prod.
-**Date:** `2026-04-24 15:09`
-**Commit:** `7f3a9c1`
-**IaC tool(s):** Helm (chart `notifyapi` 1.2.0, `values.yaml` + `values-prod.yaml`); prerequisites for `examples/kubernetes.md`: `kubectl` v1.29.4, `helm` v3.14.4 (with the `helm-diff` plugin for the plan), a kubeconfig context for `prod-cluster`, read-only RBAC for Steps 1 and 5, namespace-scoped mutation RBAC only for a direct apply (none used)
+**Change:** Increase replica count from 2 to 4 for notifyapi in prod (`replicaCount` in `values-prod.yaml`)
+**Date:** `2026-04-24 15:14`
+**Commit:** `7f3a9c1` (branch `iac-change/notifyapi-replicas-2-to-4`)
+**IaC tool(s):** Helm (chart `notifyapi` 1.2.0)
 **Execution path:** PR (https://github.com/acme/notifyapi/pull/57)
-**Pre-flight record:** invoked inline — verdict: RED — soft block (`.culiops/pre-flight/notifyapi-scale-replicas-20260424-1458.md`); `.culiops/pre-flight/notifyapi-config-update-20260424-1030.md` not reused: its plan hash, target and age matched (4 h 18 min), but S1 could only answer `Q1(alarms)` and `Q3` as `unsure` against its recorded `no` answers, which counts as changed (Step 4b)
-**Lane:** full — a `Deployment` update is not on the Kubernetes light-lane allowlist (L2 fails, `lanes.md`); L1 and L3 hold; no escalation
+**Pre-flight record:** `.culiops/pre-flight/notifyapi-scale-replicas-20260424-1504.md` — invoked inline — verdict: RED — soft block; `.culiops/pre-flight/notifyapi-config-update-20260424-1030.md` not reused: same plan hash, same target and inside 24 h, but S1 gave `Q3=unsure (apply at merge)` and `Q1(alarms)=unsure` against the record's recorded `not peak hours` / `no incident`, which counts as changed
+**Lane:** full — `Deployment` update (`replicas`) is off the Light-lane allowlist (`lanes.md` › Light-lane allowlist, Kubernetes: only create of `PrometheusRule`, `ServiceMonitor`, `PodMonitor`); tier unproven, so not dev
 **Escalations:** none
-**Environment tier:** prod=prod (operator-stated at [F1], 14:14; no pin in the repo — no CI config, no GitOps destination — so unproven, prod gate levels)
-**Staging-first:** n/a — no staging env (code: `values-prod.yaml` is the only per-environment values file; catalog: Environment prod only)
-**Waived:** F3 — operator, 14:38
+**Environment tier:** prod=prod (operator-stated at [F1]; no pin in the repo: no CI config, Argo CD or Flux object names a context — unproven, prod gate levels)
+**Staging-first:** n/a — no staging env (code: `values.yaml` (base) and `values-prod.yaml` are the only environment files)
+**Waived:** F3 — operator, 14:36
+
+Prerequisites (Kubernetes examples, `examples/kubernetes.md`; the CloudWatch reads use `examples/aws.md` › Health Snapshot): `kubectl` 1.29.4 against server 1.29.8 (`kubectl-version.txt`), `helm` v3.14.4 with the `helm-diff` plugin, `aws-cli` 2.17.21, `gh`; read-only RBAC tier 1, plus `secrets` get/list in `notifyapi-prod` for `helm history`; no elevated tier needed (the apply is by CI).
 
 ## Research Summary
 
-- Catalog used: `.culiops/service-discovery/notifyapi-prod.md` (a lead; every fact below confirmed in code and live). Output root: `.culiops/` at the repo root (`CULIOPS_HOME` unset).
-- Duplicate check: **not done**. `code: values-prod.yaml:4` is `replicaCount: 2`; `git grep -F` finds no `replicaCount: 4` / `replicas: 4`; `git: git log --all -S'replicaCount: 4'` has no commits; no branch matches `*replica*`; no open PR. No ticket key given.
-- Delivery model: **UNVERIFIED in the repo** (no CI config, no `Application` / `HelmRelease` / `Kustomization`; no Argo CD or Flux in the cluster, `live: 14:19, 14:20`); asked at `[F2]` and recorded `operator-stated`: a CI job runs `helm upgrade` on merge (`live: gh run list 14:29` shows a `helm-upgrade` workflow that succeeded 2026-04-02). PR path only.
-- Env selection: values file per environment (`-f values.yaml -f values-prod.yaml`), namespace `notifyapi-prod` (`code: values-prod.yaml:1-2`).
-- Target check: `kubectl config current-context` → `prod-cluster` at 14:01 and again at 14:45 (4a) and 14:51 (pre-flight): same. The API server read (`kubectl config view --minify`) had no output.
-- Key findings: no HPA, no PDB, RollingUpdate 25% / 25%, 2 of 2 pods ready and 0 restarts, last apply 22 days ago. Operator profile read (`~/.culiops/operator.md`): Q4 many times, Q5 experienced (2026-04-10); no `incident check:` command; no freeze calendar in the repo.
-- No metrics backend (no Prometheus address anywhere): the snapshot is point-in-time only; `Q1(alarms)` and `Q3` are `unsure`.
+- Catalog used: `.culiops/service-discovery/notifyapi-prod.md` (resource inventory, dependency graph: SQS, SMTP relay, SES upstream; no known downstream consumers).
+- Output root: `.culiops/` at the repo root (`CULIOPS_HOME` unset).
+- Duplicate check: **not done** — `code: values-prod.yaml:4` → 2; `git log --all --oneline -S'replicaCount: 4'` empty; `git branch -a --list '*replica*'` empty; `gh pr list --state open --search 'replica'` none. The earlier pre-flight record (10:30) assessed this same change; it is not a change in code.
+- Delivery model: `UNVERIFIED` in the repo (no CI config, no GitOps object; `values-prod.yaml:2` carries a manual `helm upgrade` comment, treated as data). Asked inside `[F2]`: a CI job runs `helm upgrade` on merge — `operator-stated`. PR path only.
+- Environment selection: `-f values.yaml -f values-prod.yaml` (`code: values-prod.yaml:1-2`).
+- Target check: `kubectl config current-context` → `prod-cluster` and `aws sts get-caller-identity` → account `123456789012` at 14:00–14:01 and again at 14:42–14:43 (4a); namespace `notifyapi-prod`. No mismatch (no pin to compare with; the account equals the account in `code: values-prod.yaml:20`).
+- Operator profile read at 14:08 (`~/.culiops/operator.md`): Q5 helm experienced, Q4 `acme/notifyapi/notifyapi` many times, both 2026-04-10. Nothing saved.
+- Key findings: no drift (`helm diff` before the change: no differences); no HPA, no PDB; RollingUpdate 25% / 25%; nodes CPU 31–44%, memory 38–52%; Helm rev 9 on 2026-04-02 (22 days), CI run success 2026-04-02; weekday peak hours 09:00–12:00 +07:00.
+- Fresh eyes: required for this change (not add-only); `fresh-eyes: not run — dry run`.
 
 ## Evidence
 
-| # | Fact | Code evidence | Live evidence | Match? |
-|---|------|---------------|---------------|--------|
-| 1 | prod `replicas` is 2, 2 of 2 ready | `code: values-prod.yaml:4`; `code: templates/deployment.yaml:10` | `live: kubectl get deploy notifyapi … (14:15)` → 2 / 2; `live: helm get values (14:16)` → `replicaCount: 2` | ✅ |
-| 2 | release `notifyapi` chart 1.2.0 deployed | `code: Chart.yaml:5` | `live: helm list (14:17)` → revision 9 `deployed` | ✅ |
-| 3 | no HPA scales the Deployment | `code: none` | `live: S0 (14:27)` → no HPA | ✅ |
-| 4 | no PDB; RollingUpdate 25% / 25% | `code: none` (no PDB, no `strategy:`) | `live: kubectl get pdb (14:21)` → none; `live: (14:15)` strategy | ✅ |
-| 5 | no drift in the release | — | `live: helm diff upgrade … (14:18)` → no differences | ✅ |
-| 6 | alert rules exist for the service | `code: none` (rules are in namespace `monitoring`, not this chart) | `live: kubectl get prometheusrule (14:25)` → 3 alerts | live only |
-| 7 | delivery model: CI runs `helm upgrade` on merge | `code: none` | `live: gh run list (14:29)` | ⚠️ UNVERIFIED (operator-stated at `[F2]`) |
+| Fact | Code evidence | Live evidence | Match? |
+|---|---|---|---|
+| notifyapi prod replicas | `code: values-prod.yaml:4` → 2 (base `values.yaml:3` = 1, overridden; consumed at `templates/deployment.yaml:10`) | `live: kubectl get deploy notifyapi … jsonpath` (14:16) → 2; `live: helm get values notifyapi` (14:15) → `replicaCount: 2` | ✅ |
+| Ready replicas, restarts | — | `live:` 2/2 ready (14:16); 2 pods Running, 0 restarts (14:17) | observed |
+| Release equals chart | `code:` chart as committed | `live: helm diff upgrade … ` (14:14) → no differences | ✅ no drift |
+| Pod requests / limits | `code: values-prod.yaml:10-15` → 250m / 256Mi, 1000m / 512Mi | `live:` (14:16) → 250m / 256Mi, 1 / 512Mi | ✅ |
+| Image tag | `code: values-prod.yaml:7` → `v3.1.0` | `live:` (14:16) → `registry.internal/notifyapi:v3.1.0` | ✅ |
+| Rollout strategy | `code: none` (default) | `live:` (14:16) → RollingUpdate 25% / 25% | live only |
+| HPA / PDB | `code: none` | `live:` (14:19, 14:20) → none, none | ✅ |
+| Node headroom | — | `live:` (14:21–14:22) pods 47% / 42% CPU, 67% / 65% memory of request; nodes CPU 31–44%, memory 38–52% | observed; node allocatable not read |
+| Behaviour of a `replicas` change | — | `docs: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment (read 2026-04-24)`: adds or removes pods, no template rollout | docs |
+| Delivery model | `code: values-prod.yaml:2` comment (data) | `live: gh run list` (14:26): one success run 2026-04-02 | `UNVERIFIED` → `operator-stated` at `[F2]` |
+| Downstream consumers | `catalog:` none known | `live:` Ingress read (14:24): no canned output, failed | `UNVERIFIED` |
 
-Drift rows: 0. Unverified rows: 1 (delivery model). Disruption evidence: `docs: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment (read 2026-04-24)`: changing `.spec.replicas` adds or removes pods and does not roll the pod template.
+Drift rows: 0 · unverified rows: 2 · code-only rows: 0.
 
 ## Change Plan
 
-**Phase 1 of 1: Scale prod notifyapi from 2 to 4 replicas**
-- Files: `values-prod.yaml` (line 4: `replicaCount: 2` → `4`)
-- Resources affected: `Deployment/notifyapi` (notifyapi-prod): in place, `spec.replicas` 2 → 4. No add, no destroy.
-- Blast radius: Deployment `notifyapi` and its pods; Service `notifyapi` (`n/a — no health signals of its own`). `Snapshot coverage: code + catalog + live kubectl reads; not covered: callers outside this repo; no metrics backend — point-in-time only`
-- Disruption: none (`docs:` above; `live:` no HPA, no PDB, RollingUpdate 25% / 25%); confirmed at 4a by `plan:` (in-place update, one hunk)
-- Rollback path: revert the PR and let the pipeline apply it, or `helm rollback notifyapi 9 -n notifyapi-prod` (a mutation, own approval; revert the PR as well). Reversible, `untested`. `live: helm history (14:28)` revision 9 exists.
-- Success criteria: `kubectl rollout status deploy/notifyapi -n notifyapi-prod --timeout=5m` → `successfully rolled out`; `kubectl get deploy notifyapi -n notifyapi-prod -o jsonpath='{.status.readyReplicas}/{.spec.replicas}'` → `4/4`; `helm history notifyapi -n notifyapi-prod --max 5` → a new revision `deployed`; `kubectl top pods … -l app.kubernetes.io/name=notifyapi` → 4 pods under their requests; S2 on the snapshot set (not-app-facing: no two-period wait; point-in-time only)
-- Execution path: PR. Staging-first: (a) no staging env. Branch: `iac-change/notifyapi-replicas-4` from `origin/main` @ `a1b2c3d`.
-- Plan self-check: 8/8 pass.
+**Phase 1 of 1: raise the prod replica count from 2 to 4** (approved at `[F2]`, 14:36)
+- Files: `values-prod.yaml`
+- Resources affected: change `Deployment/notifyapi` (in place); no add, no destroy
+- Blast radius: the snapshot set (see Health Snapshot), with its coverage line
+- Disruption: `none` — `docs:` a replicas change adds pods and does not roll the pod template; `live:` RollingUpdate 25% / 25%, no PDB, no HPA; `plan:` (4a) only `replicas` changes
+- Rollback path: reversible — `helm rollback notifyapi 9 -n notifyapi-prod` after the new revision, or a revert PR delivered the same way; `docs:` scaling adds or removes pods; `live:` `helm history` shows revisions 7–9; untested
+- Success criteria: `kubectl rollout status deploy/notifyapi -n notifyapi-prod --timeout=5m` → `deployment "notifyapi" successfully rolled out`; `kubectl get deploy notifyapi -n notifyapi-prod -o jsonpath='{.status.readyReplicas}/{.spec.replicas}'` → `4/4`; pods list → 4 `Running`, restarts 0; `helm history notifyapi -n notifyapi-prod --max 5` → a new revision `deployed`; re-plan `helm diff upgrade …` → no differences; S2 on the snapshot set
+- Execution path: PR (CI applies on merge, `operator-stated`)
+- Staging-first (H7): (a) no staging env — `code: values.yaml`, `values-prod.yaml`. Observation window: n/a — no staging phase
+- Branch: `iac-change/notifyapi-replicas-2-to-4` from `origin/main` @ `a1b2c3d`
+- Self-check: 8/8
 
 ## Execution Log
 
-### Phase 1: Scale prod notifyapi from 2 to 4 replicas
-- Files changed: `values-prod.yaml` (line 4, `replicaCount` 2 → 4)
-- Self-check: plan 8/8 · diff 6/6 (`helm lint .` clean; one INFO line about a missing chart icon, not a failure)
+### Phase 1: raise the prod replica count from 2 to 4
+- Files changed: `values-prod.yaml` (line 4: `replicaCount: 2` → `4`)
+- Self-check: plan 8/8 · diff 6/6
 - Fresh eyes: not run — dry run
-- Plan output summary: 1 object changed — `Deployment/notifyapi`, `replicas: 2` → `4`, in place; 0 to add, 1 to change, 0 to destroy
-- Plan hash: `sha256:9f2c4e…` (`helm diff upgrade notifyapi . -n notifyapi-prod -f values.yaml -f values-prod.yaml`, run 14:46)
+- Plan output summary: `helm diff upgrade` — 1 object changed (`Deployment/notifyapi`, `replicas: 2 → 4`); 0 to add, 1 to change, 0 to destroy
+- Plan hash: `sha256:9f2c4e…`
 - Parity check: n/a
-- Pre-flight verdict: RED — soft block (categories 5 ⚪, 7 🟡, 8 🟡, 10 ⚪; Red = none; Yellow + ⚪ = 4, so the multi-Yellow escalation applies). Risks acknowledged at `[H5]` 14:58: "Acknowledged, each finding as shown. I'll merge in staffed hours with on-call on hand and follow the mitigations listed." Mitigations committed: merge in staffed hours with on-call on hand; check traffic, error rate and latency on the dashboard before merging; confirm `NotifyApiPodNotReady` is loaded in Prometheus after the apply; check node allocatable vs requests before merging. Approved at `[F4]`, 15:05.
-- Execution: PR https://github.com/acme/notifyapi/pull/57 opened (branch `iac-change/notifyapi-replicas-4`, commit `7f3a9c1`, "notifyapi: scale prod replicas from 2 to 4"). Not merged; after merge the CI job runs `helm upgrade` (operator-stated).
-- Verification: not run — the apply has not landed (PR open). No re-plan, no success-criteria output, no S2.
-- Snapshot: before 14:48 (S1) · after not taken (PR open, apply pending) · n/a
+- Pre-flight verdict: RED — soft block (4 of 11 Yellow or unknown: 🟡 timing, 🟡 cost, ⚪ observability, ⚪ resource health). Risks acknowledged at `[H5]`, 2026-04-24 15:04: "Acknowledged, each finding as shown. I'll merge in staffed hours with on-call on hand and follow the mitigations listed." Mitigations committed: merge outside weekday 09:00–12:00 +07:00 with on-call on hand; a Prometheus / Alertmanager address or a hand check that alerts exist; confirm node placement or price the added pods; compare S2 and error rate / latency after the merge. Shown again at `[F4]` (15:06), approved 15:11.
+- Execution: PR https://github.com/acme/notifyapi/pull/57 opened from `iac-change/notifyapi-replicas-2-to-4` (commit `7f3a9c1`, `notifyapi: increase prod replicas from 2 to 4`); not merged by the skill. After merge the CI job (`operator-stated`) applies it.
+- Verification: not run — the PR is open and no apply has landed. No success-criteria output exists; no re-plan was run; nothing is claimed.
+- Snapshot: before 14:51 (S1; S0 14:28) · after — (no S2 yet) · n/a (S0 and S1 only)
 
 ## Health Snapshot
 
-`Snapshot coverage: code + catalog + live kubectl reads; not covered: callers outside this repo (the catalog lists none); no metrics backend — point-in-time only.`
+`Snapshot coverage: code (templates/, values-prod.yaml) + catalog (.culiops/service-discovery/notifyapi-prod.md) + live (kubectl, CloudWatch ap-southeast-1); not covered: callers outside this repo (callers that dial the Service by DNS name are not visible in the cluster API), SMTP relay and AWS SES (catalog leads, no read), notifyapi's own error rate, latency and firing alerts (no metrics backend: no Prometheus address in the repo, catalog or earlier record), Warning events (read returned nothing usable).`
 
-Not-app-facing change (`replicas` only), so no dependents or dependencies in the set.
+Members (10-member cap; 2 get reads, none over the cap):
+1. `Deployment/notifyapi` — changed; source `code: values-prod.yaml:4`, `plan: helm diff`; `no metrics backend — point-in-time only`.
+2. `Service/notifyapi` — dependent; source `code: templates/service.yaml:15-16`; `n/a — no health signals of its own` (measured through the Deployment).
+3. SQS queue `notifyapi-prod-inbound` — dependency; source `code: values-prod.yaml:20`, `code: templates/configmap.yaml:11`, `catalog:` dependency graph; CloudWatch `ap-southeast-1`.
+4. SMTP relay `smtp.internal:587` — dependency; source `catalog:` only; not snapshotted (lead, not confirmed in code, no read available).
+5. AWS SES — dependency; source `catalog:` only; not snapshotted (lead, not confirmed).
 
-Members:
-- Deployment `notifyapi` and its pods `notifyapi-6c9f7d58b4-x7k2p`, `notifyapi-6c9f7d58b4-m4t9d` — source `code: templates/deployment.yaml:10`, `catalog:`, `plan:`; changed resource; `no metrics backend — point-in-time only`
-- Service `notifyapi` — source `code: templates/service.yaml`; `n/a — no health signals of its own`
+Peak hours (from the S0 7-day hourly series, UTC converted): weekdays 09:00–12:00 +07:00 (02:00–05:00 UTC), 4,026–4,511 messages per hour.
 
-### prod — S0 (read 14:27, with the Step 1 batch)
+### Environment prod — S0 (before; taken 14:16–14:28)
 
-| Member | Signal | Before | After | Verdict | Command | Time |
-|---|---|---|---|---|---|---|
-| Deployment `notifyapi` | ready vs desired | 2 of 2 | — | — | `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod -o custom-columns=…` | 14:27 |
-| Pod `notifyapi-6c9f7d58b4-x7k2p` | phase, restarts | Running, 0 | — | — | same | 14:27 |
-| Pod `notifyapi-6c9f7d58b4-m4t9d` | phase, restarts | Running, 0 | — | — | same | 14:27 |
-| Deployment `notifyapi` | `Warning` events | none | — | — | same | 14:27 |
-| Deployment `notifyapi` | HPA | none | — | — | same | 14:27 |
-| Deployment `notifyapi` | alerts firing | no data (alerts unreadable, no metrics backend) | — | — | none run | — |
-| Deployment `notifyapi` | request rate, error rate, p95 | no data (no metrics backend) | — | — | none run | — |
-| (automation lag) | last apply | revision 9 deployed 2026-04-02 09:41 UTC (22 days); CI run succeeded 2026-04-02 09:40 UTC | — | — | `helm history notifyapi -n notifyapi-prod --max 5`; `gh run list --limit 5 …` | 14:28, 14:29 |
+| Member | Signal | Before (now) | Same hour last week | After | Verdict | Command | Time |
+|---|---|---|---|---|---|---|---|
+| Deployment/notifyapi | desired vs ready | 2 / 2 | — | — | — | `kubectl get deploy notifyapi -n notifyapi-prod -o jsonpath=…` | 14:16 |
+| Deployment/notifyapi | pods, restarts | 2 Running, 0 / 0 | — | — | — | `kubectl get pods -n notifyapi-prod -l app.kubernetes.io/name=notifyapi -o custom-columns=…` | 14:17 |
+| Deployment/notifyapi | Warning events | no data (no canned output) | — | — | — | `kubectl get events -n notifyapi-prod --field-selector type=Warning …` | 14:18 |
+| Deployment/notifyapi | HPA | none | — | — | — | `kubectl get hpa -n notifyapi-prod …` | 14:19 |
+| Deployment/notifyapi | traffic, errors, latency, firing alerts | no metrics backend — point-in-time only | — | — | — | — | — |
+| Service/notifyapi | — | n/a — no health signals of its own | — | — | — | — | — |
+| SQS notifyapi-prod-inbound | firing alarms | 0 | — | — | — | `aws cloudwatch describe-alarms --state-value ALARM …` | 14:27 |
+| SQS notifyapi-prod-inbound | `NumberOfMessagesSent` (Sum, hour) | 2,910 (bucket 2026-04-24T06:28Z) | 2,860 (2026-04-17T06:28Z) | — | — | `aws cloudwatch get-metric-data … snapshot-queries-prod.json` | 14:28 |
+| SQS notifyapi-prod-inbound | `ApproximateNumberOfMessagesVisible` (Maximum) | 10 | 8 | — | — | same call | 14:28 |
+| SQS notifyapi-prod-inbound | `ApproximateAgeOfOldestMessage` (Maximum, s) | 6 | 7 | — | — | same call | 14:28 |
 
-### prod — S1 (read 14:48, after the 4a plan; S0 was 20 minutes old, so not reused)
+### Environment prod — S1 (before the apply; taken 14:46–14:51; S0 was 17 minutes old, not reused)
 
-| Member | Signal | Before | After | Verdict | Command | Time |
-|---|---|---|---|---|---|---|
-| Deployment `notifyapi` | ready vs desired | 2 of 2 | — | — | `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod -o custom-columns=…` | 14:48 |
-| Pod `notifyapi-6c9f7d58b4-x7k2p` | phase, restarts | Running, 0 | — | — | same | 14:48 |
-| Pod `notifyapi-6c9f7d58b4-m4t9d` | phase, restarts | Running, 0 | — | — | same | 14:48 |
-| Deployment `notifyapi` | `Warning` events | none | — | — | same | 14:48 |
-| Deployment `notifyapi` | HPA | none | — | — | same | 14:48 |
-| Deployment `notifyapi` | alerts firing, request rate, error rate, p95 | no data (no metrics backend) | — | — | none run | — |
+| Member | Signal | Before (now) | Same hour last week | After | Verdict | Command | Time |
+|---|---|---|---|---|---|---|---|
+| Deployment/notifyapi | desired vs ready | 2 / 2 | — | — | — | `kubectl get deploy notifyapi -n notifyapi-prod -o jsonpath='{.status.readyReplicas}/{.spec.replicas}'` | 14:46 |
+| Deployment/notifyapi | pods, restarts | 2 Running, 0 / 0 | — | — | — | `kubectl get pods -n notifyapi-prod -l app.kubernetes.io/name=notifyapi -o custom-columns=…` | 14:47 |
+| Deployment/notifyapi | Warning events | no data (no canned output) | — | — | — | `kubectl get events -n notifyapi-prod --field-selector type=Warning …` | 14:48 |
+| Deployment/notifyapi | HPA | none | — | — | — | `kubectl get hpa -n notifyapi-prod …` | 14:49 |
+| Deployment/notifyapi | traffic, errors, latency, firing alerts | no metrics backend — point-in-time only | — | — | — | — | — |
+| Service/notifyapi | — | n/a — no health signals of its own | — | — | — | — | — |
+| SQS notifyapi-prod-inbound | firing alarms | 0 | — | — | — | `aws cloudwatch describe-alarms --state-value ALARM …` | 14:50 |
+| SQS notifyapi-prod-inbound | `NumberOfMessagesSent` (Sum, hour) | 2,910 (bucket 2026-04-24T06:51Z) | 2,860 (2026-04-17T06:51Z) | — | — | `aws cloudwatch get-metric-data …` | 14:51 |
+| SQS notifyapi-prod-inbound | `ApproximateNumberOfMessagesVisible` (Maximum) | 10 | 8 | — | — | same call | 14:51 |
+| SQS notifyapi-prod-inbound | `ApproximateAgeOfOldestMessage` (Maximum, s) | 6 | 7 | — | — | same call | 14:51 |
 
-### prod — S2
+### Environment prod — S2
 
-Not taken: the PR is open and the apply has not landed. No after value is claimed.
+Not taken: the PR is open and the apply is pending, so there is no after value and none is claimed. When the operator says the apply has landed, S2 reads `kubectl rollout status`, the pods, the alarms and the queue (`Period` 300 from the rollout completion), and compares against S1; the "before" for metrics is read back for the window ending at the apply time (`helm history` gives that time).
 
 ## Outcome
 
-Outcome: completed
+completed
 
-**Applied:** no — PR open
+**Applied:** no — PR open (https://github.com/acme/notifyapi/pull/57; not merged; the CI job applies on merge, `operator-stated`). Members with `no data`: Deployment/notifyapi Warning events; notifyapi's error rate, latency and alerts (no metrics backend).
 
 ## Ticket Reference
 

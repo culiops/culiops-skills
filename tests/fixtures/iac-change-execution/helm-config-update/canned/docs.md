@@ -7,3 +7,9 @@ Canned answers for `docs:` lookups. They are fixture text, not fetched pages: th
 - URL: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment
 - Date read: 2026-04-24
 - Sentence relied on (paraphrase): Scaling a Deployment by changing `.spec.replicas` adds or removes pods; it does not trigger a rollout of the pod template, so existing pods are left running.
+
+## Cost of extra pods on EKS
+
+- URL: https://aws.amazon.com/eks/pricing/
+- Date read: 2026-04-24
+- Sentence relied on (paraphrase): EKS charges a fee per cluster per hour; you also pay for what runs your applications on the worker nodes, such as EC2 instances, EBS volumes and public IPv4 addresses. The page lists no charge per pod on EC2 worker nodes.

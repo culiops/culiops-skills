@@ -1,0 +1,27 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://8C4E1F2A9B3D7E6F5A0B1C2D3E4F5A6B.gr7.ap-southeast-1.eks.amazonaws.com
+  name: prod-cluster
+contexts:
+- context:
+    cluster: prod-cluster
+    user: prod-cluster
+  name: prod-cluster
+current-context: prod-cluster
+kind: Config
+preferences: {}
+users:
+- name: prod-cluster
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      command: aws
+      args:
+      - eks
+      - get-token
+      - --cluster-name
+      - prod-cluster
+      - --region
+      - ap-southeast-1

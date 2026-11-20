@@ -1,4 +1,4 @@
-STOP 1: F1 — Run these reads? (Step 1 read batch, S0 included, with the identity read's result and each target's tier)
-STOP 2: F2 — Approve this plan? (research summary, single-phase plan, Checked for you, delivery-model question, operator line)
-STOP 3: H5 — RED soft block from inline pre-flight: acknowledge each Yellow / unknown finding with a reason, or abort?
-STOP 4: F4 — Open the PR? (code summary and plan command moved here by the F3 waiver, target, plan output, verdict, S1)
+STOP 1: F1 — [F1] Run these reads? (identity read result, prod target and tier, 15 numbered reads incl. S0)
+STOP 2: F2 — [F2] Approve this plan? (plan + Checked for you + operator line + delivery-model question)
+STOP 3: H5 — [H5] Pre-flight verdict RED (soft block): acknowledge each finding with a reason, or abort?
+STOP 4: F4 — [F4] Open the PR? (code summary + plan command folded in because [F3] is waived)

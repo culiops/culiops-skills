@@ -13,6 +13,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `kubectl config current-context` | `kubectl-context.txt` | always |
+| `kubectl config view --minify*` | `kubectl-config-view-minify.yaml` | always. The context `prod-cluster`; its cluster's `server` is `https://8C4E1F2A9B3D7E6F5A0B1C2D3E4F5A6B.gr7.ap-southeast-1.eks.amazonaws.com`, an EKS endpoint in `ap-southeast-1`. Credential data is omitted. The runner applies any `-o jsonpath` |
 | `aws sts get-caller-identity` | `identity-prod.json` | always. Account 123456789012 |
 
 ## Git and GitHub (simulated)
@@ -72,6 +73,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `kubectl top nodes*` | `kubectl-top-nodes.txt` | always. Three nodes with CPU 31–44% and memory 38–52% |
 | `kubectl top pods -n notifyapi-prod*` | `kubectl-top-pods.txt` | before. Two pods, each well under its 250m CPU and 256Mi memory requests |
 | `kubectl top pods -n notifyapi-prod*` | `kubectl-top-pods-after.txt` | after. Four pods |
+| `kubectl get events -n notifyapi-prod*type=Warning*` | `kubectl-no-resources.txt` | always, before and after: no `Warning` event |
+| `kubectl get ingress*` | `kubectl-ingress-empty.json` | always, any namespace or `-A`: no Ingress in the cluster. An empty `List`; the runner applies any `-o` or `jq` |
 | `kubectl get prometheusrule* *` | `prometheusrules-notifyapi.json` | always. One rule, `notifyapi-slo` in `monitoring`, with a burn-rate alert, a queue-age alert and a not-ready alert |
 | `kubectl get servicemonitor* *` | `servicemonitors-notifyapi.json` | always. One ServiceMonitor for notifyapi |
 | `kubectl rollout status deploy/notifyapi -n notifyapi-prod*` | `kubectl-rollout-status.txt` | before, and after the rollout |
