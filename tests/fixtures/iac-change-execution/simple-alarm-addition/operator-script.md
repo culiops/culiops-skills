@@ -6,7 +6,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 
 ## Answers by stop
 
-1. `[A]` — approve. L2: Q1=no, Q2=no, Q3=no, Q4=many times, Q5=experienced, Q6=negligible, Q7=none, Q8 (if asked)=(c) the application source is not available, iac-change.1=yes, iac-change.2=a CI pipeline applies on merge (operator-stated), iac-change.3=no (default workspace; the env's own var-file), iac-change.4=recent. Tier: prod (operator-stated). Delivery model, if asked: a CI pipeline applies on merge (operator-stated). Read batch: approve every command shown.
+1. `[A]` — approve. Operator line: no reply. L2: Q1 (if asked)=no, Q2 (if asked)=no, Q3 (if asked)=no, Q4 (if asked)=many times, Q5 (if asked)=experienced, Q6 (if asked)=negligible, Q7 (if asked)=none, Q8 (if asked)=(c) the application source is not available, iac-change.1 (if asked)=yes, iac-change.2 (if asked)=a CI pipeline applies on merge (operator-stated), iac-change.3 (if asked)=no (default workspace; the env's own var-file), iac-change.4 (if asked)=recent. Tier: prod (operator-stated). Delivery model, if asked: a CI pipeline applies on merge (operator-stated). Read batch: approve every command shown.
 2. `[B]` — approve: open the PR. Skip the optional heads-up line.
 
 ## Answers by meaning

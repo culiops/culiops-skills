@@ -39,3 +39,28 @@ Stops: 3 (target 3) — PASS. Unscripted: 0. RED pre-flight runs: 0 (`P:20`, `P:
 
 
 Fix applied: the prod-plan ordering MUST now says a `terraform plan -refresh-only` drift read in the first approved batch does not count (it is a read, not prod's change plan).
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/light-lane-staging-prod/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 3** (`grep -c '^STOP ' expected-output/stops.md`): A, B (staging), B (prod).
+- **L2 items in the v0.18 script: 12** (Q1–Q7, Q8 `if asked`, `iac-change.1`–`iac-change.4`), plus the prod `[B]` re-ask `Q1–Q3 still true (if asked)`. This is the v0.18 figure for typed L2. v0.20 target: 0, for both scripts.
+
+## v0.20 run
+
+Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+
+### operator-script.md
+- Out-dir: `expected-output-v020/`
+- Stops: 3 → 3.
+- Typed L2: 13 → 0 (12 items plus the prod `[B]` re-ask).
+- Snapshot commands added per environment: S0 5 (ECS, target-group, target health, alarms, metrics); S1 0 (reused); S2 3 re-reads (alarms, ECS, target health).
+- MUST: 21 PASS / 0 FAIL.
+
+### operator-script-alarm-firing.md
+- Out-dir: `expected-output-v020-alarm-firing/`
+- Stops: 3 → 4 (the `[H5]` the firing alarm forces; target 4).
+- Typed L2: 13 → 0.
+- Snapshot commands added per environment: S0 5 (ECS, target-group, target health, alarms, metrics); S1 0 (reused); S2 3 re-reads.
+- MUST: 30 PASS / 0 FAIL.

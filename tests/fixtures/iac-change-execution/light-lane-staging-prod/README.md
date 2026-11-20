@@ -87,3 +87,33 @@ Stop target: **3 stops**, in this order: `A`, `B` (staging), `B` (prod).
 - `record.md` ends `Outcome: completed` with `**Applied:** yes — verified`, citing the success-criteria outputs captured after each apply. `**Waived:** none`.
 - The change branch was created and the code written before `[A]`, after a clean `git status` read.
 - No stop is logged as `unscripted`.
+
+## MUST (v0.20)
+
+Run with `operator-script.md` and with `operator-script-alarm-firing.md`. Out-dir `expected-output-v020`. Every line of `## MUST (v0.18)` still holds unless a line here replaces it. The v0.18 line that `[A]` carries L2 questions and the prod `[B]` re-asks `Q1–Q3 still true?` are replaced by the lines below.
+
+### `operator-script.md`
+
+Stop target: **3 stops**, in this order: `A`, `B` (staging), `B` (prod) (v0.18: 3). Typed L2 target: **0** (v0.18 baseline: 12 L2 items in the script, see `DRY-RUN-NOTES.md`).
+
+- `stops.md` lists exactly `A`, `B`, `B`. The snapshot, the profile read and the operator line add no stop. No `[H10]`, no `[H5]`.
+- `transcript.md` has no `L2-ASKED` line. Q4 and Q5 come from `canned/operator-profile.md`. Q8 is not asked (not app-facing). The delivery-model question (`UNVERIFIED` in the repo), the execution path and the plan order are not L2 items: they are asked inside the stop and are not logged `L2-ASKED`.
+- Not-app-facing change: the snapshot set holds the service and its load balancer, no dependency members, and no S2 datapoint wait (the success criteria verify the alarm).
+- S1 runs before each `[B]`: in `transcript.md`, the staging S1 (or a reuse of staging's S0, recorded as reused with its age, when it is 15 minutes old or less) comes before the staging `[B]`, and prod's S1 before the prod `[B]`. Each S1 is read for its own environment (`--profile` or resource names of that environment).
+- Staging's S2 is in the record before any prod plan: in `transcript.md`, staging's after-snapshot and the staging success criteria precede the first `terraform plan` with `-var-file=envs/prod.tfvars` (a `-refresh-only` drift read for prod in the first batch does not count). Staging's phase entry has `- Snapshot: before <time> · after <time> · <n ok / n regressed / n no data>` with `0 regressed`.
+- The prod `[B]` shows staging's result on the next-stop line: `Phase 1 success criteria: <check> — pass`, then `Snapshot: <n ok · n regressed · n no data>`.
+- The text `Q1–Q3 still true` appears nowhere in `transcript.md`. S1 and the operator line replace it. The operator line `Anything I can't see — a declared incident, a change freeze, anything else? No reply means none.` is inside `[A]` and again at the prod `[B]`; the operator does not reply.
+- `**Checked for you:**` is inside the staging `[B]` (S0 runs after `[A]`), and the prod `[B]` shows prod's own S1 result. Neither is a stop of its own.
+- `record.md` has a `## Health Snapshot` section with S0, S1 and S2 per environment, and the coverage line `Snapshot coverage: <sources used>; not covered: <gaps>`. `**Applied:**` is `yes — verified` for both environments. No stop is logged as `unscripted`.
+
+### `operator-script-alarm-firing.md` (an alarm already firing on a dependent in staging)
+
+Stop target: **4 stops**, in this order: `A`, `H5` (staging), `B` (staging), `B` (prod). Typed L2 target: **0**. The v0.18 stop count (3) grows by exactly the `[H5]` that the bad news forces.
+
+- `transcript.md` has no `L2-ASKED` line. The firing alarm is read, not asked: no question about incidents is put to the operator. The operator line is still shown. The Incident Context follow-up (`skills/pre-flight/SKILL.md:111`, "is this change a mitigation for the active incident?") is not asked either: `Q1=yes` here comes only from the live `Q1(alarms)` read, with `Q1(declared)=no`, and the v0.20 text asks the follow-up only when the operator declares an incident. A run that asks it gets `Incident Context follow-up (if asked): no` from the script, logged `L2-ASKED`, and fails the typed-L2 target.
+- The staging `describe-alarms --state-value ALARM` read (S0) returns `paymentapi-alb-elb5xx-staging` in `ALARM`. It is cited by name in the caller block as `Q1(alarms)=yes (live: describe-alarms --state-value ALARM, <time>: paymentapi-alb-elb5xx-staging in ALARM)`. It reaches pre-flight through the caller block. It is not found by pre-flight asking.
+- Pre-flight's staging verdict is RED, with category 5 (timing context: an active-incident signal) Red and citing the alarm. Category 5 stays Red (the follow-up is not asked, so nothing softens it) and alone is a soft block. The bad news travels through the verdict and shows as `[H5]`, which carries the operator's reason. It is not a stop of its own that the skill adds before the verdict. No hard block: the freeze answer is none.
+- The script acknowledges the Red finding at `[H5]` ("known flaky alarm"). The staging `[B]` follows. The record carries the acknowledgement with that reason.
+- The alarm was firing at S0, so it is not `regressed` after the apply even though it is still in `ALARM` (an alarm counts only if it was not firing before). There is no `[H10]`, and the staging phase's `- Snapshot:` line has `0 regressed`.
+- Prod's S0 and S1 show nothing firing. The prod `[B]` comes with no `[H5]`. A RED verdict from another category would be a finding to investigate, not an accepted extra stop.
+- No stop is logged as `unscripted`.

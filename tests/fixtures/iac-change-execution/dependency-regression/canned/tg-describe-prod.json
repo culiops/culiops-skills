@@ -1,0 +1,15 @@
+{
+  "TargetGroups": [
+    {
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:333333333333:targetgroup/orders-api-tg-prod/9c1ed4a2b7f06e83",
+      "TargetGroupName": "orders-api-tg-prod",
+      "Protocol": "HTTP",
+      "Port": 8080,
+      "VpcId": "vpc-0c4d3c2b1a098765f",
+      "HealthCheckPath": "/healthz",
+      "LoadBalancerArns": [
+        "arn:aws:elasticloadbalancing:ap-southeast-1:333333333333:loadbalancer/app/orders-alb-prod/7ab3d14c88e0f2a5"
+      ]
+    }
+  ]
+}

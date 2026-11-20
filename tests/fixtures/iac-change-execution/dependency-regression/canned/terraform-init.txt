@@ -1,0 +1,7 @@
+Initializing the backend...
+
+Initializing provider plugins...
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v5.74.0
+
+Terraform has been successfully initialized!

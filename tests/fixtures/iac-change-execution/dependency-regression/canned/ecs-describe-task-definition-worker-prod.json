@@ -1,0 +1,23 @@
+{
+  "taskDefinition": {
+    "family": "orders-worker-prod",
+    "revision": 14,
+    "status": "ACTIVE",
+    "cpu": "512",
+    "memory": "1024",
+    "containerDefinitions": [
+      {
+        "name": "orders-worker",
+        "image": "333333333333.dkr.ecr.ap-southeast-1.amazonaws.com/orders/orders-worker:v1.8.3",
+        "environment": [
+          {
+            "name": "APP_ENV"
+          },
+          {
+            "name": "DB_HOST"
+          }
+        ]
+      }
+    ]
+  }
+}

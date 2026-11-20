@@ -13,6 +13,7 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | Command pattern | Canned file | Use when |
 |---|---|---|
 | `kubectl config current-context` | `kubectl-context.txt` | always |
+| `kubectl config view --minify*` | `kubectl-config-view-minify.yaml` | always. The context `prod-cluster`; its cluster's `server` is `https://8C4E1F2A9B3D7E6F5A0B1C2D3E4F5A6B.gr7.ap-southeast-1.eks.amazonaws.com`, an EKS endpoint in `ap-southeast-1`. Credential data is omitted. The runner applies any `-o jsonpath` |
 | `aws sts get-caller-identity` | `identity-prod.json` | always. Account 123456789012 |
 
 ## Git and GitHub (simulated)
@@ -50,7 +51,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 
 | Command pattern | Canned file | Use when |
 |---|---|---|
-| `helm diff upgrade notifyapi * -n notifyapi-prod*` | `helm-diff.txt` | the plan: `replicaCount` 2 → 4 for the expected code. Any values-file arguments |
+| `helm diff upgrade notifyapi * -n notifyapi-prod*` | `empty.txt` | before the code change: no differences between the release and the chart as it is (no drift). Any values-file arguments |
+| `helm diff upgrade notifyapi * -n notifyapi-prod*` | `helm-diff.txt` | the plan, after the code change: `replicaCount` 2 → 4 for the expected code. Any values-file arguments |
 | `helm list -n notifyapi-prod*` | `helm-list.txt` | always |
 | `helm get values notifyapi -n notifyapi-prod` | `helm-get-values.yaml` | always (`--all` is not canned) |
 | `helm lint *` | `helm-lint.txt` | always |
@@ -71,11 +73,39 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `kubectl top nodes*` | `kubectl-top-nodes.txt` | always. Three nodes with CPU 31–44% and memory 38–52% |
 | `kubectl top pods -n notifyapi-prod*` | `kubectl-top-pods.txt` | before. Two pods, each well under its 250m CPU and 256Mi memory requests |
 | `kubectl top pods -n notifyapi-prod*` | `kubectl-top-pods-after.txt` | after. Four pods |
+| `kubectl get events -n notifyapi-prod*type=Warning*` | `kubectl-no-resources.txt` | always, before and after: no `Warning` event |
+| `kubectl get ingress*` | `kubectl-ingress-empty.json` | always, any namespace or `-A`: no Ingress in the cluster. An empty `List`; the runner applies any `-o` or `jq` |
 | `kubectl get prometheusrule* *` | `prometheusrules-notifyapi.json` | always. One rule, `notifyapi-slo` in `monitoring`, with a burn-rate alert, a queue-age alert and a not-ready alert |
 | `kubectl get servicemonitor* *` | `servicemonitors-notifyapi.json` | always. One ServiceMonitor for notifyapi |
 | `kubectl rollout status deploy/notifyapi -n notifyapi-prod*` | `kubectl-rollout-status.txt` | before, and after the rollout |
 | `kubectl get applications.argoproj.io *` | `kubectl-no-resource-type.txt` | always. No Argo CD |
 | `kubectl get kustomizations.kustomize.toolkit.fluxcd.io *` | `kubectl-no-resource-type-flux.txt` | always. No Flux |
+
+## Operator profile
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `operator profile read` (`$CULIOPS_HOME/operator.md`, else `~/.culiops/operator.md`) | `operator-profile.md` | always. Q5 for helm and Q4 for `acme/notifyapi/notifyapi`, each dated 2026-04-10; none is `first time`; no `incident check:` line |
+
+## App-source search
+
+There are no rows for `ls <parent of the repo>`, for any `git -C <dir>` read of a sibling checkout, or for an app-source read. A read of that kind has no canned output.
+
+## Snapshot reads (prod)
+
+S0/S1 = before the upgrade (the Step 1 batch, and the re-read just before the apply). S2 = after the CI job has run the upgrade and the rollout has completed. No Kubernetes metrics backend is reachable: the cluster has a `PrometheusRule` and a `ServiceMonitor`, but no Prometheus API address is in the repo, the catalog or the pre-flight record, and the fixture has no row for one. A query to a Prometheus backend has no canned output. The cluster's only metric reads are `kubectl top`, which are point-in-time. CloudWatch in `ap-southeast-1` answers with the prod identity: the SQS queue `notifyapi-prod-inbound` publishes its metrics there. A `get-metric-data` file answers whatever query file the skill writes (protocol, Notes › `get-metric-data` files).
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-prod.json` | S0/S1. A `List`: the Deployment `notifyapi` 2 of 2 ready, 2 pods `Running` with 0 restarts, no event, no StatefulSet, no HPA. The runner applies any `-o jsonpath` or `-o custom-columns` |
+| `kubectl get deploy,sts,pods,events,hpa -n notifyapi-prod*` | `k8s-snapshot-after-prod.json` | S2. The Deployment 4 of 4 ready, 4 pods `Running` with 0 restarts, three `Normal` events from the scale-up, no `Warning` event |
+| `helm history notifyapi -n notifyapi-prod*` | `helm-history.txt` | S0/S1: revision 9 `deployed` on 2026-04-02, 22 days before the clock start |
+| `helm history notifyapi -n notifyapi-prod*` | `helm-history-after.txt` | S2: revision 10 `deployed` at 14:31 +07:00 |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | always, `ap-southeast-1`: nothing is firing |
+| `aws cloudwatch get-metric-data *` | `metric-data-7d-prod.json` | a window longer than one day: the S0/S1 call of `examples/aws.md` › Health Snapshot (7 days and 1 hour, `Period` 3600). The queue `notifyapi-prod-inbound`, one value per hour, 169 hours oldest first, the last the hour ending at the clock start and the first the same hour a week earlier. `NumberOfMessagesSent` (last 2,910, first 2,860): weekdays peak between 09:00 and 12:00 +07:00 (02:00–05:00 UTC), about 4,000–4,500 per hour; weekend hours are about half the weekday ones; 00:00–05:00 +07:00 68–184 per hour. `ApproximateNumberOfMessagesVisible` maximum 0–15 (last 10, first 8). `ApproximateAgeOfOldestMessage` maximum 1–11 s (last 6, first 7) |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | a window of one hour or less: 5-minute values of the hour ending now, and of the same hour a week ago. The queue `notifyapi-prod-inbound`: `NumberOfMessagesSent` 236–251 per 5 minutes (2,910 in the hour; the same hour a week ago 231–245, 2,860), `ApproximateNumberOfMessagesVisible` maximum 6–10 (a week ago 6–8), `ApproximateAgeOfOldestMessage` maximum 5–6 s (a week ago 5–7 s) |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-prod.json` | S2: the queue's signals for the 6 periods of 300 s after the rollout completed. `NumberOfMessagesSent` 247–261 per period, `ApproximateNumberOfMessagesVisible` maximum 3–5, `ApproximateAgeOfOldestMessage` maximum 3–4 s. The runner returns the periods inside the window the skill asked for |
+| `gh run list *` | `gh-run-list.json` | CI history: the last run of the `helm-upgrade` workflow succeeded 2026-04-02 16:40 +07:00 |
 
 ## Documentation lookups
 

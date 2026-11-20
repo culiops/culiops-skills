@@ -1,0 +1,48 @@
+{
+  "TargetHealthDescriptions": [
+    {
+      "Target": {
+        "Id": "10.20.1.52",
+        "Port": 8080,
+        "AvailabilityZone": "ap-southeast-1a"
+      },
+      "HealthCheckPort": "8080",
+      "TargetHealth": {
+        "State": "healthy"
+      }
+    },
+    {
+      "Target": {
+        "Id": "10.20.2.64",
+        "Port": 8080,
+        "AvailabilityZone": "ap-southeast-1b"
+      },
+      "HealthCheckPort": "8080",
+      "TargetHealth": {
+        "State": "healthy"
+      }
+    },
+    {
+      "Target": {
+        "Id": "10.20.1.118",
+        "Port": 8080,
+        "AvailabilityZone": "ap-southeast-1a"
+      },
+      "HealthCheckPort": "8080",
+      "TargetHealth": {
+        "State": "healthy"
+      }
+    },
+    {
+      "Target": {
+        "Id": "10.20.2.139",
+        "Port": 8080,
+        "AvailabilityZone": "ap-southeast-1b"
+      },
+      "HealthCheckPort": "8080",
+      "TargetHealth": {
+        "State": "healthy"
+      }
+    }
+  ]
+}

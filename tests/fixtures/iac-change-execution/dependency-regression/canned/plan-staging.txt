@@ -1,0 +1,21 @@
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # aws_vpc_security_group_ingress_rule.orders_db_from_vpc will be destroyed
+  # (because aws_vpc_security_group_ingress_rule.orders_db_from_vpc is not in configuration)
+  - resource "aws_vpc_security_group_ingress_rule" "orders_db_from_vpc" {
+      - arn                    = "arn:aws:ec2:ap-southeast-1:222222222222:security-group-rule/sgr-0e1a2b3c4d5e6f701" -> null
+      - cidr_ipv4              = "10.20.0.0/16" -> null
+      - description            = "PostgreSQL from the VPC (legacy)" -> null
+      - from_port              = 5432 -> null
+      - id                     = "sgr-0e1a2b3c4d5e6f701" -> null
+      - ip_protocol            = "tcp" -> null
+      - security_group_id      = "sg-0e5a4b3c2d1f09876" -> null
+      - security_group_rule_id = "sgr-0e1a2b3c4d5e6f701" -> null
+      - tags_all               = {} -> null
+      - to_port                = 5432 -> null
+    }
+
+Plan: 0 to add, 0 to change, 1 to destroy.

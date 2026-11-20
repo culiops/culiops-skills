@@ -149,3 +149,32 @@ Stops: 2 (target 2) — PASS. Unscripted: 0. RED pre-flight runs: 0 (`P:15` `## 
 
 
 No fixes needed for this fixture.
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/simple-alarm-addition/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 2** (`grep -c '^STOP ' expected-output/stops.md`): A, B.
+- **L2 items in the v0.18 script: 12** (Q1–Q7, Q8 `if asked`, `iac-change.1`–`iac-change.4`). This is the v0.18 figure for typed L2. v0.20 target: 0 with `operator-script.md`, 2 with `operator-script-no-profile.md`.
+
+## v0.20 run
+
+Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+
+### operator-script.md
+- Out-dir: `expected-output-v020/`
+- Stops: 2 → 2.
+- Typed L2: 12 → 0.
+- Snapshot commands added to the prod batch: 4 (ecs describe-services, describe-target-health, describe-alarms ALARM, get-metric-data). S1 re-ran the same 4 on the same approval.
+- MUST: 20 PASS / 0 FAIL.
+
+### operator-script-no-profile.md
+- Out-dir: `expected-output-v020-no-profile/`
+- Stops: 2 → 2.
+- Typed L2: 12 → 2 (Q4, Q5).
+- Snapshot commands added to the prod batch: 4 (same four reads) plus 1 membership read (`describe-target-groups`). S1 re-ran the 4.
+- MUST: 14 PASS / 1 FAIL.
+
+### Known runner deviations (v0.20 round 3)
+
+- (round 4) `operator-script-no-profile.md`: `**Checked for you:**` at `[B]` has an `App source: not searched` row for a not-app-facing change. Runner error: `snapshot.md` says a not-app-facing change has no `App source:` row. The profile run did not do it. Recurring across rounds (also in round 3, both scripts).

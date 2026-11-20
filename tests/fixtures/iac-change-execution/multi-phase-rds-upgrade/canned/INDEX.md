@@ -21,8 +21,8 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `git branch --show-current` | `git-branch-after-switch.txt` | after `git switch -c <name>` or `git checkout -b <name>`: that new branch. The runner puts `<name>` where `<branch>` stands |
 | `git status` | `git-status-clean.txt` | always, before the skill writes code. `git status --short` prints nothing |
 | `git fetch origin *` | `empty.txt` | always (no output) |
-| `git remote get-url origin` | `git-remote.txt` | always |
-| `git rev-parse *` | `git-rev-parse.txt` | always. `--short` gives the first 7 characters, `a1b2c3d` |
+| `git remote get-url origin` | `git-remote.txt` | always, for the repo itself (a `git -C <dir>` read of a sibling checkout is in App-source search) |
+| `git rev-parse *` | `git-rev-parse.txt` | always, for the repo itself. `--short` gives the first 7 characters, `a1b2c3d` |
 | `git log * --since=*` | `empty.txt` | change velocity: no commit touched the changed paths in the window |
 | `git log * --grep=*` | `empty.txt` | duplicate check by ticket key: no hits |
 | `git log * -S*` | `empty.txt` | duplicate check by identifier: no hits |
@@ -78,6 +78,9 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeStorageSpace *paymentapi-db-prod*` | `metric-rds-free-storage-prod.json` | reads of prod, any window |
 | `aws ecs describe-services --cluster paymentapi-cluster-prod --services paymentapi-svc-prod *` | `ecs-describe-services-prod.json` | the app tier that connects to the database |
 | `aws elbv2 describe-target-health --target-group-arn *paymentapi-tg-prod*` | `tg-health-prod.json` | the app tier |
+| `aws elbv2 describe-target-groups --names paymentapi-tg-prod *` | `tg-describe-prod.json` | the app tier. Names the load balancer in front of it |
+| `aws elbv2 describe-target-groups --target-group-arns *paymentapi-tg-prod*` | `tg-describe-prod.json` | the app tier. The same file as the `--names` form |
+| `aws elbv2 describe-load-balancers --load-balancer-arns *paymentapi-alb-prod*` | `lb-describe-prod.json` | the load balancer `paymentapi-alb-prod` |
 
 ## CloudWatch alarms (prod)
 
@@ -87,9 +90,49 @@ Lookup rules are in `../../DRY-RUN-PROTOCOL.md` (rule 1). Rows that share a patt
 | `aws cloudwatch describe-alarms --alarm-names paymentapi-db-connections-high-prod *` | `alarm-connections-before-prod.json` | before the phase-1 apply. After it: `alarm-connections-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/RDS --metric-name DatabaseConnections *` | `alarms-for-metric-connections-prod.json` | before the phase-1 apply. After it: `alarms-for-metric-connections-after-prod.json` |
 | `aws cloudwatch describe-alarms-for-metric --namespace AWS/RDS --metric-name CPUUtilization *` | `alarms-for-metric-cpu-prod.json` | always |
-| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | always (the connections alarm is `OK` now; its history shows it flips often) |
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-prod.json` | S0/S1 of phase 1 (the connections alarm is `OK` now; its history shows it flips often) |
 | `aws cloudwatch describe-alarm-history --alarm-name paymentapi-db-connections-high-prod *` | `alarm-history-connections-prod.json` | always |
 | `aws sns list-subscriptions-by-topic --topic-arn arn:aws:sns:ap-southeast-1:123456789012:paymentapi-alerts-prod *` | `sns-subscriptions-prod.json` | always. The file carries endpoints; only `Protocol` is needed |
+
+## Operator profile
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `operator profile read` (`$CULIOPS_HOME/operator.md`, else `~/.culiops/operator.md`) | `operator-profile.md` | always. Q5 for terraform and Q4 for `acme/paymentapi-infra/paymentapi`, each dated 2026-10-19; none is `first time`; no `incident check:` line |
+
+## App-source search (in the read batch)
+
+The app source is a sibling checkout, `../paymentapi`: its directory name and its origin match `paymentapi`. Its `HEAD` is 3 commits past the tag `v2.5.0`, and its working tree is clean. The deployed image tag is `v2.4.1` (`ecs-describe-task-definition-prod.json`, the task definition `paymentapi-prod:12` that `ecs-describe-services-prod.json` names). The tag `v2.4.1` exists in the checkout as an older commit. The rows below are the only reads of the checkout that have canned output.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `aws ecs describe-task-definition --task-definition paymentapi-prod*` | `ecs-describe-task-definition-prod.json` | reads of prod. The deployed image tag is `v2.4.1` |
+| `ls <parent of the repo>` (`ls ..`, `ls ../`, or the parent's path) | `siblings-ls.txt` | always. `dotfiles`, `paymentapi` (the app) and `paymentapi-infra` (this repo) |
+| `git -C ../dotfiles remote get-url origin` | `sibling-origin-dotfiles.txt` | always. `git@github.com:acme/dotfiles.git`, not the app |
+| `git -C ../paymentapi remote get-url origin` | `sibling-origin-paymentapi.txt` | always. `git@github.com:acme/paymentapi.git` |
+| `git -C ../paymentapi rev-parse HEAD` | `app-source-rev-parse.txt` | always. `5d1c8e4a7b2f90361a4c6e8d0b3f5a7c9e1d2b4f`, not the commit of `v2.4.1` |
+| `git -C ../paymentapi status --porcelain` | `empty.txt` | always. The tree is clean |
+| `git -C ../paymentapi describe --tags*` | `app-source-describe.txt` | always. `v2.5.0-3-g5d1c8e4` |
+| `git -C ../paymentapi rev-parse v2.4.1*` | `app-source-rev-parse-tag.txt` | always. The commit of the deployed tag, `c0a7e93f1b6d4285a9e0c3b7d5f2a18e46b9d07c`; the ref exists in the checkout |
+| `git -C ../paymentapi grep -n * v2.4.1 -- .` | `app-source-grep-deployed.txt` | any search at the deployed ref for the pool, the connection limit or the database engine. The lines that set the pool size and the overflow |
+| `git -C ../paymentapi show v2.4.1:app/db.py` | `app-source-show-db.py.txt` | the file that builds the engine |
+| `git -C ../paymentapi show v2.4.1:app/config.py` | `app-source-show-config.py.txt` | the config loader. It holds no password |
+
+## Snapshot reads (prod)
+
+States:
+
+- S0/S1 of phase 1: before the phase-1 apply.
+- S2 of phase 1, and S1 of phase 2: after the phase-1 apply, before the reboot command. The instance is `pending-reboot`; no metric has changed.
+- S2 of phase 2: after the reboot command. The first period after the reboot is the reboot itself: the instance is `rebooting`, CPU is 86% and connections are 0. From the second period the instance is `available` and every series is at its S0 level. The ECS service and the load balancer series do not change during the reboot.
+
+| Command pattern | Canned file | Use when |
+|---|---|---|
+| `aws cloudwatch describe-alarms --state-value ALARM *` | `alarms-firing-after-prod.json` | S2 of phase 1, S1 of phase 2 and S2 of phase 2: nothing is firing |
+| `aws cloudwatch get-metric-data *` | `metric-data-s0-prod.json` | S0/S1 of phase 1, and S2 of phase 1 / S1 of phase 2 (nothing changed in the metrics). Database: CPU 31–37%, connections average 50–53 and maximum 76–78 of `max_connections` 100, read latency about 1.2 ms, write latency about 2.2 ms, freeable memory minimum about 6.1 GB, free storage minimum 82 GB. ECS service: CPU 35–41%, memory 50–54%. Load balancer: `RequestCount` about 3,450 per 5 minutes, target 5XX 0, load-balancer 5XX 0, p95 about 0.11 s, healthy hosts 3, unhealthy 0. Each with the same hour a week ago |
+| `aws cloudwatch get-metric-data *` | `metric-data-s2-reboot-prod.json` | S2 of phase 2: 6 periods from the reboot command, database series as described above (in the first period read and write latency are also high, about 4.8 ms and 7.1 ms; freeable memory is higher after the reboot), the others unchanged. The runner returns the periods inside the window the skill asked for |
+| `gh run list *` | `gh-run-list-empty.json` | always. The repo has no CI config: `[]` |
+| `aws s3api head-object --bucket * --key *` | `s3-head-object-state-prod.json` | the state object's metadata. `LastModified` 2026-10-30 16:14 +07:00. The code declares no backend block |
 
 ## Documentation lookups
 

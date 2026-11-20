@@ -108,7 +108,9 @@ Skip a question only when L1 holds evidence that answers it (e.g. a change-freez
 
 The matched assessor (from `assessors/*.md`) may add assessor-specific questions. Those are asked after the standard 7, in the same prompt. One that GATE 1 fully answered (e.g. how the change is delivered) is not asked again; one it answered in part is asked for the rest (e.g. whether the plan used `-target` or `-refresh=false`, after GATE 1 settled the workspace and var-file).
 
-Inline mode: the caller's `L2 answers:` are the operator's answers, tagged as above. Ask only what the caller block lacks, in one batch: any of Q1–Q5 and Q7; Q8 when L1 found an app-facing change (a caller's Q8 answer approves the same reads); Q6 unless L1 scores cost from the plan; the Incident Context follow-up when Q1 is yes; and each assessor question that neither an `<assessor>.<n>=` answer nor evidence in the block answers (e.g. `Delivery model:` answers how the change is delivered; `Plan hash:` with its plan command and `Target:` answer how the plan was made). Nothing missing → no L2 stop.
+Inline mode: the caller's `L2 answers:` are the operator's answers, each carrying its source tag (scored in the next paragraph). Ask only what the caller block lacks, in one batch: any of Q1–Q5 and Q7 (`Q1(alarms)` and `Q1(declared)` together answer Q1; one of the two alone does not); Q8 when L1 found an app-facing change (a caller's Q8 answer approves the same reads); Q6 unless L1 scores cost from the plan; the Incident Context follow-up when Q1 is yes, except when Q1 is yes only because `Q1(alarms)` is yes and `Q1(declared)` is no (a live read, no declared incident): then ask no follow-up, category 5 stays Red, and GATE 2 (the caller's `[H5]`) carries the operator's justification; and each assessor question that neither an `<assessor>.<n>=` answer nor evidence in the block answers (e.g. `Delivery model:` answers how the change is delivered; `Plan hash:` with its plan command and `Target:` answer how the plan was made). Nothing missing → no L2 stop.
+
+Inline mode: scoring the tagged answers. A `live: <cmd> (caller, <time>)` or `code:` answer is evidence: cite it as `live: <cmd> (caller, <time>)` or `code:<path:line>` (Constraint 1), and it counts as live or code evidence only for the question it answers: zero firing alarms answers `Q1(alarms)` and nothing more, and is not category 10 Green evidence, which needs error rate, latency and saturation (Constraint 8). `operator (no objection at [<stop>], <time>)` and `operator (profile, <date>)` both count as `operator`, and the record keeps the full tag. An answer tagged `operator` about a checkable fact stays `operator-stated` and never scores a category Green on its own (Constraint 8). `unsure` with `UNVERIFIED — <why>` scores like `unsure`: ⚪ unknown or Yellow, never Green (Constraint 1), and the finding names what was not read and why. `Q3=unsure (apply at merge; peak hours HH–HH, live)` scores as `unsure`, and the finding or mitigation names the `peak hours: HH–HH` window. `Q1(alarms)` and `Q1(declared)` together answer Q1: either one `yes` means Q1 is yes, and the finding cites which one. `Q1(alarms)=unsure (UNVERIFIED — <why>)` has no Q1 option of its own: score Q1 from `Q1(declared)` alone, which then covers incidents in general. It carries the `operator` tag, so category 5 is never Green on it alone, and the finding names the alarm source that was not read. When Q1 is yes only because `Q1(alarms)` is yes, cite the firing alarms as `live:` in the finding. `Q8` arrives tagged `app:` or `operator`: its value is a location only, and category 11 still needs the Step 3b `app:` citations.
 
 ### Layer 3 — Live Signals (optional, operator opts in)
 
@@ -131,7 +133,7 @@ If yes, consult `examples/aws.md` and/or `examples/kubernetes.md` for:
 
 If any query fails (no credentials, permission denied, timeout), the skill records "L3 unavailable for [category] — scoring based on L1+L2 only" and proceeds. No hard failure.
 
-Inline mode: don't ask the opt-in question above. Cite each of the caller's `Live results:` as `live: <cmd> (caller, <time>)`. Propose only the reads they don't cover, as one batch with one approval; that batch is an extra stop. Nothing missing → no L3 stop. If the batch is declined, the categories it would have filled stay ⚪.
+Inline mode: don't ask the opt-in question above. Cite each of the caller's `Live results:` as `live: <cmd> (caller, <time>)`. A caller read that ran covers the signals it asked for, even when some returned no data or the read failed: score those signals from it (no data → ⚪, with the finding naming the read), and do not propose them again. Propose only the reads they don't cover, as one batch with one approval; that batch is an extra stop. Nothing missing → no L3 stop. If the batch is declined, the categories it would have filled stay ⚪.
 
 ## Rationalization Prevention
 
@@ -424,7 +426,7 @@ The pre-flight record written to `.culiops/pre-flight/<service>-<action>-<YYYYMM
 <list of mitigations the operator agreed to perform; standalone GREEN or deferred, and Inline mode on GREEN / YELLOW: the same line as Acknowledged Risks>
 
 ## Context Provided (L2)
-<summary of operator's answers to the 7 questions, each tagged `operator` or `operator-stated`; Inline mode: mark the answers taken from the caller block>
+<summary of operator's answers to the 7 questions, each tagged `operator` or `operator-stated`; Inline mode: each answer carries the caller's tag: `live: <cmd> (caller, <time>)`, `code:`, `operator (no objection at [<stop>], <time>)`, `operator (profile, <date>)`, `app:` (Q8) or `UNVERIFIED — <why>`, and Q1 shows both `Q1(alarms)` and `Q1(declared)`>
 
 ## L1 Analysis Detail
 <what was scanned, what catalog was used, git history summary>
@@ -469,7 +471,7 @@ Target: <account ID / region | kube context / namespace | TF workspace / var-fil
 Delivery model: <who or what applies it, and when> (<evidence>)
 Lane: <light | full> — <basis>
 Plan hash: sha256:<hex> (<plan command>)
-L2 answers: Q1=… Q2=… Q3=… Q4=… Q5=… Q7=… [Q8=…] [<assessor>.<n>=…]
+L2 answers: Q1(alarms)=… Q1(declared)=… Q2=… Q3=… Q4=… Q5=… Q7=… [Q8=…] [<assessor>.<n>=…]
 Live results: <command> · <time> · <one-line summary>, one per line, or none
 Evidence table: <the caller's table, with drift / unverified / code-only rows called out>
 ```
@@ -478,7 +480,7 @@ Evidence table: <the caller's table, with drift / unverified / code-only rows ca
 
 ### Incident Context
 
-During incident investigation, if the operator considers a mitigation action (rollback, drain, failover), pre-flight can assess it. When the operator answers "yes" to the active-incident question (L2 Q1), this follow-up applies. Standalone, it rides with Q1 in the Step 3 prompt, so a "yes" needs no second round; Inline mode: it is asked in the inline L2 batch.
+During incident investigation, if the operator considers a mitigation action (rollback, drain, failover), pre-flight can assess it. When the operator answers "yes" to the active-incident question (L2 Q1), this follow-up applies. Standalone, it rides with Q1 in the Step 3 prompt, so a "yes" needs no second round; Inline mode: it is asked in the inline L2 batch, except when Q1 = yes comes only from `Q1(alarms)` (Layer 2, Inline mode).
 
 > "Is this change a mitigation for the active incident? If yes, give the incident reference, one line on how this action mitigates it, and the evidence: the failing signal (`live:`), that the change touches the failing component (`plan:`), and what the action does (`docs:`). If your freeze rules need an approver, name who approved."
 

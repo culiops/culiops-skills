@@ -1,0 +1,96 @@
+{
+  "services": [
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:222222222222:service/orders-cluster-staging/orders-api-staging",
+      "serviceName": "orders-api-staging",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:222222222222:cluster/orders-cluster-staging",
+      "status": "ACTIVE",
+      "desiredCount": 2,
+      "runningCount": 2,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/orders-api-staging:14",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0e1a2b3c4d5e6f701",
+            "subnet-0e2b3c4d5e6f70812"
+          ],
+          "securityGroups": [
+            "sg-0e6b5c4d3e2f10987"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173701",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/orders-api-staging:14",
+          "desiredCount": 2,
+          "pendingCount": 0,
+          "runningCount": 2,
+          "failedTasks": 0,
+          "createdAt": "2026-11-12T08:20:41.007000+00:00",
+          "rolloutState": "COMPLETED"
+        }
+      ],
+      "events": [
+        {
+          "createdAt": "2026-11-12T08:20:41.007000+00:00",
+          "message": "(service orders-api-staging) has reached a steady state."
+        }
+      ],
+      "loadBalancers": [
+        {
+          "targetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:222222222222:targetgroup/orders-api-tg-staging/6d0ecf831eec9f09",
+          "containerName": "orders-api",
+          "containerPort": 8080
+        }
+      ]
+    },
+    {
+      "serviceArn": "arn:aws:ecs:ap-southeast-1:222222222222:service/orders-cluster-staging/orders-worker-staging",
+      "serviceName": "orders-worker-staging",
+      "clusterArn": "arn:aws:ecs:ap-southeast-1:222222222222:cluster/orders-cluster-staging",
+      "status": "ACTIVE",
+      "desiredCount": 2,
+      "runningCount": 2,
+      "pendingCount": 0,
+      "launchType": "FARGATE",
+      "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/orders-worker-staging:14",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-0e3c4d5e6f7081923",
+            "subnet-0e4d5e6f708192a34"
+          ],
+          "securityGroups": [
+            "sg-0e7c6d5e4f3a21098"
+          ],
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "deployments": [
+        {
+          "id": "ecs-svc/441790225580173711",
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:ap-southeast-1:222222222222:task-definition/orders-worker-staging:14",
+          "desiredCount": 2,
+          "pendingCount": 0,
+          "runningCount": 2,
+          "failedTasks": 0,
+          "createdAt": "2026-11-12T08:21:02.514000+00:00",
+          "rolloutState": "COMPLETED"
+        }
+      ],
+      "events": [
+        {
+          "createdAt": "2026-11-12T08:21:02.514000+00:00",
+          "message": "(service orders-worker-staging) has reached a steady state."
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

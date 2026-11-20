@@ -1,0 +1,4 @@
+REVISION	UPDATED                 	STATUS    	CHART          	APP VERSION	DESCRIPTION     
+7       	Thu Feb 12 09:12:44 2026	superseded	notifyapi-1.1.0	3.0.2      	Upgrade complete
+8       	Mon Mar 16 10:03:51 2026	superseded	notifyapi-1.2.0	3.1.0      	Upgrade complete
+9       	Thu Apr  2 09:41:17 2026	deployed  	notifyapi-1.2.0	3.1.0      	Upgrade complete

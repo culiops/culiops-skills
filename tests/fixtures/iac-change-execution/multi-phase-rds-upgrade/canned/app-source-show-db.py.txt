@@ -1,0 +1,14 @@
+"""Database engine."""
+from sqlalchemy import create_engine
+
+from app.config import DATABASE_URL, DB_MAX_OVERFLOW, DB_POOL_SIZE
+
+
+def make_engine():
+    # pool_pre_ping replaces a connection the server closed (restart, failover) on checkout
+    return create_engine(
+        DATABASE_URL,
+        pool_size=DB_POOL_SIZE,
+        max_overflow=DB_MAX_OVERFLOW,
+        pool_pre_ping=True,
+    )

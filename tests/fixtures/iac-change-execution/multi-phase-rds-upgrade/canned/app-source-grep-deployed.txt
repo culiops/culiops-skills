@@ -1,0 +1,5 @@
+v2.4.1:app/config.py:6:DB_POOL_SIZE = int(os.environ.get("DB_POOL_SIZE", "20"))
+v2.4.1:app/config.py:7:DB_MAX_OVERFLOW = int(os.environ.get("DB_MAX_OVERFLOW", "5"))
+v2.4.1:app/db.py:11:        pool_size=DB_POOL_SIZE,
+v2.4.1:app/db.py:12:        max_overflow=DB_MAX_OVERFLOW,
+v2.4.1:app/db.py:13:        pool_pre_ping=True,

@@ -1,0 +1,25 @@
+{
+  "DBInstances": [
+    {
+      "DBInstanceIdentifier": "orders-db-staging",
+      "DBInstanceClass": "db.t4g.medium",
+      "Engine": "postgres",
+      "EngineVersion": "15.4",
+      "DBInstanceStatus": "available",
+      "Endpoint": {
+        "Address": "orders-db-staging.c8xyz1234abcd.ap-southeast-1.rds.amazonaws.com",
+        "Port": 5432
+      },
+      "MultiAZ": false,
+      "VpcSecurityGroups": [
+        {
+          "VpcSecurityGroupId": "sg-0e5a4b3c2d1f09876",
+          "Status": "active"
+        }
+      ],
+      "PendingModifiedValues": {},
+      "PubliclyAccessible": false,
+      "DeletionProtection": true
+    }
+  ]
+}

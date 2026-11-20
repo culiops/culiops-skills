@@ -193,3 +193,29 @@ Fixes applied:
 - The Outcome MUST now reads the record's `## Outcome` section.
 
 **Still open (reported, not fixed in this branch):** row 13, phase-2 change velocity. The phase-2 Yellow, "stacking on an uncommitted prior change", is a true signal, not a scoring error. The direct-apply path never commits applied code, so phase 1's applied change lives only in the working tree, and a later apply from the default branch would revert it. That gap predates this branch. The follow-up is to commit applied code on the direct-apply path, not to change pre-flight's scoring. It changes neither the stop count nor the verdict.
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/multi-phase-rds-upgrade/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 7** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F3, H5, F4, H5, F4. That is the 5-stop sequence (F1, F2, F3, F4, F4) plus two `[H5]`, one per RED pre-flight run.
+- **L2 items in the v0.18 script: 12** (Q1–Q8, `iac-change.1`–`iac-change.4`), plus the phase-2 `[F4]` re-ask `Q1–Q3 still true (if asked)`. This is the v0.18 figure for typed L2. v0.20 target: at most 1 (Q8, the operator's confirmation of the `App source:` line).
+
+### Known runner deviations (v0.20 round 3)
+
+Deviations from skill text that the MUST checker judged clear. The skill text is not changed for them; a re-run should show whether they recur.
+
+- (c1) `[F2]` showed the snapshot set without a source for each member (MUST M7). The sources appeared only in the research narration before `[F1]` and in the record. `snapshot.md:7` ("every member its source") and the SKILL.md research summary (`Snapshot set: <members, each with its source and any label>`) ask for them in the stop.
+- (round 4) Phase 1 category 2 (reversibility) scored Green; v0.18 expects Yellow. The runner did not apply pre-flight's "manual rollback possible but untested" Yellow: its own plan calls the rollback untested. The round 3 `canned/docs.md` entry for reverting a static RDS parameter gave the docs evidence for Green, while the README still expects Yellow. Fixture owner decides which is right. Phase 2 category 2 scored Yellow.
+- (round 4) `[F2]` showed the snapshot set without a source per member again (c1 above recurred; MUST FAIL).
+
+## v0.20 run
+
+Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+
+### operator-script.md
+- Out-dir: `expected-output-v020/`
+- Stops: 7 → 7 (F1, F2, F3, H5, F4, H5, F4; 5 plus one `[H5]` per RED pre-flight).
+- Typed L2: 13 → 1 (Q8, asked inside `[F2]`).
+- Snapshot commands added to the prod batch: 2 S0 reads (alarms, get-metric-data) plus 1 automation-lag read (`gh run list`); 8 if the 5 app-source and image reads are counted. S1 re-ran 5 reads per apply on the same approval.
+- MUST: 24 PASS / 2 FAIL (category 2, and the `[F2]` snapshot-set sources).

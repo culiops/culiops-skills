@@ -6,7 +6,7 @@ This script answers the stops of a dry run (see `../DRY-RUN-PROTOCOL.md`). Match
 
 ## Answers by stop
 
-1. `[D1]` — apply directly from my workstation. Delivery model, if asked: terraform is applied by hand (operator-stated). The dev lane runs no pre-flight, so these are said only if asked: Q8 (if asked)=(c) the application source is not available; the assessor's IaC questions iac-change.1=yes, iac-change.2=terraform is applied by hand (operator-stated), iac-change.3=no (default workspace; the env's own var-file), iac-change.4=recent.
+1. `[D1]` — apply directly from my workstation. Operator line: no reply. Delivery model, if asked: terraform is applied by hand (operator-stated). The dev lane runs no pre-flight, so these are said only if asked: Q8 (if asked)=(c) the application source is not available; the assessor's IaC questions iac-change.1 (if asked)=yes, iac-change.2 (if asked)=terraform is applied by hand (operator-stated), iac-change.3 (if asked)=no (default workspace; the env's own var-file), iac-change.4 (if asked)=recent.
 
 With this script the operator's credentials are for the dev account (see `canned/INDEX.md`).
 
