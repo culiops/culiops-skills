@@ -1,0 +1,2 @@
+[<branch> 7f3a9c1] <commit subject>
+ <n> file(s) changed, <insertions> insertions(+), <deletions> deletions(-)

@@ -1,0 +1,37 @@
+{
+  "SecurityGroups": [
+    {
+      "GroupId": "sg-0e5a4b3c2d1f09876",
+      "GroupName": "orders-db-sg-staging",
+      "VpcId": "vpc-0e4d3c2b1a098765f",
+      "Description": "orders staging database security group",
+      "IpPermissions": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 5432,
+          "ToPort": 5432,
+          "IpRanges": [
+            {
+              "CidrIp": "10.20.0.0/16",
+              "Description": "PostgreSQL from the VPC (legacy)"
+            }
+          ],
+          "UserIdGroupPairs": []
+        },
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 5432,
+          "ToPort": 5432,
+          "IpRanges": [],
+          "UserIdGroupPairs": [
+            {
+              "GroupId": "sg-0e9f8a7b6c5d4e3f2",
+              "Description": "PostgreSQL from the admin host"
+            }
+          ]
+        }
+      ],
+      "IpPermissionsEgress": []
+    }
+  ]
+}

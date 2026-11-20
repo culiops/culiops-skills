@@ -1,0 +1,200 @@
+{
+  "MetricDataResults": [
+    {
+      "Label": "paymentapi-db-prod CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [31.2, 34.0, 36.8, 32.6, 35.4, 31.2, 34.0, 36.8, 32.6, 35.4, 31.2, 34.0]
+    },
+    {
+      "Label": "paymentapi-db-prod CPUUtilization (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [31.5, 34.3, 37.2, 32.9, 35.8, 31.5, 34.3, 37.2, 32.9, 35.8, 31.5, 34.3]
+    },
+    {
+      "Label": "paymentapi-db-prod DatabaseConnections",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [50, 51, 52, 53, 50, 51, 52, 53, 50, 51, 52, 53]
+    },
+    {
+      "Label": "paymentapi-db-prod DatabaseConnections (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [49, 50, 51, 52, 49, 50, 51, 52, 49, 50, 51, 52]
+    },
+    {
+      "Label": "paymentapi-db-prod DatabaseConnections Maximum",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [78, 77, 76, 78, 77, 76, 78, 77, 76, 78, 77, 76]
+    },
+    {
+      "Label": "paymentapi-db-prod DatabaseConnections Maximum (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "Values": [76, 75, 74, 76, 75, 74, 76, 75, 74, 76, 75, 74]
+    },
+    {
+      "Label": "paymentapi-svc-prod CPUUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [34.8, 38.0, 41.2, 36.4, 39.6, 34.8, 38.0, 41.2, 36.4, 39.6, 34.8, 38.0]
+    },
+    {
+      "Label": "paymentapi-svc-prod MemoryUtilization",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [49.8, 52.0, 54.2, 50.9, 53.1, 49.8, 52.0, 54.2, 50.9, 53.1, 49.8, 52.0]
+    },
+    {
+      "Label": "paymentapi-alb-prod RequestCount",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [3400, 3437, 3474, 3511, 3428, 3465, 3502, 3419, 3456, 3493, 3410, 3447]
+    },
+    {
+      "Label": "paymentapi-alb-prod RequestCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [3349, 3385, 3422, 3458, 3377, 3413, 3449, 3368, 3404, 3441, 3359, 3395]
+    },
+    {
+      "Label": "paymentapi-alb-prod HTTPCode_Target_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod HTTPCode_Target_5XX_Count (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod TargetResponseTime p95",
+      "StatusCode": "Complete",
+      "Statistic": "p95",
+      "Period": 300,
+      "Values": [0.108, 0.114, 0.12, 0.108, 0.114, 0.12, 0.108, 0.114, 0.12, 0.108, 0.114, 0.12]
+    },
+    {
+      "Label": "paymentapi-alb-prod TargetResponseTime p95 (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "p95",
+      "Period": 300,
+      "Values": [0.11, 0.116, 0.122, 0.11, 0.116, 0.122, 0.11, 0.116, 0.122, 0.11, 0.116, 0.122]
+    },
+    {
+      "Label": "paymentapi-db-prod ReadLatency",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [0.0011, 0.0012, 0.0013, 0.0012, 0.0011, 0.0012, 0.0013, 0.0012, 0.0011, 0.0012, 0.0013, 0.0012]
+    },
+    {
+      "Label": "paymentapi-db-prod ReadLatency (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [0.0011, 0.0012, 0.0012, 0.0011, 0.0011, 0.0012, 0.0012, 0.0011, 0.0011, 0.0012, 0.0012, 0.0011]
+    },
+    {
+      "Label": "paymentapi-db-prod WriteLatency",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [0.0021, 0.0022, 0.0024, 0.0022, 0.0021, 0.0022, 0.0024, 0.0022, 0.0021, 0.0022, 0.0024, 0.0022]
+    },
+    {
+      "Label": "paymentapi-db-prod WriteLatency (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Average",
+      "Period": 300,
+      "Values": [0.0021, 0.0022, 0.0023, 0.0021, 0.0021, 0.0022, 0.0023, 0.0021, 0.0021, 0.0022, 0.0023, 0.0021]
+    },
+    {
+      "Label": "paymentapi-db-prod FreeableMemory",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [6100000000.0, 6110000000.0, 6120000000.0, 6100000000.0, 6100000000.0, 6110000000.0, 6120000000.0, 6100000000.0, 6100000000.0, 6110000000.0, 6120000000.0, 6100000000.0]
+    },
+    {
+      "Label": "paymentapi-db-prod FreeableMemory (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [6150000000.0, 6160000000.0, 6140000000.0, 6150000000.0, 6150000000.0, 6160000000.0, 6140000000.0, 6150000000.0, 6150000000.0, 6160000000.0, 6140000000.0, 6150000000.0]
+    },
+    {
+      "Label": "paymentapi-db-prod FreeStorageSpace",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0, 82000000000.0]
+    },
+    {
+      "Label": "paymentapi-db-prod FreeStorageSpace (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0, 82600000000.0]
+    },
+    {
+      "Label": "paymentapi-alb-prod HTTPCode_ELB_5XX_Count",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod HTTPCode_ELB_5XX_Count (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Sum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod HealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+    },
+    {
+      "Label": "paymentapi-alb-prod HealthyHostCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+    },
+    {
+      "Label": "paymentapi-alb-prod UnHealthyHostCount",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "Label": "paymentapi-alb-prod UnHealthyHostCount (1w ago)",
+      "StatusCode": "Complete",
+      "Statistic": "Minimum",
+      "Period": 300,
+      "Values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "databaseId": 9412087731,
+    "workflowName": "helm-upgrade",
+    "displayTitle": "notifyapi: bump image to v3.1.0 (#52)",
+    "event": "push",
+    "headBranch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "createdAt": "2026-04-02T09:40:12Z"
+  }
+]

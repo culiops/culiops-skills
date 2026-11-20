@@ -1,0 +1,15 @@
+{
+  "LoadBalancers": [
+    {
+      "LoadBalancerArn": "arn:aws:elasticloadbalancing:ap-southeast-1:222222222222:loadbalancer/app/orders-alb-staging/50dc6c495c0c9188",
+      "DNSName": "internal-orders-alb-staging-1746382910.ap-southeast-1.elb.amazonaws.com",
+      "LoadBalancerName": "orders-alb-staging",
+      "Scheme": "internal",
+      "VpcId": "vpc-0e4d3c2b1a098765f",
+      "State": {
+        "Code": "active"
+      },
+      "Type": "application"
+    }
+  ]
+}

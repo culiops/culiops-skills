@@ -25,3 +25,9 @@ Canned answers for `docs:` lookups. They are fixture text, not fetched pages: th
 - URL: https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html
 - Date read: 2026-11-09
 - Sentence relied on (paraphrase): Calling `PutMetricAlarm` with the name of an existing alarm updates that alarm: its state is left unchanged and the new settings, a new threshold included, replace its previous configuration. The alarm is not deleted and re-created.
+
+## Reverting a static RDS parameter to its previous value
+
+- URL: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithParamGroups.html
+- Date read: 2026-11-09
+- Sentence relied on (paraphrase): A parameter in a custom DB parameter group can be modified again at any time, back to its earlier value included, or reset to its default. The reversal follows the same apply rule as the change: a static parameter's restored value takes effect only after the next reboot of the instance. No data is changed by either.

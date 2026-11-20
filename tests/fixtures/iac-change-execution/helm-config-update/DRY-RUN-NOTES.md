@@ -159,3 +159,32 @@ Observation: the reused record scores 10 categories and the skill now defines 11
 
 
 Fix applied after the first v0.18 run: the record wrote ``**Waived:** `[F3]` `` (brackets and backticks). Constraint 15 and the 5b template now say the value is the bare stop ID (`**Waived:** F3 — operator, <time>`). Re-run: the table above is from the re-run.
+
+## Baseline (v0.18 expected-output)
+
+Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git show main:tests/fixtures/iac-change-execution/helm-config-update/operator-script.md`, "Answers by stop"). A v0.20 run goes to `expected-output-v020/` and is compared with these figures.
+
+- **Stops: 3** (`grep -c '^STOP ' expected-output/stops.md`): F1, F2, F4.
+- **L2 items in the v0.18 script: 12** (Q1–Q7, Q8 `if asked`, `iac-change.1`–`iac-change.4`). This is the v0.18 figure for typed L2. v0.20 target: 0.
+
+## v0.20 run
+
+Simulated dry-runs (canned command output), following SKILL.md on branch feat/iac-change-snapshot-and-l2. The 2026-11-20 re-run replaced the 2026-11-18 out-dir.
+
+### operator-script.md, 2026-11-18 (before the founder decisions)
+- Out-dir: `expected-output-v020/`
+- Stops: 3 → 4 (F1, F2, H5, F4).
+- Typed L2: 12 → 0.
+- Snapshot commands added: 1 (S0 combined `kubectl get deploy,sts,pods,events,hpa` read) plus 2 automation-lag reads (`helm history`, `gh run list`). S1 re-read the 1.
+- MUST: 17 PASS / 0 FAIL.
+- Stop target 4 is decided (founder, 2026-11-20): a change applied at merge keeps `Q3=unsure`, see README.
+- This run's snapshot set had no dependents or dependencies: the text then skipped scaling counts.
+
+### operator-script.md, 2026-11-20 (after the founder decisions)
+- Out-dir: `expected-output-v020/`, replacing the 2026-11-18 output.
+- Stops: 3 → 4 (F1, F2, H5, F4). Unscripted: 0. `[F3]` waived at `[F2]`; the pre-flight skip refused (H9); pre-flight ran inline, `RED — soft block`, shown as `[H5]`.
+- Typed L2: 12 → 0 (L2-ASKED 0).
+- Snapshot set as shown: Deployment `notifyapi` (changed) · Service `notifyapi` (`n/a — no health signals of its own`) · SQS `notifyapi-prod-inbound` (dependency) · SMTP relay and SES (catalog leads, not snapshotted). Coverage: code + catalog + live kubectl and CloudWatch; not covered: callers outside the repo, SMTP, SES, and notifyapi's error rate, latency and alerts (no metrics backend).
+- Snapshot commands per environment: 6 (`kubectl get deploy`, `kubectl get pods`, `kubectl get events`, `kubectl get hpa`, `aws cloudwatch describe-alarms`, `aws cloudwatch get-metric-data`), one over the "about five" target, because Kubernetes state is read per type. Run at S0 and again at S1 (S0 was 17 minutes old). No S2: the PR is open.
+- Q3 took its peak hours (09:00–12:00 +07:00) from the queue's `NumberOfMessagesSent`. The README MUST, as relaxed after review, allows peak hours only from a member `snapshot.md` › L2 from evidence names (a load balancer, or the service in front of an RDS instance), so this is a deviation for the verifier to score.
+- Fixture gaps, `no canned output` (5 occurrences, 4 commands): `kubectl get events` with `type=Warning` (S0 14:18, S1 14:48); `kubectl get ingress -A` (14:24); `kubectl config view --minify` for the API server (pre-flight target check, 14:54); a pricing docs lookup (14:58). Rows and a `docs.md` entry for all four were added after the run; it was not re-run.
