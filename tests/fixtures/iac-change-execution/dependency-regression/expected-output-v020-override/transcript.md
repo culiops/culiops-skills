@@ -429,7 +429,7 @@ Diff self-check (6 items):
 6. Formatted: `terraform fmt main.tf` printed nothing. Pass.
 Self-check: 6/6 pass. Light-lane E1–E3 on the diff: not run (full lane).
 
-Fresh eyes: required — the phase is not add-only and touches network exposure (a security-group rule) and a data store's access. A separate reviewer cannot be dispatched in this dry run (runner prompt: no subagents; protocol default). Recorded as `fresh-eyes: not run — dry run`.
+Fresh eyes: required — the phase is not add-only and touches network exposure (a security-group rule) and a data store's access. A separate reviewer cannot be dispatched in this dry run (run instructions: no separate reviewer; protocol default). Recorded as `fresh-eyes: not run — dry run`.
 
 Canned plan versus code: the canned plan (`plan-staging.txt`, `plan-prod.txt`) destroys `aws_vpc_security_group_ingress_rule.orders_db_from_vpc` with "not in configuration", 0 add / 0 change / 1 destroy. That is exactly what this code plans. No difference.
 

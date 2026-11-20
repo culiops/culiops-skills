@@ -15,7 +15,7 @@ Deviations from skill text that the MUST checker judged clear. The skill text is
 
 ## v0.20 run
 
-Simulated dry-run (canned command output), 2026-11-18, sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2.
+Simulated dry-run (canned command output), 2026-11-18, following SKILL.md on branch feat/iac-change-snapshot-and-l2.
 
 No v0.18 baseline: this fixture is new in v0.20. Stop target 6 (+1 `[H5]` per RED pre-flight).
 

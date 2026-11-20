@@ -356,7 +356,7 @@ Diff self-check (6 items):
 6. Formatted — pass: `terraform fmt main.tf` printed nothing.
 **6/6.** E1–E3 are not required (full lane).
 
-Fresh eyes: required (the phase changes an existing resource and touches a data store's parameter group; skip rule does not hold). Run instructions say do not dispatch subagents, protocol default applies: `fresh-eyes: not run — dry run`.
+Fresh eyes: required (the phase changes an existing resource and touches a data store's parameter group; skip rule does not hold). Run instructions allow no separate reviewer, protocol default applies: `fresh-eyes: not run — dry run`.
 
 ### [F3] message shown to the operator (10:56)
 

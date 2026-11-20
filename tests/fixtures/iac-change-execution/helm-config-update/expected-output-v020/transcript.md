@@ -337,7 +337,7 @@ Diff self-check (the runner answers `git status --short` and `git diff` from the
 
 1. Scope — pass: one file, `values-prod.yaml`, the phase's approved list; it changed. 2. Plan ↔ hunk — pass: `Deployment/notifyapi` change (`replicas` 2 → 4) ↔ `values-prod.yaml:4`. 3. Conventions — pass: same key and style as the line it replaces (`code: values-prod.yaml:4`), consumed at `code: templates/deployment.yaml:10`. 4. No silent safety changes — pass: none of the Kubernetes list (no `replicas: 0`, no PDB or limit removed, no RBAC, no `privileged`). 5. No secrets — pass: the hunk is one integer; `git status` shows no `tfplan` / state / `.terraform/`. 6. Formatted — pass: `helm lint .` 0 failed (an INFO about the missing icon). **6/6.**
 
-Fresh eyes: required — the phase changes an existing resource (not add-only), so the skip rule does not hold. The runner may not dispatch a subagent: `fresh-eyes: not run — dry run`.
+Fresh eyes: required — the phase changes an existing resource (not add-only), so the skip rule does not hold. The run instructions allow no separate reviewer: `fresh-eyes: not run — dry run`.
 
 Note: the canned plan (`helm-diff.txt`) is `replicas: 2 → 4` for the `Deployment` only; the code written plans the same.
 

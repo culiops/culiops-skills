@@ -169,7 +169,7 @@ Measured on `expected-output/` (the v0.18 run) and on the v0.18 script (`git sho
 
 ## v0.20 run
 
-Simulated dry-runs (canned command output), sonnet runner following SKILL.md on branch feat/iac-change-snapshot-and-l2. The 2026-11-20 re-run replaced the 2026-11-18 out-dir.
+Simulated dry-runs (canned command output), following SKILL.md on branch feat/iac-change-snapshot-and-l2. The 2026-11-20 re-run replaced the 2026-11-18 out-dir.
 
 ### operator-script.md, 2026-11-18 (before the founder decisions)
 - Out-dir: `expected-output-v020/`
